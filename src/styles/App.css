@@ -1,0 +1,41 @@
+body {
+  overflow-x: hidden;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+td {
+  border: 2px red solid;
+}
+
+.header {
+  display: flex;
+  padding-bottom:20px;
+}
+
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 60px;
+}
+
+.component {
+  margin-left: 120px;
+}
+
+.mainComponent {
+  width: 90%;
+  height: 90%;
+  position: absolute;
+  overflow: auto;
+}
+
+.container {
+  display: flex;
+  height: 80vh;
+}

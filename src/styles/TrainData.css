@@ -1,0 +1,50 @@
+/* ...existing code... */
+
+.tt-table {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+}
+.tt-table th, .tt-table td {
+  border: 1px red solid;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.tt-station-header {
+  width: 120px;
+  position: sticky;
+  /*駅名固定のために追加*/
+  left: 0;
+  background: #fff;
+  border:1px red double;
+  z-index: 2;
+}
+.tt-station {
+  width: 100px;
+  position: sticky;
+  /*駅名固定のために追加*/
+  left: 0;
+  background: #fff;
+  border:1px red double;
+  z-index: 1;
+}
+.TrainData {
+  width: 60px;
+}
+.CTimes {
+  color: green;
+  
+}
+.Station-cell {
+  white-space: nowrap;
+  display: flex;
+  text-align: left;
+}
+.tt-time {
+  height: 29px;
+}
+.Time-cell {
+  line-height: 25px;
+}
+/* ...existing code... */

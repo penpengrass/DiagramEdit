@@ -1,0 +1,50 @@
+/*#SideBar {
+    /*float: left;
+    width: 100px;
+    height:100%;
+    margin-left: 0px;
+    background-color: #f0f0f0;
+    position: fixed;
+    width: 48px;
+    float:left;
+    width: 100px;
+      background-color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: start;
+  }*/
+p{
+    color:green;
+}
+#SideBar {
+  /*float: left;
+  width: 100px;
+  height:100%;
+  margin-left: 0px;
+  background-color: #f0f0f0;
+  position: fixed;
+  width: 48px;*/
+  width: 100px;
+    background-color: #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+}
+aside {
+  position: fixed;
+  left: 0;
+  width: 200px;     /* 幅を固定 */
+  height: 100%;    /* 画面の高さいっぱい */
+  background-color: #f0f0f0;
+  overflow-y: auto; /* 中身が長い場合はスクロール可 */
+}
+button{
+    /*margin:10px;*/
+    background: none;
+    border: none;
+    font-size: 12px;
+    padding: 12px;
+    cursor: pointer;
+}
