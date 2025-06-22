@@ -1,10 +1,5 @@
 import React from 'react';
-type TrainType ={
-    id: number;
-    name: string;
-    ryakushou: string;
-    color: string;
-};
+import { TrainType } from '../constants/Traindatamap';
 interface Props {
   TrainTypeA: TrainType[];
 }

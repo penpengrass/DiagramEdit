@@ -3,13 +3,15 @@ interface CsvTableProps {
   rows: string[][];
   data: string[][];
 }
-const DiaTable: React.FC<CsvTableProps> = ({ data,rows }) => {
+const DiaTable: React.FC<CsvTableProps> = ({ rows }) => {
   //console.log(data);
   //console.log(rows);
   if (rows.length === 0) {
     return <div>No data loaded.</div>;
   }
   return (
+    <>
+    <p>時刻表などに反映された部分は削除しています。</p>
     <table>
       <thead>
         <tr>
@@ -28,6 +30,7 @@ const DiaTable: React.FC<CsvTableProps> = ({ data,rows }) => {
         ))}
       </tbody>
     </table>
+    </>
   );
 };
 
