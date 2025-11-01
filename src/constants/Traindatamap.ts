@@ -6,6 +6,7 @@ export interface TrainType {
     color: string;
 }
 export interface TrainData {
+    DiaLine:number;
     id: number;
     dir: number;
     type: number;
@@ -18,11 +19,13 @@ export interface TimeEntry {
     stop: string;
     arrive?: string;
     departure?: string;
-    railnumberInto?: number;
+    railNumber:string
+    railNumberInto: number;
 }
 
 export interface OudData {
     headers: string[];
+    Dia:number;
     rows: string[][];
     rosenmei: string;
     stations: Station[];

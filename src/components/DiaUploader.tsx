@@ -1,7 +1,7 @@
 import React from "react";
 export let FileFormat: number = 0; // ここでグローバルに定義
 import { Station } from "../constants/stationmap";
-import { TrainData,TrainType,OudData } from "../constants/Traindatamap";
+import { TrainData, TrainType, OudData } from "../constants/Traindatamap";
 
 interface DiaUploaderProps {
     onOudDataLoaded: (data: any) => void;
@@ -45,7 +45,7 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
         //TrainType.push([name, Ryakushou])
         TrainType.push({ id: count, name: name, ryakushou: Ryakushou, color: color })
     };
-    const addTrainData = (td: number, lines: Array<string>, count: number, KudariData: any, NoboriData: any) => {
+    const addTrainData = (td: number, DiaId: number, lines: Array<string>, count: number, KudariData: any, NoboriData: any) => {
         //console.log("td=" + td)
         var _dir
         var _Type = ""
@@ -67,9 +67,9 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
         }
         _time = timeToEnter(_time)
         if (_dir == 0) {
-            KudariData.push({ id: count, dir: _dir, type: _Type, number: _number, name: _name, time: _time })
+            KudariData.push({ DiaLine: DiaId, id: count, dir: _dir, type: _Type, number: _number, name: _name, time: _time })
         } else if (_dir == 1) {
-            NoboriData.push({ id: count, dir: _dir, type: _Type, number: _number, name: _name, time: _time })
+            NoboriData.push({ DiaLine: DiaId, id: count, dir: _dir, type: _Type, number: _number, name: _name, time: _time })
         }
     };
     //発着時刻追加のif文の中
@@ -83,7 +83,7 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
         }
         const Ltime = time.split(',')
         for (var s = 0; s < Ltime.length; s++) {
-            let RailNumber:number;
+            let RailNumber: number;
             if (FileFormat == 2) {
                 const RailNumberDevide = Ltime[s].split('$');
                 Ltime[s] = RailNumberDevide[0];
@@ -138,9 +138,12 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
         const TrainType: TrainType[] = [];
         const KudariData: TrainData[] = [];
         const NoboriData: TrainData[] = [];
+        const Dia: number = 0;
         var count = 0;
+        //let TrainId:number=0;
         var countTrain = 0;
         var countStation = 0;
+        let countDia: number = 0;
         //var station=new Array(1);
         //OudiaかSecondかを判定する機能が欲しい
         if (lines[0].startsWith('FileType=OuDiaSecond')) {
@@ -172,7 +175,7 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
                             break;
                         }*/
                         railNumber++;
-                        lines.splice(td, 4);
+                        //lines.splice(td, 4);
                         td += 4;
                     }
                 }
@@ -185,14 +188,19 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
                     lines.splice(td + 1, 8);
                 }
             } else if (lines[td].startsWith('Ressya.')) {
-                addTrainData(td, lines, countTrain, KudariData, NoboriData)
+                addTrainData(td,countDia, lines, countTrain, KudariData, NoboriData)
                 countTrain++;
+
+            }
+            if (lines[td].startsWith('Dia.')) {
+                countDia++;
+                countTrain=0;
             }
         }
         const headers = lines[0].split(",");
         const rows = lines.slice(1).map((line: any) => line.split(","));
         console.log(rows);
-        return { headers, rows, rosenmei, stations, TrainType, KudariData, NoboriData };
+        return { headers, rows, rosenmei, stations, TrainType, KudariData, NoboriData, Dia };
     }
     return (
         <div>
