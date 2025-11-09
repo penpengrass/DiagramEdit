@@ -10,6 +10,7 @@ import StationShow from "./components/StationShow.tsx";
 import TypeShow from "./components/TypeShow.tsx";
 import TrainData from "./components/TrainData.tsx";
 import Cell from "./Cell.tsx";
+//import { Diagrams } from "./constants/Traindatamap";
 export type ComponentKey = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
 
 /*const componentsMap = {
@@ -28,16 +29,16 @@ const App: React.FC = () => {
   const [selected, setSelected] = useState<ComponentKey>('A');
   const [csvData, setCsvData] = useState<string[][]>([]);
   const [DiaData, setOudData] = useState<any>([]);
-  const [stationsA, setStationDataA] = useState<any>([]);
+  const [stations, setStationDataA] = useState<any>([]);
   //const [stationsB, setStationDataB] = useState<any>([]);
   const [TrainTypeA, setTrainTypeData] = useState<any>([]);
   const [KudariDataA, setKudariTrainData] = useState<any>([]);
   const [NoboriDataA, setNoboriTrainData] = useState<any>([]);
+  const [Diagram,setDiagram] = useState<any>([]);
   //<DiaTable data={DiaData} />
   //<StationShow stationsA={stationsA} />
   //<DiaTable data={DiaData} rows={csvData} />
-  console.log(stationsA);
-  //console.log(stationsB);
+  //console.log(Diagram);
   return (
     <div>
       <div className="container">
@@ -50,20 +51,20 @@ const App: React.FC = () => {
             <DiaUploader onOudDataLoaded={(data) => {
               setOudData(data);
               setStationDataA(data.stations);
-              //setStationDataB(data.stations);
               setTrainTypeData(data.TrainType);
               setKudariTrainData(data.KudariData);
               setNoboriTrainData(data.NoboriData);
+              setDiagram(data.Diagrams);
             }}
               onCsvDataLoaded={setCsvData} />
           </div>
           <div className="mainComponent">
             {/* selected に応じて表示を切り替える(条件付きレンダリングを使用している) */}
             {selected === 'A' && <DiaTable data={DiaData} rows={csvData} />}
-            {selected === 'B' && <StationShow stationsA={stationsA} />}
+            {selected === 'B' && <StationShow stationsA={stations} />}
             {selected === 'C' && <TypeShow TrainTypeA={TrainTypeA} />}
-            {selected === 'D' && <TrainData TrainDataA={KudariDataA} typesA={TrainTypeA} stationsA={stationsA} />}
-            {selected === 'E' && <TrainData TrainDataA={NoboriDataA} typesA={TrainTypeA} stationsA={[...stationsA].reverse()} />}
+            {selected === 'D' && <TrainData TrainDataA={KudariDataA} typesA={TrainTypeA} stationsA={stations} diagrams={Diagram} />}
+            {selected === 'E' && <TrainData TrainDataA={NoboriDataA} typesA={TrainTypeA} stationsA={[...stations].reverse()} diagrams={Diagram} />}
             {selected === 'F' && <Cell />}
           </div>
         </div>

@@ -1,7 +1,7 @@
 import React from "react";
 export let FileFormat: number = 0; // ここでグローバルに定義
 import { Station } from "../constants/stationmap";
-import { TrainData, TrainType, OudData } from "../constants/Traindatamap";
+import { TrainData, TrainType, OudData, Diagrams } from "../constants/Traindatamap";
 
 interface DiaUploaderProps {
     onOudDataLoaded: (data: any) => void;
@@ -72,6 +72,9 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
             NoboriData.push({ DiaLine: DiaId, id: count, dir: _dir, type: _Type, number: _number, name: _name, time: _time })
         }
     };
+    const addDiagram = (Diagram: Diagrams[], count: number, countDianame: string) => {
+        Diagram.push({ id: count, name: countDianame });
+    }
     //発着時刻追加のif文の中
     const timeToEnter = (time: any) => {
         const pattern1 = /(\d);(\d+)\/(\d+)/
@@ -138,7 +141,7 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
         const TrainType: TrainType[] = [];
         const KudariData: TrainData[] = [];
         const NoboriData: TrainData[] = [];
-        const Dia: number = 0;
+        const Diagrams: Diagrams[] = [];
         var count = 0;
         //let TrainId:number=0;
         var countTrain = 0;
@@ -188,19 +191,22 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
                     lines.splice(td + 1, 8);
                 }
             } else if (lines[td].startsWith('Ressya.')) {
-                addTrainData(td,countDia, lines, countTrain, KudariData, NoboriData)
+                addTrainData(td, countDia, lines, countTrain, KudariData, NoboriData)
                 countTrain++;
 
             }
             if (lines[td].startsWith('Dia.')) {
+                var AddDiagramName = lines[td + 1].replace('DiaName=', '');
+                addDiagram(Diagrams, countDia, AddDiagramName);
                 countDia++;
-                countTrain=0;
+                countTrain = 0;
             }
         }
         const headers = lines[0].split(",");
         const rows = lines.slice(1).map((line: any) => line.split(","));
-        console.log(rows);
-        return { headers, rows, rosenmei, stations, TrainType, KudariData, NoboriData, Dia };
+        //console.log(rows);
+        console.log(Diagrams);
+        return { headers, rows, rosenmei, stations, TrainType, KudariData, NoboriData, Diagrams };
     }
     return (
         <div>

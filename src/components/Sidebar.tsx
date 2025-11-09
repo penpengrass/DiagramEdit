@@ -29,7 +29,7 @@ const SideBar: React.FC<Props> = ({ onSelect }) => {
   return (
     <>
       <aside id="SideBar">
-        <p>SideBar</p>
+        <p>サイドメニュー</p>
         <button onClick={() => onSelect('A')}>ファイル内容</button>
         <button onClick={() => onSelect('B')}>駅一覧</button>
         <button onClick={() => onSelect('C')}>列車種別</button>

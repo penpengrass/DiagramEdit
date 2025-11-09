@@ -1,12 +1,13 @@
-import React,{useState} from "react";
+import React, { useState } from "react";
 import '../styles/TrainData.css'
 import { Station, layoutNameMap } from '../constants/stationmap';
-import { TrainData, TrainType, TimeEntry } from "../constants/Traindatamap";
+import { TrainData, TrainType, TimeEntry, Diagrams } from "../constants/Traindatamap";
 
 interface TrainDataProps {
   TrainDataA: TrainData[];
   typesA: TrainType[];
   stationsA: Station[];
+  diagrams: Diagrams[];
 }
 interface TrainRowProps {
   TrainDataA: TrainData[];
@@ -19,11 +20,24 @@ interface TrainRowPartsProps {
   rowIdx: number;
   show: keyof TimeEntry;
 }
-const DiaSelect: React.FC <{value: string; onChange: (v: string) => void }> = ({ value, onChange }) => {
-  return(
-    <select name="name" id="name" value={value} onChange={e => onChange(e.target.value)}>
+/*const DiaSelect: React.FC <{value: string; onChange: (v: string) => void }> = ({ value, onChange }) => {
+<select name="name" id="name" value={value} onChange={e => onChange(e.target.value)}>
       <option value="1">ダイヤ１</option>
       <option value="2">ダイヤ２</option>
+    </select>*/
+const DiaSelect: React.FC<{ value: string; onChange: (v: string) => void; diagrams: Diagrams[] }> = ({ value, onChange, diagrams }) => {
+  console.log(diagrams);
+  const options = diagrams && diagrams.length > 0
+    ? diagrams.map(d => (
+      <option key={d.id} value={String(d.id + 1)}>{d.name}</option>
+    ))
+    : [
+      <option key="1" value="1">初期ダイヤ</option>,
+      <option key="2" value="2">第2ダイヤ</option>
+    ];
+  return (
+    <select name="name" id="name" value={value} onChange={e => onChange(e.target.value)}>
+      {options}
     </select>
   );
 };
@@ -36,32 +50,41 @@ const TrainRowParts: React.FC<TrainRowPartsProps> = ({ TrainDataA, station, rowI
     //console.log(traindata.type);
     return traindata.time.map((time) => {
       if (time.stop === "2") {
-        return { ...time, stop: "レ", arrive: time.arrive || "レ", departure: time.departure || "レ", railNumber:"||"};
+        return { ...time, stop: "レ", arrive: time.arrive || "レ", departure: time.departure || "レ", railNumber: "||" };
       } else if (time.stop === "1") {
-        return { ...time, stop: time.departure || "" , railNumber:getRailNumber(time.railNumberInto)};
+        return { ...time, stop: time.departure || "", railNumber: getRailNumber(time.railNumberID) };
       } else if (time.stop == "0") {
-        return { ...time, stop: "・・・" , railNumber:getRailNumber(time.railNumberInto)};
+        return { ...time, stop: "・・・", railNumber: getRailNumber(time.railNumberID) };
       }
       return time;
     });
   };
-  const getRailNumber=(id: number):string => {
-    const RailNumber=station.railnumber[id];
+  //時刻表の左部に駅名を表示するかどうか
+  const getNameOrRailNumber = (): string => {
+    if (show == "railNumber") {
+      return "発着番線";
+    } else {
+      return station.name;
+    }
+  }
+  //Onedata_cellとは時刻表表示時の1セルのこと
+  const getRailNumber = (id: number): string => {
+    const RailNumber = station.railnumber[id];
     return RailNumber ? RailNumber.ryakushou : "";
   }
   return (
     <tr key={station.id}>
       <td className="tt-station">
-        <div className="Station-cell">{station.name}</div>
+        <div className="Station-cell">{getNameOrRailNumber()}</div>
       </td>
-      {TrainDataA.map((onedata) => (
+      {TrainDataA.map((Onedata_cell) => (
         <td
           className="CTimes"
-          key={`${onedata.DiaLine}-${onedata.id}`}
-          data-show={onedata.time[rowIdx]?.[show]}
+          key={`${Onedata_cell.DiaLine}-${Onedata_cell.id}`}
+          data-show={Onedata_cell.time[rowIdx]?.[show]}
         >
-          <div className="tt-time" data-show={onedata.time[rowIdx]?.[show]}>
-            <div className="Time-cell">{getTimeCell(onedata)[rowIdx]?.[show]}</div>
+          <div className="tt-time" data-show={Onedata_cell.time[rowIdx]?.[show]}>
+            <div className="Time-cell">{getTimeCell(Onedata_cell)[rowIdx]?.[show]}</div>
           </div>
         </td>
       ))}
@@ -75,9 +98,9 @@ const TrainRow: React.FC<TrainRowProps> = ({ TrainDataA, station, rowIdx }) => {
   //console.log(station.layout);
   //console.log(layoutNameMap);
   //console.log(layoutNameMap[station.layout].values[0]);
-  //ここに着と発と番線を入れたい
+  //着発番線が入る場合
   if (layoutNameMap[station.layout].values[0] == 1 && layoutNameMap[station.layout].values[1] == 1) {
-    
+
     return (
       <>
         <TrainRowParts
@@ -87,7 +110,7 @@ const TrainRow: React.FC<TrainRowProps> = ({ TrainDataA, station, rowIdx }) => {
           rowIdx={rowIdx}
           show="arrive"
         />
-         <TrainRowParts
+        <TrainRowParts
           key={`${station.id}-2`}
           TrainDataA={TrainDataA}
           station={station}
@@ -103,6 +126,7 @@ const TrainRow: React.FC<TrainRowProps> = ({ TrainDataA, station, rowIdx }) => {
         />
       </>
     );
+    //到着時刻のみの場合
   } else if (layoutNameMap[station.layout].values[0] == 1) {
     return (
       <TrainRowParts
@@ -113,6 +137,7 @@ const TrainRow: React.FC<TrainRowProps> = ({ TrainDataA, station, rowIdx }) => {
         show="arrive"
       />
     );
+    //発車時刻のみの場合
   } else if (layoutNameMap[station.layout].values[1] == 1)
     return (
       <TrainRowParts
@@ -127,18 +152,19 @@ const TrainRow: React.FC<TrainRowProps> = ({ TrainDataA, station, rowIdx }) => {
 
 
 //時刻表示メインコンポーネント
-const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stationsA }) => {
-   const [selectedDia, setSelectedDia] = useState("1");
+const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stationsA, diagrams }) => {
+  const [selectedDia, setSelectedDia] = useState("1");
   const getTypeById = (id: number): string => {
     const TypeName = typesA[id]
-    return TypeName ? TypeName.ryakushou : "Not Found";
+    return TypeName ? TypeName.ryakushou : "TypeName Not Found";
   };
-  console.log(TrainDataA);
+  console.log(diagrams);
   //ここで、ダイヤ選択している
   const filteredTrainDataA = TrainDataA.filter((onedata) => String(onedata.DiaLine) === selectedDia);
+  console.log(filteredTrainDataA);
   return (
     <div>
-      <DiaSelect value={selectedDia} onChange={setSelectedDia} />
+      <DiaSelect value={selectedDia} onChange={setSelectedDia} diagrams={diagrams} />
       <table className="tt-table">
         <thead>
           <tr>
