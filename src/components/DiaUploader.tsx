@@ -102,14 +102,14 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
                 //終着のみ(発時刻に着時刻を入れている)
                 //console.log(Ltime[s])
                 matches = Ltime[s].match(pattern2)
-                Ltime[s] = { stop: matches[1], arrive: matches[2], departure: matches[2], railNumberInto: RailNumber }
+                Ltime[s] = { stop: matches[1], arrive: matches[2], departure: matches[2], railNumberID: RailNumber }
             } else if (Ltime[s].includes('/') && !Ltime[s].includes('$')) {
                 matches = Ltime[s].match(pattern1)
-                Ltime[s] = { stop: matches[1], arrive: matches[2], departure: matches[3], railNumberInto: RailNumber }
+                Ltime[s] = { stop: matches[1], arrive: matches[2], departure: matches[3], railNumberID: RailNumber }
             } else {
                 matches = Ltime[s].match(pattern2)
                 //console.log(Ltime[s])
-                Ltime[s] = { stop: matches[1], arrive: "", departure: matches[2], railNumberInto: RailNumber }
+                Ltime[s] = { stop: matches[1], arrive: "", departure: matches[2], railNumberID: RailNumber }
             }
         }
         //return time.replaceAll(',', '\n')
