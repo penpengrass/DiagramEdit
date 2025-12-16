@@ -20,6 +20,9 @@ export interface TrainData {
     number: string;
     name: string;
     time: TimeEntry[];
+    //路線外発着の情報を追加する
+    outerdep:OuterTime[];
+    outerarrive:OuterTime[];
 }
 //1列車の1駅に対する情報
 export interface TimeEntry {
@@ -29,7 +32,13 @@ export interface TimeEntry {
     railNumber:string
     railNumberID: number;
 }
-
+//1列車に関する、路線外発着を含めた駅処理を行う。入出区、入換を反映させる場合プロパティを追加する必要がある
+export interface OuterTime{
+    pointStationID:number;
+    terminalStationID:number;
+    terminalTime:string;
+    pointTime:string;
+}
 export interface OudData {
     headers: string[];
     Diagrams:Diagrams[];
