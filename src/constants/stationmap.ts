@@ -5,12 +5,19 @@ export interface RailNumber {
     name: string;
     ryakushou: string;
 }
+export interface OuterTerminalStation{
+  id:number;
+  name:string;
+  jikoku:string;
+  diaryaku:string;
+}
 export interface Station {
     id: number;
     name: string;
     main: string;
     layout: string;
     railnumber: RailNumber[];
+    OuterTerminal:OuterTerminalStation[];
 }
 
 export const layoutNameMap: { [key: string]: { label: string; values: number[] } } = {

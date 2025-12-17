@@ -47,4 +47,7 @@
 .Time-cell {
   line-height: 25px;
 }
+tfoot{
+  font-weight:bold;
+}
 /* ...existing code... */

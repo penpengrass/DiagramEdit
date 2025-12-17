@@ -33,18 +33,30 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
         //駅を追加するメソッド
         //this.stations.push(new Station(name, main, layout));
         //var newStation=new Station(name, main, layout);
-        stations.push({ id: countStation, name: name, layout: layout, main: main, railnumber: [] })
+        stations.push({ id: countStation, name: name, layout: layout, main: main, railnumber: [], OuterTerminal: [] })
         //this.stations.push({name,main,layout});
     };
     //addStationの中に入れたい
     const addRailNumber = (td: number, countRailNumber: number, stations: any, name: string, ryakushou: string) => {
-        //console.log(stations[td]);
         stations[td].railnumber.push({ id: countRailNumber, name: name, ryakushou: ryakushou })
     };
+    const addOuterTerminal = (id: number, OuterStationID: number, stations: any, name: string, jikoku: string, diaryaku: string) => {
+        stations[id].OuterTerminal.push({ id: OuterStationID, name: name, jikoku: jikoku, diaryaku: diaryaku });
+    }
     const addTrainType = (count: number, TrainType: any, name: string, Ryakushou: string, color: string) => {
         //TrainType.push([name, Ryakushou])
         TrainType.push({ id: count, name: name, ryakushou: Ryakushou, color: color })
     };
+    //路線外発着や入出区の処理をまとめて行いたい、実装途中
+    /*const addOuterData = (line_word: string) => {
+        const pattern = new RegExp('/^Operation(\d)([AB])=(.*)$');
+        const match1 = line_word.match(pattern);
+        if (match1) {
+            var station_id: number = Number(match1[1] || -1);
+            var AorB = match1[2];
+            var word = match1[3];
+        }
+    }*/
     const addTrainData = (td: number, DiaId: number, lines: Array<string>, count: number, KudariData: any, NoboriData: any) => {
         //console.log("td=" + td)
         var _dir
@@ -52,6 +64,8 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
         var _number = ""
         var _name = ""
         var _time = []
+        var _OuterTerminal = [];
+        var _OuterArrive = [];
         for (var _td = td; _td < td + 10; _td++) {
             if (lines[_td] == '.') {
                 break;
@@ -63,13 +77,29 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
             if (lines[_td].startsWith('Ressyabangou=')) _number = getDataFromFile(lines[_td])
             if (lines[_td].startsWith('EkiJikoku=')) _time = getDataFromFile(lines[_td])
             if (lines[_td].startsWith('Ressyamei=')) _name = getDataFromFile(lines[_td])
+            if (lines[_td].startsWith('Operation') && lines[_td].includes('=4')) {
+                var word = lines[_td].split('=');
+                var Outer = word[1].split('/');
+                var _pointStationID: string = word[0].replace('Operation', '').slice(0, -1);
+                var terminal: string = Outer[1];
+                var _pointTime: string = Outer[2].replace('$', '');
+                var _terminalStationID: string = terminal.split('$')[0];
+                var _terminalTime = terminal.split('$')[1];
+                if (lines[_td].includes('B=4')) {
+                    _OuterTerminal.push({ pointStationID: _pointStationID, terminalStationID: _terminalStationID, terminalTime: _terminalTime, pointTime: _pointTime })
+                } else if (lines[_td].includes('A=4')) {
+                    _OuterArrive.push({ pointStationID: _pointStationID, terminalStationID: _terminalStationID, terminalTime: _pointTime, pointTime: _terminalTime })
+                }
+                continue;
+                //addOuterData(lines[_td]);
+            }
             //lines.splice(_td, 1);
         }
         _time = timeToEnter(_time)
         if (_dir == 0) {
-            KudariData.push({ DiaLine: DiaId, id: count, dir: _dir, type: _Type, number: _number, name: _name, time: _time })
+            KudariData.push({ DiaLine: DiaId, id: count, dir: _dir, type: _Type, number: _number, name: _name, time: _time, outerdep: _OuterTerminal, outerarrive: _OuterArrive })
         } else if (_dir == 1) {
-            NoboriData.push({ DiaLine: DiaId, id: count, dir: _dir, type: _Type, number: _number, name: _name, time: _time })
+            NoboriData.push({ DiaLine: DiaId, id: count, dir: _dir, type: _Type, number: _number, name: _name, time: _time, outerdep: _OuterTerminal, outerarrive: _OuterArrive })
         }
     };
     const addDiagram = (Diagram: Diagrams[], count: number, countDianame: string) => {
@@ -166,11 +196,11 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
                     lines.splice(td, 4);
                 } else if (FileFormat == 2) {
                     addStation(countStation, stations, getDataFromFile(lines[td + 1]), getDataFromFile(lines[td + 2]), getDataFromFile(lines[td + 3]));
-                    //(要変更)路線外発着を考慮していないため後に変更する
                     while (lines[td + 1] != 'EkiTrack2.') {
                         td++;
                     }
                     let railNumber: number = 0;
+                    let OuterStationNumber: number = 0;
                     while (lines[td + 1] == 'EkiTrack2.') {
                         //console.log(lines[td+2]);
                         addRailNumber(countStation, railNumber, stations, getDataByKeyWord('TrackName=', lines[td + 2]), getDataByKeyWord('TrackRyakusyou=', lines[td + 3]));
@@ -180,6 +210,13 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
                         railNumber++;
                         //lines.splice(td, 4);
                         td += 4;
+                    }
+                    td++;
+                    //ここに駅の路線外発着駅を追加する
+                    while (lines[td + 1] == 'OuterTerminal.') {
+                        addOuterTerminal(countStation, OuterStationNumber, stations, getDataFromFile(lines[td + 1]), getDataFromFile(lines[td + 2]), getDataFromFile(lines[td + 3]));
+                        td += 5;
+                        OuterStationNumber++;
                     }
                 }
                 countStation++;

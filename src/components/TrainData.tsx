@@ -20,13 +20,20 @@ interface TrainRowPartsProps {
   rowIdx: number;
   show: keyof TimeEntry;
 }
+interface OuterTerminal {
+  onedata: TrainData;   // 単一オブジェクトを受け取る
+  stations: Station[];
+  showArr?: boolean;
+  showDep?: boolean;
+  cellType?: 'th' | 'td';
+}
 /*const DiaSelect: React.FC <{value: string; onChange: (v: string) => void }> = ({ value, onChange }) => {
 <select name="name" id="name" value={value} onChange={e => onChange(e.target.value)}>
       <option value="1">ダイヤ１</option>
       <option value="2">ダイヤ２</option>
     </select>*/
 const DiaSelect: React.FC<{ value: string; onChange: (v: string) => void; diagrams: Diagrams[] }> = ({ value, onChange, diagrams }) => {
-  console.log(diagrams);
+  //console.log(diagrams);
   const options = diagrams && diagrams.length > 0
     ? diagrams.map(d => (
       <option key={d.id} value={String(d.id + 1)}>{d.name}</option>
@@ -72,6 +79,13 @@ const TrainRowParts: React.FC<TrainRowPartsProps> = ({ TrainDataA, station, rowI
     const RailNumber = station.railnumber[id];
     return RailNumber ? RailNumber.ryakushou : "";
   }
+  // 路線外到着/発着を駅ごとに取得（存在しない場合は undefined）
+  const getOuterFor = (onedata: TrainData) => {
+    const outerArr = (onedata as any).outerarrive;
+    const outerDep = (onedata as any).outerdep;
+    const findByStation = (list: any) => Array.isArray(list) ? list.find((o: any) => Number(o.id) === station.id) : undefined;
+    return { outerArrive: findByStation(outerArr), outerDep: findByStation(outerDep) };
+  };
   return (
     <tr key={station.id}>
       <td className="tt-station">
@@ -149,7 +163,33 @@ const TrainRow: React.FC<TrainRowProps> = ({ TrainDataA, station, rowIdx }) => {
       />
     );
 }
+// OuterTerminal はヘッダー(onedata + stations) と行表示(TrainDataA + station) の両方で使われる
+const OuterTerminal: React.FC<OuterTerminal> = ({ onedata, stations, showArr = true, showDep = true, cellType = 'th', }) => {
+  //Cellにthもしくはtdを入れるようにする。
+  const Cell: any = cellType === 'th' ? 'th' : 'td';
+  if (!onedata) return <Cell className="TrainData"><div className="Outer-cell">&nbsp;</div></Cell>;
+  //console.log(stations[0].OuterTerminal[0].jikoku);
+  const getStationByID = (pointStationID: number, terminalStationID: number): string => {
+    if (!stations || stations.length === 0 || pointStationID == null || terminalStationID == null) return "";
+    //const sid = Number(id);
+    //const st = stations[pointStationID].find(s => Number(s.terminalStationID) === terminalStationID);
+    const st = stations[pointStationID].OuterTerminal[terminalStationID]
+    return st ? st.jikoku : "";
+  };
 
+  const outerArr = Array.isArray(onedata.outerarrive) ? onedata.outerarrive[0] : onedata.outerarrive;
+  const outerDep = Array.isArray(onedata.outerdep) ? onedata.outerdep[0] : onedata.outerdep;
+
+  return (
+    <Cell className="TrainData" key={`outer-${onedata.id}`}>
+      <div className="Outer-cell">
+        <div className="Outer-seq"></div>
+        {showArr ? (outerArr ? <div className="Outer-arrive">着: {outerArr.terminalTime ?? outerArr.pointTime}{outerArr.terminalStationID ? ` ${getStationByID(outerArr.pointStationID, outerArr.terminalStationID)}` : ""}</div> : <div className="Outer-empty">&nbsp;</div>) : null}
+        {showDep ? (outerDep ? <div className="Outer-dep">発: {outerDep.terminalTime ?? outerDep.pointTime}{outerDep.terminalStationID ? ` ${getStationByID(outerDep.pointStationID, outerDep.terminalStationID)}` : ""}</div> : <div className="Outer-empty">&nbsp;</div>) : null}
+      </div>
+    </Cell>
+  );
+}
 
 //時刻表示メインコンポーネント
 const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stationsA, diagrams }) => {
@@ -158,7 +198,8 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
     const TypeName = typesA[id]
     return TypeName ? TypeName.ryakushou : "TypeName Not Found";
   };
-  console.log(diagrams);
+  //console.log(diagrams);
+  //console.log(stationsA);
   //ここで、ダイヤ選択している
   const filteredTrainDataA = TrainDataA.filter((onedata) => String(onedata.DiaLine) === selectedDia);
   console.log(filteredTrainDataA);
@@ -176,8 +217,15 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
               </th>
             ))}
           </tr>
+          <tr>
+            <th className="tt-station-header"></th>
+            {filteredTrainDataA.map((onedata) => (
+              <OuterTerminal key={`${onedata.DiaLine}-${onedata.id}`} onedata={onedata} stations={stationsA} showArr={false} showDep={true} />
+            ))}
+          </tr>
         </thead>
         <tbody>
+
           {stationsA.flatMap((station, rowIdx) => (
             <TrainRow
               key={station.id}
@@ -187,6 +235,15 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
             />
           ))}
         </tbody>
+        <tfoot>
+          <tr>
+            <th className="tt-station-footer"></th>
+            {filteredTrainDataA.map((onedata) => (
+              // tfoot では外着のみ表示（outerArr）
+              <OuterTerminal key={`tfoot-${onedata.DiaLine}-${onedata.id}`} onedata={onedata} stations={stationsA} showArr={true} showDep={false} cellType="td" />
+            ))}
+          </tr>
+        </tfoot>
       </table>
     </div>
   );
