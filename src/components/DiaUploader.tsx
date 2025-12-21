@@ -43,7 +43,7 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
     const addOuterTerminal = (id: number, OuterStationID: number, stations: any, name: string, jikoku: string, diaryaku: string) => {
         stations[id].OuterTerminal.push({ id: OuterStationID, name: name, jikoku: jikoku, diaryaku: diaryaku });
     }
-    const addTrainType = (count: number, TrainType: any, name: string, Ryakushou: string, color: string) => {
+    const addTrainType = (count: number, TrainType: TrainType[], name: string, Ryakushou: string, color: string) => {
         //TrainType.push([name, Ryakushou])
         TrainType.push({ id: count, name: name, ryakushou: Ryakushou, color: color })
     };
@@ -129,10 +129,10 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
             } else if (Ltime[s].length == 1) {
                 Ltime[s] = { stop: Ltime[s] }
             } else if (Ltime[s].endsWith('/')) {
-                //終着のみ(発時刻に着時刻を入れている)
+                //終着駅に発車時刻を入れない
                 //console.log(Ltime[s])
                 matches = Ltime[s].match(pattern2)
-                Ltime[s] = { stop: matches[1], arrive: matches[2], departure: matches[2], railNumberID: RailNumber }
+                Ltime[s] = { stop: matches[1], arrive: matches[2], railNumberID: RailNumber }
             } else if (Ltime[s].includes('/') && !Ltime[s].includes('$')) {
                 matches = Ltime[s].match(pattern1)
                 Ltime[s] = { stop: matches[1], arrive: matches[2], departure: matches[3], railNumberID: RailNumber }
