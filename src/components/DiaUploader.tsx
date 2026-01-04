@@ -2,7 +2,7 @@ import React from "react";
 export let FileFormat: number = 0; // ここでグローバルに定義
 import { Station } from "../constants/stationmap";
 import { TrainData, TrainType, OudData, Diagrams } from "../constants/Traindatamap";
-
+import { Time } from '../utils/Time'; // 👈 Timeクラスをインポート
 interface DiaUploaderProps {
     onOudDataLoaded: (data: any) => void;
     onCsvDataLoaded: (rows: any) => void;
@@ -29,7 +29,7 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
         };
         reader.readAsText(file, "shift-jis");
     };
-    const addStation = (countStation: number, stations: any, name: string, layout: string, main: string) => {
+    const addStation = (countStation: number, stations: Station[], name: string, layout: string, main: string) => {
         //駅を追加するメソッド
         //this.stations.push(new Station(name, main, layout));
         //var newStation=new Station(name, main, layout);
@@ -37,10 +37,10 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
         //this.stations.push({name,main,layout});
     };
     //addStationの中に入れたい
-    const addRailNumber = (td: number, countRailNumber: number, stations: any, name: string, ryakushou: string) => {
+    const addRailNumber = (td: number, countRailNumber: number, stations: Station[], name: string, ryakushou: string) => {
         stations[td].railnumber.push({ id: countRailNumber, name: name, ryakushou: ryakushou })
     };
-    const addOuterTerminal = (id: number, OuterStationID: number, stations: any, name: string, jikoku: string, diaryaku: string) => {
+    const addOuterTerminal = (id: number, OuterStationID: number, stations: Station[], name: string, jikoku: string, diaryaku: string) => {
         stations[id].OuterTerminal.push({ id: OuterStationID, name: name, jikoku: jikoku, diaryaku: diaryaku });
     }
     const addTrainType = (count: number, TrainType: TrainType[], name: string, Ryakushou: string, color: string) => {
@@ -105,7 +105,7 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
     const addDiagram = (Diagram: Diagrams[], count: number, countDianame: string) => {
         Diagram.push({ id: count, name: countDianame });
     }
-    //発着時刻追加のif文の中
+    //発着時刻追加のif文の中、全駅の時刻を分割する。
     const timeToEnter = (time: any) => {
         const pattern1 = /(\d);(\d+)\/(\d+)/
         const pattern2 = /(\d);(\d+)/
@@ -132,14 +132,14 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
                 //終着駅に発車時刻を入れない
                 //console.log(Ltime[s])
                 matches = Ltime[s].match(pattern2)
-                Ltime[s] = { stop: matches[1], arrive: matches[2], railNumberID: RailNumber }
+                Ltime[s] = { stop: matches[1], arrive: Time.fromString(matches[2]), railNumberID: RailNumber }
             } else if (Ltime[s].includes('/') && !Ltime[s].includes('$')) {
                 matches = Ltime[s].match(pattern1)
-                Ltime[s] = { stop: matches[1], arrive: matches[2], departure: matches[3], railNumberID: RailNumber }
+                Ltime[s] = { stop: matches[1], arrive: Time.fromString(matches[2]), departure: Time.fromString(matches[3]), railNumberID: RailNumber }
             } else {
                 matches = Ltime[s].match(pattern2)
                 //console.log(Ltime[s])
-                Ltime[s] = { stop: matches[1], arrive: "", departure: matches[2], railNumberID: RailNumber }
+                Ltime[s] = { stop: matches[1], arrive: "", departure: Time.fromString(matches[2]), railNumberID: RailNumber }
             }
         }
         //return time.replaceAll(',', '\n')

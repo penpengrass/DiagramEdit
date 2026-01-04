@@ -60,11 +60,11 @@ const TrainRowParts: React.FC<TrainRowPartsProps> = ({ TrainDataA, station, rowI
     //console.log(traindata.time);
     return traindata.time.map((time) => {
       if (time.stop === "2") {
-        return { ...time, stop: "レ", arrive: time.arrive || "レ", departure: time.departure || "レ", railNumber: "||" };
+        return { ...time, stop: "2", arrive: time.arrive || "レ", departure: time.departure || "レ", railNumber: "||" };
       } else if (time.stop === "1") {
-        return { ...time, stop: time.departure || time.arrive || "", railNumber: getRailNumber(time.railNumberID) };
+        return { ...time, stop: "1", railNumber: getRailNumber(time.railNumberID) };
       } else if (time.stop == "0") {
-        return { ...time, stop: "・・・", railNumber: getRailNumber(time.railNumberID) };
+        return { ...time, stop: "0", railNumber: getRailNumber(time.railNumberID) };
       }
       return time;
     });
@@ -102,7 +102,7 @@ const TrainRowParts: React.FC<TrainRowPartsProps> = ({ TrainDataA, station, rowI
           style={{ color: toABGR(typesA[Onedata_cell.type]?.color ?? 'transparent') }}
         >
           <div className="tt-time" data-show={Onedata_cell.time[rowIdx]?.[show]}>
-            <div className="Time-cell">{getTimeCell(Onedata_cell)[rowIdx]?.[show]}</div>
+            <div className="Time-cell">{getTimeCell(Onedata_cell)[rowIdx]?.[show]?.toString()}</div>
           </div>
         </td>
       ))}
@@ -194,13 +194,12 @@ const OuterTerminal: React.FC<OuterTerminal> = ({ onedata, stations, showArr = t
 
   const outerArr = Array.isArray(onedata.outerarrive) ? onedata.outerarrive[0] : onedata.outerarrive;
   const outerDep = Array.isArray(onedata.outerdep) ? onedata.outerdep[0] : onedata.outerdep;
-
   return (
     <Cell className="TrainData" key={`outer-${onedata.id}`} style={{ color: toABGR(bgColor) ?? 'transparent' }}>
       <div className="Outer-cell">
         <div className="Outer-seq"></div>
-        {showArr ? (outerArr ? <div className="Outer-arrive">着: {outerArr.terminalTime ?? outerArr.pointTime}{outerArr.terminalStationID ? ` ${getStationByID(outerArr.pointStationID, outerArr.terminalStationID)}` : ""}</div> : <div className="Outer-empty">&nbsp;</div>) : null}
-        {showDep ? (outerDep ? <div className="Outer-dep">発: {outerDep.terminalTime ?? outerDep.pointTime}{outerDep.terminalStationID ? ` ${getStationByID(outerDep.pointStationID, outerDep.terminalStationID)}` : ""}</div> : <div className="Outer-empty">&nbsp;</div>) : null}
+        {showArr ? (outerArr ? <div className="Outer-arrive">着: {outerArr.terminalTime.toString() ?? outerArr.pointTime.toString()}{outerArr.terminalStationID ? ` ${getStationByID(outerArr.pointStationID, outerArr.terminalStationID)}` : ""}</div> : <div className="Outer-empty">&nbsp;</div>) : null}
+        {showDep ? (outerDep ? <div className="Outer-dep">発: {outerDep.terminalTime.toString() ?? outerDep.pointTime.toString()}{outerDep.terminalStationID ? ` ${getStationByID(outerDep.pointStationID, outerDep.terminalStationID)}` : ""}</div> : <div className="Outer-empty">&nbsp;</div>) : null}
       </div>
     </Cell>
   );
