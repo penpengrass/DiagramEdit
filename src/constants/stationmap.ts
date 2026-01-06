@@ -18,6 +18,7 @@ export interface Station {
     layout: string;
     railnumber: RailNumber[];
     OuterTerminal:OuterTerminalStation[];
+    BrunchFromStationID:number;
 }
 
 export const layoutNameMap: { [key: string]: { label: string; values: number[] } } = {
