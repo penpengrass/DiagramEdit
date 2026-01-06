@@ -197,10 +197,14 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
                 } else if (FileFormat == 2) {
                     addStation(countStation, stations, getDataFromFile(lines[td + 1]), getDataFromFile(lines[td + 2]), getDataFromFile(lines[td + 3]));
                     while (lines[td + 1] != 'EkiTrack2.') {
+                        if (lines[td + 1].startsWith('BrunchCoreEkiIndex')) {
+                            var BrunchID: number = lines[td + 1].replace('BrunchCoreEkiIndex=', '');
+                            stations[stations.length - 1].BrunchFromStationID = BrunchID;
+                        }
                         td++;
                     }
                     let railNumber: number = 0;
-                    let OuterStationNumber: number = 0;
+                    let OuterStationID: number = 0;
                     while (lines[td + 1] == 'EkiTrack2.') {
                         //console.log(lines[td+2]);
                         addRailNumber(countStation, railNumber, stations, getDataByKeyWord('TrackName=', lines[td + 2]), getDataByKeyWord('TrackRyakusyou=', lines[td + 3]));
@@ -214,9 +218,9 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
                     td++;
                     //ここに駅の路線外発着駅を追加する
                     while (lines[td + 1] == 'OuterTerminal.') {
-                        addOuterTerminal(countStation, OuterStationNumber, stations, getDataFromFile(lines[td + 1]), getDataFromFile(lines[td + 2]), getDataFromFile(lines[td + 3]));
+                        addOuterTerminal(countStation, OuterStationID, stations, getDataFromFile(lines[td + 1]), getDataFromFile(lines[td + 2]), getDataFromFile(lines[td + 3]));
                         td += 5;
-                        OuterStationNumber++;
+                        OuterStationID++;
                     }
                 }
                 countStation++;

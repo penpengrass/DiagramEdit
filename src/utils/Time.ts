@@ -37,7 +37,7 @@ export class Time {
         }
         //const paddedHour = this.hour.toString().padStart(2, '0');
         const paddedMinute = this.minute.toString().padStart(2, '0');
-        return `${paddedHour}:${paddedMinute}`;
+        return `${paddedHour}${paddedMinute}`;
     }
 
 }

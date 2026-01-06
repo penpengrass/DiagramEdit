@@ -1,5 +1,5 @@
 import React from 'react';
-import { layoutNameMap, mainNameMap,Station } from '../constants/stationmap';
+import { layoutNameMap, mainNameMap, Station } from '../constants/stationmap';
 //import Station from '/DiaUploader.tsx';
 //import StationShow,{Station} from "./DiaUploader.tsx";
 
@@ -10,12 +10,12 @@ interface Props {
 const StationList: React.FC<Props> = ({ stationsA }) => {
   console.log(stationsA);
   //駅規模を「一般駅」とかにしたい、[main]はEkikibo...
-  const getViewByObject = (main: string, map: { [key: string]: {label:string; values:number[]} }
+  const getViewByObject = (main: string, map: { [key: string]: { label: string; values: number[] } }
   ): string => {
     //見つからない場合はmain(Ekikibo...)をそのまま返すという意味、Null合体演算子
     return map[main]?.label ?? main;
   };
-  const getMainByObject = (main: string, map: { [key: string]: {label:string; value:number} }
+  const getMainByObject = (main: string, map: { [key: string]: { label: string; value: number } }
   ): string => {
     //見つからない場合はmain(Ekikibo...)をそのまま返すという意味、Null合体演算子
     return map[main]?.label ?? main;
@@ -31,6 +31,7 @@ const StationList: React.FC<Props> = ({ stationsA }) => {
           <th>駅名</th>
           <th>表示形式</th>
           <th>駅規模</th>
+          <th>分岐駅</th>
         </tr>
       </thead>
       <tbody>
@@ -45,6 +46,7 @@ const StationList: React.FC<Props> = ({ stationsA }) => {
             <td>{station.name}</td>
             <td>{getViewByObject(station.layout, layoutNameMap)}</td>
             <td>{getMainByObject(station.main, mainNameMap)}</td>
+            <td>{station.BrunchFromStationID} {stationsA[station.BrunchFromStationID]?.name}</td>
           </tr>
         ))}
       </tbody>
