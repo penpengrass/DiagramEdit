@@ -3,6 +3,7 @@ import '../styles/TrainData.css'
 import { Station, layoutNameMap } from '../constants/stationmap';
 import { TrainData, TrainType, TimeEntry, Diagrams } from "../constants/Traindatamap";
 import { toABGR } from './TypeShow';
+import { formatTime } from '../utils/Time';  // 追加
 interface TrainDataProps {
   TrainDataA: TrainData[];
   typesA: TrainType[];
@@ -64,7 +65,7 @@ const TrainRowParts: React.FC<TrainRowPartsProps> = ({ TrainDataA, station, rowI
       } else if (time.stop === "1") {
         return { ...time, stop: "1", railNumber: getRailNumber(time.railNumberID) };
       } else if (time.stop == "0") {
-        return { ...time, stop: "0", railNumber: getRailNumber(time.railNumberID) };
+        return { ...time, stop: "0", arrive: time.arrive || "・・・", departure: time.departure || "・・・", railNumber: "・・・" };
       }
       return time;
     });
@@ -94,18 +95,39 @@ const TrainRowParts: React.FC<TrainRowPartsProps> = ({ TrainDataA, station, rowI
       <td className="tt-station">
         <div className="Station-cell">{getNameOrRailNumber()}</div>
       </td>
-      {TrainDataA.map((Onedata_cell) => (
-        <td
-          className="CTimes"
-          key={`${Onedata_cell.DiaLine}-${Onedata_cell.id}`}
-          data-show={Onedata_cell.time[rowIdx]?.[show]}
-          style={{ color: toABGR(typesA[Onedata_cell.type]?.color ?? 'transparent') }}
-        >
-          <div className="tt-time" data-show={Onedata_cell.time[rowIdx]?.[show]}>
-            <div className="Time-cell">{getTimeCell(Onedata_cell)[rowIdx]?.[show]?.toString()}</div>
-          </div>
-        </td>
-      ))}
+      {TrainDataA.map((Onedata_cell) => {
+        //これ以降はJavaScriptの式として認識する
+        const cellValue = getTimeCell(Onedata_cell)[rowIdx]?.[show];
+        let display = "";
+        if (show === "arrive") {
+          // 前の駅（時刻表では同じ列の1行上）の値を取得して空白かどうかで始発判定を行う
+          const prevValue = getTimeCell(Onedata_cell)[rowIdx - 1]?.["departure"];
+          const DepartureValue = getTimeCell(Onedata_cell)[rowIdx]?.["departure"];
+          const prevIsEmpty = prevValue?.toString() === "・・・" || prevValue == null || (typeof prevValue === "string" && prevValue === "・・・");
+          const DepartureIsEmpty = DepartureValue?.toString() === "" || DepartureValue == null || (typeof DepartureValue === "string" && DepartureValue === "");
+          const isNotOrigin = !prevIsEmpty; // 前の駅が空白でなければ始発ではない
+          const isEmptyArrival = cellValue === "" || cellValue == null || (typeof cellValue === "string" && cellValue.trim() === "");
+          if (isNotOrigin&&isEmptyArrival&&!DepartureIsEmpty) {
+            display = "〇";
+          } else {
+            display = formatTime(cellValue as string);
+          }
+        } else {
+          display = formatTime(cellValue as string);
+        }
+        return (
+          <td
+            className="CTimes"
+            key={`${Onedata_cell.DiaLine}-${Onedata_cell.id}`}
+            data-show={Onedata_cell.time[rowIdx]?.[show]}
+            style={{ color: toABGR(typesA[Onedata_cell.type]?.color ?? 'transparent') }}
+          >
+            <div className="tt-time" data-show={Onedata_cell.time[rowIdx]?.[show]}>
+              <div className="Time-cell">{display}</div>
+            </div>
+          </td>
+        );
+      })}
     </tr>
   )
 
