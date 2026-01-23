@@ -98,6 +98,7 @@ const TrainRowParts: React.FC<TrainRowPartsProps> = ({ TrainDataA, station, rowI
       {TrainDataA.map((Onedata_cell) => {
         //これ以降はJavaScriptの式として認識する
         const cellValue = getTimeCell(Onedata_cell)[rowIdx]?.[show];
+        const isEmptyArrivalorDeparture = cellValue === "" || cellValue == null || (typeof cellValue === "string" && cellValue.trim() === "");
         let display = "";
         if (show === "arrive") {
           // 前の駅（時刻表では同じ列の1行上）の値を取得して空白かどうかで始発判定を行う
@@ -106,14 +107,21 @@ const TrainRowParts: React.FC<TrainRowPartsProps> = ({ TrainDataA, station, rowI
           const prevIsEmpty = prevValue?.toString() === "・・・" || prevValue == null || (typeof prevValue === "string" && prevValue === "・・・");
           const DepartureIsEmpty = DepartureValue?.toString() === "" || DepartureValue == null || (typeof DepartureValue === "string" && DepartureValue === "");
           const isNotOrigin = !prevIsEmpty; // 前の駅が空白でなければ始発ではない
-          const isEmptyArrival = cellValue === "" || cellValue == null || (typeof cellValue === "string" && cellValue.trim() === "");
-          if (isNotOrigin&&isEmptyArrival&&!DepartureIsEmpty) {
+          if (isNotOrigin && isEmptyArrivalorDeparture && !DepartureIsEmpty) {
             display = "〇";
+          } else if (isEmptyArrivalorDeparture) {
+            display = "・・・";
           } else {
             display = formatTime(cellValue as string);
           }
         } else {
           display = formatTime(cellValue as string);
+        }
+        if (show == "departure" && isEmptyArrivalorDeparture) {
+          display = "・・・";
+        }
+        if (show == "railNumber" && isEmptyArrivalorDeparture) {
+          display = "・・・";
         }
         return (
           <td
