@@ -90,6 +90,20 @@ const TrainRowParts: React.FC<TrainRowPartsProps> = ({ TrainDataA, station, rowI
     const findByStation = (list: any) => Array.isArray(list) ? list.find((o: any) => Number(o.id) === station.id) : undefined;
     return { outerArrive: findByStation(outerArr), outerDep: findByStation(outerDep) };
   };
+  // 指定セルが「非空要素の上下の間にある空白」か判定する
+  const isBetweenNonEmpty = (onedata: TrainData, idx: number, key: keyof TimeEntry) => {
+    //timesは1列車の全時刻のこと
+    const times: TimeEntry[] = getTimeCell(onedata);
+    const val = times[idx]?.[key];
+    const isEmpty: boolean = val === "" || val == null || (typeof val === "string" && val.trim() === "") || val === "・・・" || val === "レ";
+    if (!isEmpty) return false;
+    const isReal = (v: any) => v != null && v !== "" && !(typeof v === 'string' && (v.trim() === '' || v === '・・・' || v === 'レ'));
+    //上部に時刻がある
+    const above: boolean = times.slice(0, idx).some(t => isReal(t?.[key]));
+    //下部に時刻がある
+    const below: boolean = times.slice(idx + 1).some(t => isReal(t?.[key]));
+    return above && below;
+  };
   return (
     <tr key={station.id}>
       <td className="tt-station">
@@ -97,13 +111,14 @@ const TrainRowParts: React.FC<TrainRowPartsProps> = ({ TrainDataA, station, rowI
       </td>
       {TrainDataA.map((Onedata_cell) => {
         //これ以降はJavaScriptの式として認識する
-        const cellValue = getTimeCell(Onedata_cell)[rowIdx]?.[show];
+        const timesArr: TimeEntry[] = getTimeCell(Onedata_cell);
+        const cellValue = timesArr[rowIdx]?.[show];
         const isEmptyArrivalorDeparture = cellValue === "" || cellValue == null || (typeof cellValue === "string" && cellValue.trim() === "");
         let display = "";
         if (show === "arrive") {
           // 前の駅（時刻表では同じ列の1行上）の値を取得して空白かどうかで始発判定を行う
-          const prevValue = getTimeCell(Onedata_cell)[rowIdx - 1]?.["departure"];
-          const DepartureValue = getTimeCell(Onedata_cell)[rowIdx]?.["departure"];
+          const prevValue = timesArr[rowIdx - 1]?.["departure"];
+          const DepartureValue = timesArr[rowIdx]?.["departure"];
           const prevIsEmpty = prevValue?.toString() === "・・・" || prevValue == null || (typeof prevValue === "string" && prevValue === "・・・");
           const DepartureIsEmpty = DepartureValue?.toString() === "" || DepartureValue == null || (typeof DepartureValue === "string" && DepartureValue === "");
           const isNotOrigin = !prevIsEmpty; // 前の駅が空白でなければ始発ではない
@@ -122,6 +137,10 @@ const TrainRowParts: React.FC<TrainRowPartsProps> = ({ TrainDataA, station, rowI
         }
         if (show == "railNumber" && isEmptyArrivalorDeparture) {
           display = "・・・";
+        }
+        // 空白表示が上下に非空要素が存在するギャップであれば "||" に置き換える
+        if (display === "・・・" && isBetweenNonEmpty(Onedata_cell, rowIdx, show)) {
+          display = "||";
         }
         return (
           <td
