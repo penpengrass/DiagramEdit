@@ -261,6 +261,37 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
     const TypeName = typesA[id]
     return TypeName ? TypeName.ryakushou : "TypeName Not Found";
   };
+  // 指定列（列車）の始発・終着駅を返す（'・・・','レ','||' は無視）
+  const getTerminalStations = (onedata: TrainData) => {
+    const times: TimeEntry[] = (onedata.time || []).map((time) => {
+      if (time.stop === "2") {
+        return { ...time, arrive: time.arrive || "レ", departure: time.departure || "レ" } as TimeEntry;
+      } else if (time.stop === "0") {
+        return { ...time, arrive: time.arrive || "・・・", departure: time.departure || "・・・" } as TimeEntry;
+      }
+      return time as TimeEntry;
+    });
+    const isReal = (v: any) => v != null && v !== "" && !(typeof v === 'string' && (v.trim() === '' || v === '・・・' || v === 'レ' || v === '||'));
+    let start = "";
+    let end = "";
+    for (let i = 0; i < stationsA.length; i++) {
+      const t = times[i];
+      if (!t) continue;
+      if (!start && (isReal(t.arrive) || isReal(t.departure))) {
+        start = stationsA[i].name;
+      }
+      if (start) break;
+    }
+    for (let i = stationsA.length - 1; i >= 0; i--) {
+      const t = times[i];
+      if (!t) continue;
+      if (!end && (isReal(t.arrive) || isReal(t.departure))) {
+        end = stationsA[i].name;
+      }
+      if (end) break;
+    }
+    return { start, end };
+  };
   //console.log(diagrams);
   //console.log(stationsA);
   //ここで、ダイヤ選択している
@@ -273,16 +304,23 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
         <thead>
           <tr>
             <th className="tt-station-header"></th>
-            {filteredTrainDataA.map((onedata) => (
-              <th
-                className="TrainData"
-                key={`${onedata.DiaLine}-${onedata.id}`}
-                style={{ color: toABGR(typesA[onedata.type]?.color ?? 'transparent') }}
-              >
-                <div>{onedata.number}</div>
-                <div>{getTypeById(onedata.type)}</div>
-              </th>
-            ))}
+            {filteredTrainDataA.map((onedata) => {
+              const terms = getTerminalStations(onedata);
+              return (
+                <th
+                  className="TrainData"
+                  key={`${onedata.DiaLine}-${onedata.id}`}
+                  style={{ color: toABGR(typesA[onedata.type]?.color ?? 'transparent') }}
+                >
+                  <div>{onedata.number}</div>
+                  <div>{getTypeById(onedata.type)}</div>
+                  <div className="Terminals">
+                    <div className="Terminal-start">{terms.start || ""}</div>
+                    <div className="Terminal-end">{terms.end || ""}</div>
+                  </div>
+                </th>
+              );
+            })}
           </tr>
           <tr>
             <th className="tt-station-header"></th>
