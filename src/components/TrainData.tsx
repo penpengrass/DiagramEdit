@@ -31,6 +31,10 @@ interface OuterTerminal {
   cellType?: 'th' | 'td';
   bgColor: string;
 }
+interface TerminalStationsProps{
+  TrainDataA: TrainData[]; // 複数の列車オブジェクト（ヘッダーの列）
+  stationsA: Station[];
+}
 /*const DiaSelect: React.FC <{value: string; onChange: (v: string) => void }> = ({ value, onChange }) => {
 <select name="name" id="name" value={value} onChange={e => onChange(e.target.value)}>
       <option value="1">ダイヤ１</option>
@@ -90,7 +94,7 @@ const TrainRowParts: React.FC<TrainRowPartsProps> = ({ TrainDataA, station, rowI
     const findByStation = (list: any) => Array.isArray(list) ? list.find((o: any) => Number(o.id) === station.id) : undefined;
     return { outerArrive: findByStation(outerArr), outerDep: findByStation(outerDep) };
   };
-  // 指定セルが「非空要素の上下の間にある空白」か判定する
+  // 指定セルが「非空要素の上下の間にある空白」か判定する。||か・・・かを判定する。
   const isBetweenNonEmpty = (onedata: TrainData, idx: number, key: keyof TimeEntry) => {
     //timesは1列車の全時刻のこと
     const times: TimeEntry[] = getTimeCell(onedata);
@@ -253,15 +257,7 @@ const OuterTerminal: React.FC<OuterTerminal> = ({ onedata, stations, showArr = t
     </Cell>
   );
 }
-
-//時刻表示メインコンポーネント
-const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stationsA, diagrams }) => {
-  const [selectedDia, setSelectedDia] = useState("1");
-  const getTypeById = (id: number): string => {
-    const TypeName = typesA[id]
-    return TypeName ? TypeName.ryakushou : "TypeName Not Found";
-  };
-  // 指定列（列車）の始発・終着駅を返す（'・・・','レ','||' は無視）
+const TerminalStations: React.FC<TerminalStationsProps> = ({ TrainDataA, stationsA }) => {
   const getTerminalStations = (onedata: TrainData) => {
     const times: TimeEntry[] = (onedata.time || []).map((time) => {
       if (time.stop === "2") {
@@ -279,19 +275,55 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
       if (!t) continue;
       if (!start && (isReal(t.arrive) || isReal(t.departure))) {
         start = stationsA[i].name;
+        break;
       }
-      if (start) break;
     }
     for (let i = stationsA.length - 1; i >= 0; i--) {
       const t = times[i];
       if (!t) continue;
       if (!end && (isReal(t.arrive) || isReal(t.departure))) {
         end = stationsA[i].name;
+        break;
       }
-      if (end) break;
     }
     return { start, end };
   };
+
+  return (
+    <>
+      <tr>
+        <th className="tt-station-header">始発駅</th>
+        {TrainDataA.map((onedata) => {
+          const terms = getTerminalStations(onedata);
+          return (
+            <th className="TrainData" key={`start-${onedata.DiaLine}-${onedata.id}`}>
+              <div className="Terminal-start">{terms.start || ""}</div>
+            </th>
+          );
+        })}
+      </tr>
+      <tr>
+        <th className="tt-station-header">終着駅</th>
+        {TrainDataA.map((onedata) => {
+          const terms = getTerminalStations(onedata);
+          return (
+            <th className="TrainData" key={`end-${onedata.DiaLine}-${onedata.id}`}>
+              <div className="Terminal-end">{terms.end || ""}</div>
+            </th>
+          );
+        })}
+      </tr>
+    </>
+  );
+}
+//時刻表示メインコンポーネント
+const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stationsA, diagrams }) => {
+  const [selectedDia, setSelectedDia] = useState("1");
+  const getTypeById = (id: number): string => {
+    const TypeName = typesA[id]
+    return TypeName ? TypeName.ryakushou : "TypeName Not Found";
+  };
+
   //console.log(diagrams);
   //console.log(stationsA);
   //ここで、ダイヤ選択している
@@ -303,27 +335,22 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
       <table className="tt-table">
         <thead>
           <tr>
-            <th className="tt-station-header"></th>
-            {filteredTrainDataA.map((onedata) => {
-              const terms = getTerminalStations(onedata);
-              return (
-                <th
-                  className="TrainData"
-                  key={`${onedata.DiaLine}-${onedata.id}`}
-                  style={{ color: toABGR(typesA[onedata.type]?.color ?? 'transparent') }}
-                >
-                  <div>{onedata.number}</div>
-                  <div>{getTypeById(onedata.type)}</div>
-                  <div className="Terminals">
-                    <div className="Terminal-start">{terms.start || ""}</div>
-                    <div className="Terminal-end">{terms.end || ""}</div>
-                  </div>
-                </th>
-              );
-            })}
+            <th className="tt-station-header">列車番号･種別</th>
+            {filteredTrainDataA.map((onedata) => (
+              <th
+                className="TrainData"
+                key={`${onedata.DiaLine}-${onedata.id}`}
+                style={{ color: toABGR(typesA[onedata.type]?.color ?? 'transparent') }}
+              >
+                <div>{onedata.number}</div>
+                <div>{getTypeById(onedata.type)}</div>
+              </th>
+            ))}
           </tr>
+          {/* 始発・終着行を TerminalStations コンポーネントで出力 */}
+          <TerminalStations TrainDataA={filteredTrainDataA} stationsA={stationsA} />
           <tr>
-            <th className="tt-station-header"></th>
+            <th className="tt-station-header">路線外始発</th>
             {filteredTrainDataA.map((onedata) => (
               <OuterTerminal key={`${onedata.DiaLine}-${onedata.id}`} onedata={onedata} stations={stationsA} showArr={false} showDep={true} bgColor={typesA[onedata.type]?.color} />
             ))}
@@ -343,7 +370,7 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
         </tbody>
         <tfoot>
           <tr>
-            <th className="tt-station-footer"></th>
+            <th className="tt-station-footer">路線外終着</th>
             {filteredTrainDataA.map((onedata) => (
               // tfoot では外着のみ表示（outerArr）
               <OuterTerminal key={`tfoot-${onedata.DiaLine}-${onedata.id}`} onedata={onedata} stations={stationsA} showArr={true} showDep={false} cellType="td" bgColor={typesA[onedata.type]?.color} />
