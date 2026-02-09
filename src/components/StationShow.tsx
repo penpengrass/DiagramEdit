@@ -1,4 +1,5 @@
 import React from 'react';
+import '../styles/StationTable.css'
 import { layoutNameMap, mainNameMap, Station } from '../constants/stationmap';
 //import Station from '/DiaUploader.tsx';
 //import StationShow,{Station} from "./DiaUploader.tsx";
