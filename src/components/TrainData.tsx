@@ -288,6 +288,28 @@ const TerminalStations: React.FC<TerminalStationsProps> = ({ TrainDataA, station
     }
     return { start, end };
   };
+  //路線外発着駅を取得
+  const getOuterName = (onedata: TrainData, OuterDeparture: boolean) => {
+    const outerArr = Array.isArray(onedata.outerarrive) ? onedata.outerarrive[0] : onedata.outerarrive;
+    const outerDep = Array.isArray(onedata.outerdep) ? onedata.outerdep[0] : onedata.outerdep;
+    const getStationByID = (pointStationID: number, terminalStationID: number): string => {
+      if (!stationsA || stationsA.length === 0 || pointStationID == null || terminalStationID == null) return "";
+      const st = stationsA[pointStationID]?.OuterTerminal?.[terminalStationID];
+      return st ? st.jikoku : "";
+    };
+    if (OuterDeparture) {
+      if (outerDep) {
+        return outerDep.terminalStationID ? getStationByID(outerDep.pointStationID, outerDep.terminalStationID) : (outerDep.pointStationID != null ? (stationsA[outerDep.pointStationID]?.name || "") : "");
+      }
+      return "";
+    } else {
+      if (outerArr) {
+        return outerArr.terminalStationID ? getStationByID(outerArr.pointStationID, outerArr.terminalStationID) : (outerArr.pointStationID != null ? (stationsA[outerArr.pointStationID]?.name || "") : "");
+      }
+      return "";
+      
+    }
+  };
 
   return (
     <>
@@ -295,9 +317,10 @@ const TerminalStations: React.FC<TerminalStationsProps> = ({ TrainDataA, station
         <th className="tt-station-header">始発駅</th>
         {TrainDataA.map((onedata) => {
           const terms = getTerminalStations(onedata);
+          const outerName = getOuterName(onedata, true);
           return (
             <th className="TrainData" key={`start-${onedata.DiaLine}-${onedata.id}`}>
-              <div className="Terminal-start">{terms.start || ""}</div>
+              <div className="Terminal-start">{outerName || terms.start || ""}</div>
             </th>
           );
         })}
@@ -306,9 +329,10 @@ const TerminalStations: React.FC<TerminalStationsProps> = ({ TrainDataA, station
         <th className="tt-station-header">終着駅</th>
         {TrainDataA.map((onedata) => {
           const terms = getTerminalStations(onedata);
+          const outerName = getOuterName(onedata, false);
           return (
             <th className="TrainData" key={`end-${onedata.DiaLine}-${onedata.id}`}>
-              <div className="Terminal-end">{terms.end || ""}</div>
+              <div className="Terminal-end">{outerName || terms.end || ""}</div>
             </th>
           );
         })}
