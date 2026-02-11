@@ -70,29 +70,27 @@ const StationTable: React.FC<Props> = ({ TrainDataA, typesA, stationsA, diagrams
   // 時間順（4..23,0..3）
   const hourOrder = Array.from({ length: 24 }, (_, i) => i).slice(4).concat(Array.from({ length: 4 }, (_, i) => i));
 
-  const stationIdx = (() => {
-    const idx = Number(selectedStation) - 1;
-    if (!stationsA || stationsA.length === 0) return idx;
-    return isDownDirection ? idx : (stationsA.length - 1 - idx);
-  })();
+  // 選択駅のインデックス（time 配列は stationsA の順で格納されている前提で逆順しない）
+  const stationIdx = Number(selectedStation) - 1;
 
   // 指定時間帯の列車時刻を収集
   const timesForHour = (hour: number) => {
     const list: Array<{ typeName: string; minutes: number; trainNumber: string }> = [];
-    // 方向で絞り込み（dir が 0/1 の想定）
     const dirVal = isDownDirection ? 0 : 1;
     const trains = filteredTrainDataA.filter(t => (t.dir ?? 0) === dirVal);
     trains.forEach(train => {
-      const t = train.time && train.time[stationIdx];
+      const times = train.time || [];
+      if (!times || times.length === 0) return;
+      if (stationIdx < 0 || stationIdx >= times.length) return;
+      const t = times[stationIdx];
       if (!t) return;
-      // 優先して到着・発車両方を確認
-      const cand = [] as Array<{ raw: Time | string; label: string }>;
-      //if (isReal(t.arrive)) cand.push({ raw: t.arrive, label: train.number });
-      if (isReal(t.departure)) cand.push({ raw: t.departure, label: train.number });
+      // 発車優先、なければ到着
+      const cand: Array<{ raw: Time | string; label: string }> = [];
+      if (isReal(t.departure)) cand.push({ raw: t.departure as any, label: train.number });
+      else if (isReal(t.arrive)) cand.push({ raw: t.arrive as any, label: train.number });
       cand.forEach(c => {
         const h = getHour(c.raw.toString());
         if (h === hour) {
-          // 分のみを抽出して object にして格納（minutes は number 型）
           const rawStr = c.raw.toString();
           const m = rawStr.match(/(\d{1,2}):?(\d{2})/);
           let minutes: number = 0;
@@ -100,29 +98,24 @@ const StationTable: React.FC<Props> = ({ TrainDataA, typesA, stationsA, diagrams
           else if (rawStr.length >= 2) minutes = Number(rawStr.slice(-2));
           const typeName = typesA[train.type]?.name || typesA[train.type]?.ryakushou || "";
           const trainNumber = String(train.number);
-          // 別変数にしてオブジェクトとして格納
-          const obj = { typeName, minutes, trainNumber };
-          list.push(obj);
-          //console.log(list);
+          list.push({ typeName, minutes, trainNumber });
         }
       });
     });
     return list.sort((a, b) => a.minutes - b.minutes);
   };
-  /*
- <div style={{ display: 'inline-block', marginLeft: 8 }}>
+  return (
+    <div>
+      <DiaSelect value={selectedDia} onChange={setSelectedDia} diagrams={diagrams} />
+      <StationSelect value={selectedStation} onChange={setSelectedStation} stationsA={stationsA} />
+       <div style={{ display: 'inline-block', marginLeft: 8 }}>
         <label style={{ marginRight: 8 }}>
           <input type="radio" name="direction" checked={isDownDirection} onChange={() => setIsDownDirection(true)} /> 下り
         </label>
         <label>
           <input type="radio" name="direction" checked={!isDownDirection} onChange={() => setIsDownDirection(false)} /> 上り
         </label>
-      </div>*/
-  return (
-    <div>
-      <DiaSelect value={selectedDia} onChange={setSelectedDia} diagrams={diagrams} />
-      <StationSelect value={selectedStation} onChange={setSelectedStation} stationsA={stationsA} />
-      
+      </div>
       <table className="tt-table">
         <thead>
           <tr>
