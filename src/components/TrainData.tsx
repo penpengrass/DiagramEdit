@@ -359,7 +359,7 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
       <table className="tt-table">
         <thead>
           <tr>
-            <th className="tt-station-header">列車番号･種別</th>
+            <th className="tt-station-header">列車番号</th>
             {filteredTrainDataA.map((onedata) => (
               <th
                 className="TrainData"
@@ -367,9 +367,20 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
                 style={{ color: toABGR(typesA[onedata.type]?.color ?? 'transparent') }}
               >
                 <div>{onedata.number}</div>
+                </th>
+            ))}
+          </tr>
+          <tr>
+            <th className="tt-station-header">種別</th>
+            {filteredTrainDataA.map((onedata) => (
+               <th
+                className="TrainData"
+                key={`${onedata.DiaLine}-${onedata.id}`}
+                style={{ color: toABGR(typesA[onedata.type]?.color ?? 'transparent') }}
+              >
                 <div>{getTypeById(onedata.type)}</div>
               </th>
-            ))}
+              ))}
           </tr>
           {/* 始発・終着行を TerminalStations コンポーネントで出力 */}
           <TerminalStations TrainDataA={filteredTrainDataA} stationsA={stationsA} />
