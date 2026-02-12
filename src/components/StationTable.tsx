@@ -4,7 +4,8 @@ import { Station, layoutNameMap } from '../constants/stationmap';
 import { TrainData, TrainType, Diagrams, TimeEntry } from "../constants/Traindatamap";
 import { Time } from '../utils/Time'; // 👈 Timeクラスをインポート
 interface Props {
-  TrainDataA: TrainData[];
+  KudariTrainDataA: TrainData[]; // 下りデータ
+  NoboriTrainDataA: TrainData[]; // 上りデータ
   typesA: TrainType[];
   stationsA: Station[];
   diagrams: Diagrams[];
@@ -42,11 +43,14 @@ const StationSelect: React.FC<{ value: string; onChange: (v: string) => void; st
   );
 };
 //駅時刻表示メインコンポーネント
-const StationTable: React.FC<Props> = ({ TrainDataA, typesA, stationsA, diagrams }) => {
+const StationTable: React.FC<Props> = ({ KudariTrainDataA, NoboriTrainDataA, typesA, stationsA, diagrams }) => {
   const [selectedStation, setSelectedStation] = useState("1");
   const [selectedDia, setSelectedDia] = useState("1");
   const [isDownDirection, setIsDownDirection] = useState(true); // true=下り, false=上り
-  const filteredTrainDataA = TrainDataA.filter((onedata) => String(onedata.DiaLine) === selectedDia);
+  // 選択方向に応じて TrainData ソースを切り替える
+  // filteredTrainDataA は各処理内で参照される
+  // （timesForHour 内ではローカルでフィルタして使う）
+  const getFilteredByDia = (source: TrainData[]) => source.filter((onedata) => String(onedata.DiaLine) === selectedDia);
   // 時刻文字列が実データか判定
   const isReal = (v?: string | Time) => v != null && v !== "" && !(typeof v === 'string' && (v.trim() === '' || v === '・・・' || v === 'レ' || v === '||'));
 
@@ -69,14 +73,14 @@ const StationTable: React.FC<Props> = ({ TrainDataA, typesA, stationsA, diagrams
 
   // 時間順（4..23,0..3）
   const hourOrder = Array.from({ length: 24 }, (_, i) => i).slice(4).concat(Array.from({ length: 4 }, (_, i) => i));
-
   // 選択駅のインデックス（time 配列は stationsA の順で格納されている前提で逆順しない）
-  const stationIdx = Number(selectedStation) - 1;
-
+  const stationIdx = isDownDirection ? Number(selectedStation) - 1 : stationsA.length - (Number(selectedStation));
   // 指定時間帯の列車時刻を収集
   const timesForHour = (hour: number) => {
     const list: Array<{ typeName: string; minutes: number; trainNumber: string }> = [];
     const dirVal = isDownDirection ? 0 : 1;
+    const source = isDownDirection ? KudariTrainDataA : NoboriTrainDataA;
+    const filteredTrainDataA = getFilteredByDia(source);
     const trains = filteredTrainDataA.filter(t => (t.dir ?? 0) === dirVal);
     trains.forEach(train => {
       const times = train.time || [];
@@ -108,7 +112,7 @@ const StationTable: React.FC<Props> = ({ TrainDataA, typesA, stationsA, diagrams
     <div>
       <DiaSelect value={selectedDia} onChange={setSelectedDia} diagrams={diagrams} />
       <StationSelect value={selectedStation} onChange={setSelectedStation} stationsA={stationsA} />
-       <div style={{ display: 'inline-block', marginLeft: 8 }}>
+      <div style={{ display: 'inline-block', marginLeft: 8 }}>
         <label style={{ marginRight: 8 }}>
           <input type="radio" name="direction" checked={isDownDirection} onChange={() => setIsDownDirection(true)} /> 下り
         </label>

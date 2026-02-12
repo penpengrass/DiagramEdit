@@ -352,7 +352,6 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
   //console.log(stationsA);
   //ここで、ダイヤ選択している
   const filteredTrainDataA = TrainDataA.filter((onedata) => String(onedata.DiaLine) === selectedDia);
-  console.log(TrainDataA);
   console.log(filteredTrainDataA);
   return (
     <div>
