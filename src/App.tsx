@@ -10,7 +10,7 @@ import StationShow from "./components/StationShow.tsx";
 import TypeShow from "./components/TypeShow.tsx";
 import TrainData from "./components/TrainData.tsx";
 import Cell from "./Cell.tsx";
-import StationTable from "./components/StationTable.tsx";
+import StationTimeTable from "./components/StationTimeTable.tsx";
 //import { Diagrams } from "./constants/Traindatamap";
 export type ComponentKey = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
 
@@ -67,7 +67,7 @@ const App: React.FC = () => {
             {selected === 'D' && <TrainData TrainDataA={KudariDataA} typesA={TrainTypeA} stationsA={stations} diagrams={Diagram} />}
             {selected === 'E' && <TrainData TrainDataA={NoboriDataA} typesA={TrainTypeA} stationsA={[...stations].reverse()} diagrams={Diagram} />}
             {selected === 'F' && <Cell />}
-            {selected === 'G' && <StationTable KudariTrainDataA={KudariDataA} NoboriTrainDataA={NoboriDataA} typesA={TrainTypeA} stationsA={stations} diagrams={Diagram} />}
+            {selected === 'G' && <StationTimeTable KudariTrainDataA={KudariDataA} NoboriTrainDataA={NoboriDataA} typesA={TrainTypeA} stationsA={stations} diagrams={Diagram} />}
           </div>
         </div>
       </div>

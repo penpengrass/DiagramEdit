@@ -3,6 +3,7 @@ import { formatTime } from '../utils/Time';
 import { Station, layoutNameMap } from '../constants/stationmap';
 import { TrainData, TrainType, Diagrams, TimeEntry } from "../constants/Traindatamap";
 import { Time } from '../utils/Time'; // 👈 Timeクラスをインポート
+import { toABGR } from './TypeShow';
 interface Props {
   KudariTrainDataA: TrainData[]; // 下りデータ
   NoboriTrainDataA: TrainData[]; // 上りデータ
@@ -43,7 +44,7 @@ const StationSelect: React.FC<{ value: string; onChange: (v: string) => void; st
   );
 };
 //駅時刻表示メインコンポーネント
-const StationTable: React.FC<Props> = ({ KudariTrainDataA, NoboriTrainDataA, typesA, stationsA, diagrams }) => {
+const StationTimeTable: React.FC<Props> = ({ KudariTrainDataA, NoboriTrainDataA, typesA, stationsA, diagrams }) => {
   const [selectedStation, setSelectedStation] = useState("1");
   const [selectedDia, setSelectedDia] = useState("1");
   const [isDownDirection, setIsDownDirection] = useState(true); // true=下り, false=上り
@@ -75,9 +76,48 @@ const StationTable: React.FC<Props> = ({ KudariTrainDataA, NoboriTrainDataA, typ
   const hourOrder = Array.from({ length: 24 }, (_, i) => i).slice(4).concat(Array.from({ length: 4 }, (_, i) => i));
   // 選択駅のインデックス（time 配列は stationsA の順で格納されている前提で逆順しない）
   const stationIdx = isDownDirection ? Number(selectedStation) - 1 : stationsA.length - (Number(selectedStation));
+
+  // 列車の終着駅名を取得する（OuterTerminalがあれば優先）
+  const getTerminalStation = (train: TrainData): string => {
+    // OuterTerminalがあれば優先して表示
+    //ここから
+    const outerArrive = Array.isArray(train.outerarrive) ? train.outerarrive[0] : train.outerarrive;
+    if (outerArrive) {
+      const getStationByID = (pointStationID: number, terminalStationID: number): string => {
+        if (!stationsA || stationsA.length === 0 || pointStationID == null || terminalStationID == null) return "";
+        const st = stationsA[pointStationID]?.OuterTerminal?.[terminalStationID];
+        return st ? st.jikoku : "";
+      };
+      if (outerArrive.terminalStationID) {
+        if (isDownDirection) {
+          return getStationByID(outerArrive.pointStationID, outerArrive.terminalStationID);
+        } else {
+          return getStationByID(stationsA.length - outerArrive.pointStationID - 1, outerArrive.terminalStationID);
+        }
+      } else if (outerArrive.pointStationID != null) {
+        return stationsA[outerArrive.pointStationID]?.name || "";
+      }
+    }
+    //ここまで修正対象
+    // OuterTerminalがない場合は時刻配列から探す
+    const times = train.time || [];
+    if (!times || times.length === 0) return "";
+    const isRealVal = (v: any) => v != null && v !== "" && !(typeof v === 'string' && (v.trim() === '' || v === '・・・' || v === 'レ' || v === '||'));
+    // 終着駅を後ろから探す
+    for (let i = times.length - 1; i >= 0; i--) {
+      const t = times[i];
+      if (!t) continue;
+      if (isRealVal(t.arrive) || isRealVal(t.departure)) {
+        if (isDownDirection) return stationsA[i]?.name || "";
+        else return stationsA[stationsA.length - i - 1]?.name || "";
+      }
+    }
+    return "";
+  };
+
   // 指定時間帯の列車時刻を収集
   const timesForHour = (hour: number) => {
-    const list: Array<{ typeName: string; minutes: number; trainNumber: string }> = [];
+    const list: Array<{ typeName: string; minutes: number; trainNumber: string; terminal: string; trainType: number }> = [];
     const dirVal = isDownDirection ? 0 : 1;
     const source = isDownDirection ? KudariTrainDataA : NoboriTrainDataA;
     const filteredTrainDataA = getFilteredByDia(source);
@@ -102,7 +142,8 @@ const StationTable: React.FC<Props> = ({ KudariTrainDataA, NoboriTrainDataA, typ
           else if (rawStr.length >= 2) minutes = Number(rawStr.slice(-2));
           const typeName = typesA[train.type]?.name || typesA[train.type]?.ryakushou || "";
           const trainNumber = String(train.number);
-          list.push({ typeName, minutes, trainNumber });
+          const terminal = getTerminalStation(train);
+          list.push({ typeName, minutes, trainNumber, terminal, trainType: train.type });
         }
       });
     });
@@ -133,13 +174,18 @@ const StationTable: React.FC<Props> = ({ KudariTrainDataA, NoboriTrainDataA, typ
               <td className="stt-side-row">{h}</td>
               <td className="timetable-row">
                 {timesForHour(h).length > 0 ? (
-                  timesForHour(h).map((v, idx) => (
-                    <div className="sst" key={`hour-${h}-item-${idx}`}>
-                      <span>{v.minutes}</span>
-                      <span>{v.typeName}</span>
-                      <span>{v.trainNumber}</span>
-                    </div>
-                  ))
+                  timesForHour(h).map((v, idx) => {
+                    const selectedStationName = stationsA[Number(selectedStation) - 1]?.name;
+                    if (selectedStationName === v.terminal) return null;
+                    //<span>{v.trainNumber}</span>
+                    return (
+                      <div className="sst" key={`hour-${h}-item-${idx}`} style={{ color: toABGR(typesA[v.trainType]?.color ?? 'transparent') }}>
+                        <span>{v.minutes}</span>
+                        <span>{v.typeName} </span>
+                        <span>{v.terminal}</span>
+                      </div>
+                    );
+                  })
                 ) : (
                   <div className="empty">&nbsp;</div>
                 )}
@@ -151,4 +197,4 @@ const StationTable: React.FC<Props> = ({ KudariTrainDataA, NoboriTrainDataA, typ
     </div>
   );
 };
-export default StationTable;
+export default StationTimeTable;
