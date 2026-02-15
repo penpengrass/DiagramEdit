@@ -48,6 +48,7 @@ const StationTimeTable: React.FC<Props> = ({ KudariTrainDataA, NoboriTrainDataA,
   const [selectedStation, setSelectedStation] = useState("1");
   const [selectedDia, setSelectedDia] = useState("1");
   const [isDownDirection, setIsDownDirection] = useState(true); // true=下り, false=上り
+  const [isPocketShow, setIsPocketShow] = useState(true); // true=ポケット表示, false=リスト表示
   // 選択方向に応じて TrainData ソースを切り替える
   // filteredTrainDataA は各処理内で参照される
   // （timesForHour 内ではローカルでフィルタして使う）
@@ -154,12 +155,20 @@ const StationTimeTable: React.FC<Props> = ({ KudariTrainDataA, NoboriTrainDataA,
       <DiaSelect value={selectedDia} onChange={setSelectedDia} diagrams={diagrams} />
       <StationSelect value={selectedStation} onChange={setSelectedStation} stationsA={stationsA} />
       <div style={{ display: 'inline-block', marginLeft: 8 }}>
-        <label style={{ marginRight: 8 }}>
+        <form style={{ marginRight: 32 }}>
           <input type="radio" name="direction" checked={isDownDirection} onChange={() => setIsDownDirection(true)} /> 下り
-        </label>
-        <label>
+        </form>
+        <form>
           <input type="radio" name="direction" checked={!isDownDirection} onChange={() => setIsDownDirection(false)} /> 上り
-        </label>
+        </form>
+      </div>
+      <div style={{ display: 'inline-block', marginLeft: 8 }}>
+        <form style={{ marginRight: 32 }}>
+          <input type="radio" name="direction" checked={isPocketShow} onChange={() => setIsPocketShow(true)} /> 時刻表縦表示
+        </form>
+        <form>
+          <input type="radio" name="direction" checked={!isPocketShow} onChange={() => setIsPocketShow(false)} /> 時刻表横表示
+        </form>
       </div>
       <table className="tt-table">
         <thead>
@@ -178,13 +187,23 @@ const StationTimeTable: React.FC<Props> = ({ KudariTrainDataA, NoboriTrainDataA,
                     const selectedStationName = stationsA[Number(selectedStation) - 1]?.name;
                     if (selectedStationName === v.terminal) return null;
                     //<span>{v.trainNumber}</span>
-                    return (
-                      <div className="sst" key={`hour-${h}-item-${idx}`} style={{ color: toABGR(typesA[v.trainType]?.color ?? 'transparent') }}>
-                        <span>{v.minutes}</span>
-                        <span>{v.typeName} </span>
-                        <span>{v.terminal}</span>
-                      </div>
-                    );
+                    if (isPocketShow) {
+                      return (
+                        <div className="sst" key={`hour-${h}-item-${idx}`} style={{ color: toABGR(typesA[v.trainType]?.color ?? 'transparent'), display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                          <span>{v.minutes}</span>
+                          <span>{v.typeName} </span>
+                          <span>{v.terminal}</span>
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <div className="sst" key={`hour-${h}-item-${idx}`} style={{ color: toABGR(typesA[v.trainType]?.color ?? 'transparent')}}>
+                          <span>{v.minutes}</span>
+                          <span>{v.typeName} </span>
+                          <span>{v.terminal}</span>
+                        </div>
+                      );
+                    }
                   })
                 ) : (
                   <div className="empty">&nbsp;</div>
