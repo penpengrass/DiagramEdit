@@ -39,6 +39,12 @@ export class Time {
         const paddedMinute = this.minute.toString().padStart(2, '0');
         return `${paddedHour}${paddedMinute}`;
     }
+    public getHours(): number {
+        return this.hour;
+    }
+    public getMinutes(): number {
+        return this.minute;
+    }
 
 }
 // 追加: Time を受け取って表示文字列を返すユーティリティ
