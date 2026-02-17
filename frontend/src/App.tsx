@@ -9,9 +9,10 @@ import DiaUploader from "./components/DiaUploader.tsx";
 import StationShow from "./components/StationShow.tsx";
 import TypeShow from "./components/TypeShow.tsx";
 import TrainData from "./components/TrainData.tsx";
+import DataExport from "./components/DataExport.tsx";
 import Cell from "./Cell.tsx";
 //import { Diagrams } from "./constants/Traindatamap";
-export type ComponentKey = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
+export type ComponentKey = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'I';
 
 /*const componentsMap = {
   A: {component:DiaTable,props:{CsvTableProps},
@@ -34,7 +35,7 @@ const App: React.FC = () => {
   const [TrainTypeA, setTrainTypeData] = useState<any>([]);
   const [KudariDataA, setKudariTrainData] = useState<any>([]);
   const [NoboriDataA, setNoboriTrainData] = useState<any>([]);
-  const [Diagram,setDiagram] = useState<any>([]);
+  const [Diagram, setDiagram] = useState<any>([]);
   //<DiaTable data={DiaData} />
   //<StationShow stationsA={stationsA} />
   //<DiaTable data={DiaData} rows={csvData} />
@@ -66,6 +67,7 @@ const App: React.FC = () => {
             {selected === 'D' && <TrainData TrainDataA={KudariDataA} typesA={TrainTypeA} stationsA={stations} diagrams={Diagram} />}
             {selected === 'E' && <TrainData TrainDataA={NoboriDataA} typesA={TrainTypeA} stationsA={[...stations].reverse()} diagrams={Diagram} />}
             {selected === 'F' && <Cell />}
+            {selected === 'I' && <DataExport stationsA={stations}/>}
           </div>
         </div>
       </div>

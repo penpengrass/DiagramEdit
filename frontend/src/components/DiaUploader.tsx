@@ -2,7 +2,7 @@ import React from "react";
 export let FileFormat: number = 0; // ここでグローバルに定義
 import { Station } from "../constants/stationmap";
 import { TrainData, TrainType, OudData, Diagrams } from "../constants/Traindatamap";
-import { Time } from '../utils/Time'; // 👈 Timeクラスをインポート
+import { Time } from '../utils/Time'; // Timeクラスをインポート
 interface DiaUploaderProps {
     onOudDataLoaded: (data: any) => void;
     onCsvDataLoaded: (rows: any) => void;
