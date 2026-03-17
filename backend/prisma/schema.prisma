@@ -6,9 +6,33 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output = "./generated"
 }
 
 datasource db {
   provider = "postgresql"
+}
+model Station {
+  id           Int      @id
+  name         String
+  layout       String
+  main         String
+  railnumber   Json
+  OuterTerminal Json
+}
+model RailNumber {
+  id         Int     @id @default(autoincrement())
+  station_id Int
+  rail_id    Int     // JSON内のid
+  name       String
+  ryakushou  String
+}
+
+model OuterTerminal {
+  id         Int     @id @default(autoincrement())
+  station_id Int
+  terminal_id Int    // JSON内のid
+  name       String
+  jikoku     String
+  diaryaku   String
 }

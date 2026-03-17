@@ -1,5 +1,7 @@
+import express from "express";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 //expressモジュールを使えるように設定
-const express = require('express')
 const { Pool } = require('pg');
 //expressモジュールを利用しアプリケーションオブジェクトappを作成
 const app = express()
@@ -15,11 +17,11 @@ const pool = new Pool({
 });
 
 // サンプルルート
-app.get('/test-db', async (req, res) => {
+app.get('/test-db', async (req:any, res:any) => {
   try {
     const result = await pool.query('SELECT NOW()');
     res.json(result.rows);
-  } catch (err) {
+  } catch (err:any) {
     res.status(500).json({ error: err.message });
   }
 });
