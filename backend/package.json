@@ -8,8 +8,10 @@
   "main": "index.ts",
   "scripts": {
     "prisma:generate": "prisma generate",
-    "start": "node app.js",
-    "dev": "nodemon app.js",
+    "start": "npx tsx src/app.ts",
+    "dev": "nodemon tsx src/index.ts",
+    "server": "npx tsx src/index.ts",
+    "import": "npx tsx src/importStations.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -31,6 +33,7 @@
     "seed": "node --loader ts-node/esm prisma/seed.ts"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.5.0",
     "ts-node": "^10.9.2",

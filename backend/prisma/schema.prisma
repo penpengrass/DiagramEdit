@@ -11,6 +11,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  //urlは書かない
 }
 model Station {
   id           Int      @id
@@ -18,7 +19,9 @@ model Station {
   layout       String
   main         String
   railnumber   Json
-  OuterTerminal Json
+  outerterminal Json
+
+  @@map("stations")
 }
 model RailNumber {
   id         Int     @id @default(autoincrement())

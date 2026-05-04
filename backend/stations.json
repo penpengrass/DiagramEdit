@@ -16,34 +16,34 @@
         "ryakushou": "6"
       }
     ],
-    "OuterTerminal": [
+    "outerterminal": [
       {
         "id": 0,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "東京",
         "diaryaku": "東京"
       },
       {
         "id": 1,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "敦賀",
         "diaryaku": "敦賀"
       },
       {
         "id": 2,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "長浜",
         "diaryaku": "長浜"
       },
       {
         "id": 3,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "近江塩津",
         "diaryaku": "近江塩津"
       },
       {
         "id": 4,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "高山",
         "diaryaku": "高山"
       }
@@ -66,7 +66,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 2,
@@ -85,7 +85,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 3,
@@ -104,7 +104,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 4,
@@ -123,7 +123,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 5,
@@ -142,7 +142,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 6,
@@ -161,7 +161,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 7,
@@ -180,7 +180,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 8,
@@ -199,7 +199,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 9,
@@ -218,7 +218,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 10,
@@ -237,7 +237,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 11,
@@ -256,7 +256,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 12,
@@ -275,10 +275,10 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": [
+    "outerterminal": [
       {
         "id": 0,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "柘植",
         "diaryaku": "柘植"
       }
@@ -301,7 +301,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 14,
@@ -320,7 +320,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 15,
@@ -339,7 +339,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 16,
@@ -358,7 +358,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 17,
@@ -377,7 +377,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 18,
@@ -396,28 +396,28 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": [
+    "outerterminal": [
       {
         "id": 0,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "敦賀",
         "diaryaku": "敦賀"
       },
       {
         "id": 1,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "近江舞子",
         "diaryaku": "近江舞子"
       },
       {
         "id": 2,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "永原",
         "diaryaku": "永原"
       },
       {
         "id": 3,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "近江今津",
         "diaryaku": "近江今津"
       }
@@ -475,7 +475,7 @@
         "ryakushou": "0"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 20,
@@ -494,7 +494,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 21,
@@ -513,7 +513,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 22,
@@ -532,7 +532,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 23,
@@ -551,7 +551,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 24,
@@ -570,7 +570,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 25,
@@ -589,7 +589,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 26,
@@ -608,7 +608,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 27,
@@ -627,7 +627,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 28,
@@ -646,7 +646,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 29,
@@ -665,7 +665,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 30,
@@ -684,7 +684,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 31,
@@ -703,7 +703,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 32,
@@ -722,7 +722,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 33,
@@ -741,7 +741,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 34,
@@ -760,7 +760,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 35,
@@ -824,22 +824,22 @@
         "ryakushou": "11"
       }
     ],
-    "OuterTerminal": [
+    "outerterminal": [
       {
         "id": 0,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "関西空港",
         "diaryaku": "関西空港"
       },
       {
         "id": 1,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "白浜",
         "diaryaku": "白浜"
       },
       {
         "id": 2,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "新宮",
         "diaryaku": "新宮"
       }
@@ -862,7 +862,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 37,
@@ -881,64 +881,64 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": [
+    "outerterminal": [
       {
         "id": 0,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "四条畷",
         "diaryaku": "四条畷"
       },
       {
         "id": 1,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "京田辺",
         "diaryaku": "京田辺"
       },
       {
         "id": 2,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "木津",
         "diaryaku": "木津"
       },
       {
         "id": 3,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "奈良",
         "diaryaku": "奈良"
       },
       {
         "id": 4,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "新三田",
         "diaryaku": "新三田"
       },
       {
         "id": 5,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "松井山手",
         "diaryaku": "松井山手"
       },
       {
         "id": 6,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "宝塚",
         "diaryaku": "宝塚"
       },
       {
         "id": 7,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "長尾",
         "diaryaku": "長尾"
       },
       {
         "id": 8,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "同志社前",
         "diaryaku": "同志社前"
       },
       {
         "id": 9,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "放出",
         "diaryaku": "放出"
       }
@@ -961,7 +961,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 39,
@@ -980,7 +980,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 40,
@@ -999,7 +999,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 41,
@@ -1018,7 +1018,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 42,
@@ -1037,7 +1037,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 43,
@@ -1056,7 +1056,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 44,
@@ -1075,7 +1075,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 45,
@@ -1094,7 +1094,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 46,
@@ -1113,7 +1113,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 47,
@@ -1132,7 +1132,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 48,
@@ -1151,7 +1151,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 49,
@@ -1180,7 +1180,7 @@
         "ryakushou": "4"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 50,
@@ -1199,7 +1199,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 51,
@@ -1218,7 +1218,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 52,
@@ -1237,7 +1237,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 53,
@@ -1256,7 +1256,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 54,
@@ -1275,7 +1275,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 55,
@@ -1294,7 +1294,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 56,
@@ -1313,7 +1313,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 57,
@@ -1332,7 +1332,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 58,
@@ -1351,7 +1351,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 59,
@@ -1370,7 +1370,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 60,
@@ -1389,7 +1389,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 61,
@@ -1408,7 +1408,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 62,
@@ -1427,7 +1427,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 63,
@@ -1446,7 +1446,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 64,
@@ -1465,7 +1465,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 65,
@@ -1484,7 +1484,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 66,
@@ -1503,7 +1503,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 67,
@@ -1522,7 +1522,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 68,
@@ -1541,7 +1541,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 69,
@@ -1560,7 +1560,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 70,
@@ -1579,7 +1579,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 71,
@@ -1598,7 +1598,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 72,
@@ -1617,7 +1617,7 @@
         "ryakushou": "2"
       }
     ],
-    "OuterTerminal": []
+    "outerterminal": []
   },
   {
     "id": 73,
@@ -1646,76 +1646,76 @@
         "ryakushou": "5"
       }
     ],
-    "OuterTerminal": [
+    "outerterminal": [
       {
         "id": 0,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "高松",
         "diaryaku": "高松"
       },
       {
         "id": 1,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "出雲市",
         "diaryaku": "出雲市"
       },
       {
         "id": 2,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "播州赤穂",
         "diaryaku": "播州赤穂"
       },
       {
         "id": 3,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "網干",
         "diaryaku": "網干"
       },
       {
         "id": 4,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "倉吉",
         "diaryaku": "倉吉"
       },
       {
         "id": 5,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "鳥取",
         "diaryaku": "鳥取"
       },
       {
         "id": 6,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "浜坂",
         "diaryaku": "浜坂"
       },
       {
         "id": 7,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "香住",
         "diaryaku": "香住"
       },
       {
         "id": 8,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "豊岡",
         "diaryaku": "豊岡"
       },
       {
         "id": 9,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "上郡",
         "diaryaku": "上郡"
       },
       {
         "id": 10,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "城崎温泉",
         "diaryaku": "城崎温泉"
       },
       {
         "id": 11,
-        "name": "OuterTerminal.",
+        "name": "outerterminal.",
         "jikoku": "琴平",
         "diaryaku": "琴平"
       }
