@@ -21,7 +21,7 @@ model Station {
   railnumber   Json
   outerterminal Json
 
-  @@map("stations")
+  @@map("stations")//テーブル名の定義
 }
 model RailNumber {
   id         Int     @id @default(autoincrement())

@@ -11,7 +11,11 @@ import { getPrismaClient } from "../config/database.js";
  */
 export async function findAllStations(prisma?: PrismaClient): Promise<Station[]> {
   const client = prisma || getPrismaClient();
-  return client.station.findMany();
+  return await client.station.findMany({
+    orderBy: {
+      id: 'asc',
+    },
+  });
 }
 
 /**

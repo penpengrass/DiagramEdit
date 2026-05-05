@@ -3,7 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { PrismaClient } from "@prisma/client";
 import { getPrismaClient } from "../config/database.js";
-import { upsertMultipleStations } from "../repositories/stationRepository.js";
+import { upsertMultipleStations, findAllStations } from "../repositories/stationRepository.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -53,11 +53,21 @@ async function importStationsToDatabase(
 /**
  * メイン関数：stations.json をインポート
  * @param prismaClient - 外部から渡されたPrismaクライアント（オプション）
+ * @param forceImport - 強制的にインポートするかどうか（デフォルト: false）
  */
-export async function importStations(prismaClient?: PrismaClient): Promise<void> {
+export async function importStations(prismaClient?: PrismaClient, forceImport: boolean = false): Promise<void> {
   const prisma = prismaClient || getPrismaClient();
 
   try {
+    // DBに既存データがある場合はスキップ
+    if (!forceImport) {
+      const existingStations = await findAllStations(prisma);
+      if (existingStations.length > 0) {
+        console.log(`✅ Database already contains ${existingStations.length} stations. Skipping import.`);
+        return;
+      }
+    }
+
     const dataPath = path.join(__dirname, "../../stations.json");
     console.log("📂 Loading stations from JSON...");
     
