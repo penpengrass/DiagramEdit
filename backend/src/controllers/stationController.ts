@@ -5,6 +5,7 @@ import {
   importStationsService,
   removeStation,
 } from "../services/stationServices.js";
+import { parseOud } from "../parsers/oudParser.js";
 
 /**
  * プレゼンテーション層：HTTP リクエスト/レスポンスの処理
@@ -58,6 +59,31 @@ router.post("/import", async (req: any, res: any) => {
     if (err.message.includes("配列")) {
       return res.status(400).json({ error: err.message });
     }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * OUDファイルを解析
+ * POST /api/stations/parse-oud
+ * Body: { fileContent: string, fileName: string }
+ */
+router.post("/parse-oud", async (req: any, res: any) => {
+  try {
+    const { fileContent, fileName } = req.body;
+
+    if (!fileContent) {
+      return res.status(400).json({ error: "fileContent is required" });
+    }
+
+    if (!fileName) {
+      return res.status(400).json({ error: "fileName is required" });
+    }
+
+    const oudData = parseOud(fileContent, fileName);
+    res.json(oudData);
+  } catch (err: any) {
+    console.error("Error parsing OUD file:", err);
     res.status(500).json({ error: err.message });
   }
 });

@@ -1,0 +1,1724 @@
+[
+  {
+    "id": 0,
+    "name": "米原",
+    "layout": "Jikokukeisiki_NoboriChaku",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "3番線",
+        "ryakushou": "3"
+      },
+      {
+        "id": 1,
+        "name": "6番線",
+        "ryakushou": "6"
+      }
+    ],
+    "outerterminal": [
+      {
+        "id": 0,
+        "name": "outerterminal.",
+        "jikoku": "東京",
+        "diaryaku": "東京"
+      },
+      {
+        "id": 1,
+        "name": "outerterminal.",
+        "jikoku": "敦賀",
+        "diaryaku": "敦賀"
+      },
+      {
+        "id": 2,
+        "name": "outerterminal.",
+        "jikoku": "長浜",
+        "diaryaku": "長浜"
+      },
+      {
+        "id": 3,
+        "name": "outerterminal.",
+        "jikoku": "近江塩津",
+        "diaryaku": "近江塩津"
+      },
+      {
+        "id": 4,
+        "name": "outerterminal.",
+        "jikoku": "高山",
+        "diaryaku": "高山"
+      }
+    ]
+  },
+  {
+    "id": 1,
+    "name": "彦根",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 2,
+    "name": "南彦根",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 3,
+    "name": "河瀬",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 4,
+    "name": "稲枝",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 5,
+    "name": "能登川",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 6,
+    "name": "安土",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 7,
+    "name": "近江八幡",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 8,
+    "name": "篠原",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 9,
+    "name": "野洲",
+    "layout": "Jikokukeisiki_NoboriHatsuchaku",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 10,
+    "name": "守山",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 11,
+    "name": "栗東",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 12,
+    "name": "草津",
+    "layout": "Jikokukeisiki_Hatsuchaku",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": [
+      {
+        "id": 0,
+        "name": "outerterminal.",
+        "jikoku": "柘植",
+        "diaryaku": "柘植"
+      }
+    ]
+  },
+  {
+    "id": 13,
+    "name": "南草津",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 14,
+    "name": "瀬田",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 15,
+    "name": "石山",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 16,
+    "name": "膳所",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 17,
+    "name": "大津",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 18,
+    "name": "山科",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": [
+      {
+        "id": 0,
+        "name": "outerterminal.",
+        "jikoku": "敦賀",
+        "diaryaku": "敦賀"
+      },
+      {
+        "id": 1,
+        "name": "outerterminal.",
+        "jikoku": "近江舞子",
+        "diaryaku": "近江舞子"
+      },
+      {
+        "id": 2,
+        "name": "outerterminal.",
+        "jikoku": "永原",
+        "diaryaku": "永原"
+      },
+      {
+        "id": 3,
+        "name": "outerterminal.",
+        "jikoku": "近江今津",
+        "diaryaku": "近江今津"
+      }
+    ]
+  },
+  {
+    "id": 19,
+    "name": "京都",
+    "layout": "Jikokukeisiki_Hatsuchaku",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "4",
+        "ryakushou": "4"
+      },
+      {
+        "id": 1,
+        "name": "5",
+        "ryakushou": "5"
+      },
+      {
+        "id": 2,
+        "name": "30",
+        "ryakushou": "30"
+      },
+      {
+        "id": 3,
+        "name": "2",
+        "ryakushou": "2"
+      },
+      {
+        "id": 4,
+        "name": "7",
+        "ryakushou": "7"
+      },
+      {
+        "id": 5,
+        "name": "6",
+        "ryakushou": "6"
+      },
+      {
+        "id": 6,
+        "name": "31",
+        "ryakushou": "31"
+      },
+      {
+        "id": 7,
+        "name": "3",
+        "ryakushou": "3"
+      },
+      {
+        "id": 8,
+        "name": "0",
+        "ryakushou": "0"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 20,
+    "name": "西大路",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 21,
+    "name": "桂川",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 22,
+    "name": "向日町",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 23,
+    "name": "長岡京",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 24,
+    "name": "山崎",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 25,
+    "name": "島本",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 26,
+    "name": "高槻",
+    "layout": "Jikokukeisiki_Hatsuchaku",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 27,
+    "name": "摂津富田",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 28,
+    "name": "ＪＲ総持寺",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 29,
+    "name": "茨木",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 30,
+    "name": "千里丘",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 31,
+    "name": "岸辺",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 32,
+    "name": "吹田",
+    "layout": "Jikokukeisiki_NoboriHatsuchaku",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 33,
+    "name": "東淀川",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 34,
+    "name": "新大阪",
+    "layout": "Jikokukeisiki_Hatsuchaku",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 35,
+    "name": "大阪",
+    "layout": "Jikokukeisiki_Hatsuchaku",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "5",
+        "ryakushou": "5"
+      },
+      {
+        "id": 1,
+        "name": "6",
+        "ryakushou": "6"
+      },
+      {
+        "id": 2,
+        "name": "21",
+        "ryakushou": "21"
+      },
+      {
+        "id": 3,
+        "name": "4",
+        "ryakushou": "4"
+      },
+      {
+        "id": 4,
+        "name": "3",
+        "ryakushou": "3"
+      },
+      {
+        "id": 5,
+        "name": "8",
+        "ryakushou": "8"
+      },
+      {
+        "id": 6,
+        "name": "7",
+        "ryakushou": "7"
+      },
+      {
+        "id": 7,
+        "name": "9",
+        "ryakushou": "9"
+      },
+      {
+        "id": 8,
+        "name": "10",
+        "ryakushou": "10"
+      },
+      {
+        "id": 9,
+        "name": "24",
+        "ryakushou": "24"
+      },
+      {
+        "id": 10,
+        "name": "11",
+        "ryakushou": "11"
+      }
+    ],
+    "outerterminal": [
+      {
+        "id": 0,
+        "name": "outerterminal.",
+        "jikoku": "関西空港",
+        "diaryaku": "関西空港"
+      },
+      {
+        "id": 1,
+        "name": "outerterminal.",
+        "jikoku": "白浜",
+        "diaryaku": "白浜"
+      },
+      {
+        "id": 2,
+        "name": "outerterminal.",
+        "jikoku": "新宮",
+        "diaryaku": "新宮"
+      }
+    ]
+  },
+  {
+    "id": 36,
+    "name": "塚本",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 37,
+    "name": "尼崎",
+    "layout": "Jikokukeisiki_Hatsuchaku",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": [
+      {
+        "id": 0,
+        "name": "outerterminal.",
+        "jikoku": "四条畷",
+        "diaryaku": "四条畷"
+      },
+      {
+        "id": 1,
+        "name": "outerterminal.",
+        "jikoku": "京田辺",
+        "diaryaku": "京田辺"
+      },
+      {
+        "id": 2,
+        "name": "outerterminal.",
+        "jikoku": "木津",
+        "diaryaku": "木津"
+      },
+      {
+        "id": 3,
+        "name": "outerterminal.",
+        "jikoku": "奈良",
+        "diaryaku": "奈良"
+      },
+      {
+        "id": 4,
+        "name": "outerterminal.",
+        "jikoku": "新三田",
+        "diaryaku": "新三田"
+      },
+      {
+        "id": 5,
+        "name": "outerterminal.",
+        "jikoku": "松井山手",
+        "diaryaku": "松井山手"
+      },
+      {
+        "id": 6,
+        "name": "outerterminal.",
+        "jikoku": "宝塚",
+        "diaryaku": "宝塚"
+      },
+      {
+        "id": 7,
+        "name": "outerterminal.",
+        "jikoku": "長尾",
+        "diaryaku": "長尾"
+      },
+      {
+        "id": 8,
+        "name": "outerterminal.",
+        "jikoku": "同志社前",
+        "diaryaku": "同志社前"
+      },
+      {
+        "id": 9,
+        "name": "outerterminal.",
+        "jikoku": "放出",
+        "diaryaku": "放出"
+      }
+    ]
+  },
+  {
+    "id": 38,
+    "name": "立花",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 39,
+    "name": "甲子園口",
+    "layout": "Jikokukeisiki_KudariHatsuchaku",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 40,
+    "name": "西宮",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 41,
+    "name": "さくら夙川",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 42,
+    "name": "芦屋",
+    "layout": "Jikokukeisiki_Hatsuchaku",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 43,
+    "name": "甲南山手",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 44,
+    "name": "摂津本山",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 45,
+    "name": "住吉",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 46,
+    "name": "六甲道",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 47,
+    "name": "摩耶",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 48,
+    "name": "灘",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 49,
+    "name": "三ノ宮",
+    "layout": "Jikokukeisiki_Hatsuchaku",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      },
+      {
+        "id": 2,
+        "name": "3番線",
+        "ryakushou": "3"
+      },
+      {
+        "id": 3,
+        "name": "4番線",
+        "ryakushou": "4"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 50,
+    "name": "元町",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 51,
+    "name": "神戸",
+    "layout": "Jikokukeisiki_KudariHatsuchaku",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 52,
+    "name": "兵庫",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 53,
+    "name": "新長田",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 54,
+    "name": "鷹取",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 55,
+    "name": "須磨海浜公園",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 56,
+    "name": "須磨",
+    "layout": "Jikokukeisiki_Hatsuchaku",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 57,
+    "name": "塩屋",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 58,
+    "name": "垂水",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 59,
+    "name": "舞子",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 60,
+    "name": "朝霧",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 61,
+    "name": "明石",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 62,
+    "name": "西明石",
+    "layout": "Jikokukeisiki_Hatsuchaku",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 63,
+    "name": "大久保",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 64,
+    "name": "魚住",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 65,
+    "name": "土山",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 66,
+    "name": "東加古川",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 67,
+    "name": "加古川",
+    "layout": "Jikokukeisiki_Hatsuchaku",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 68,
+    "name": "宝殿",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 69,
+    "name": "曽根",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 70,
+    "name": "ひめじ別所",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 71,
+    "name": "御着",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 72,
+    "name": "東姫路",
+    "layout": "Jikokukeisiki_Hatsu",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "1番線",
+        "ryakushou": "1"
+      },
+      {
+        "id": 1,
+        "name": "2番線",
+        "ryakushou": "2"
+      }
+    ],
+    "outerterminal": []
+  },
+  {
+    "id": 73,
+    "name": "姫路",
+    "layout": "Jikokukeisiki_KudariChaku",
+    "main": "Ekikibo_Ippan",
+    "railnumber": [
+      {
+        "id": 0,
+        "name": "8番線",
+        "ryakushou": "8"
+      },
+      {
+        "id": 1,
+        "name": "7番線",
+        "ryakushou": "7"
+      },
+      {
+        "id": 2,
+        "name": "6番線",
+        "ryakushou": "6"
+      },
+      {
+        "id": 3,
+        "name": "5番線",
+        "ryakushou": "5"
+      }
+    ],
+    "outerterminal": [
+      {
+        "id": 0,
+        "name": "outerterminal.",
+        "jikoku": "高松",
+        "diaryaku": "高松"
+      },
+      {
+        "id": 1,
+        "name": "outerterminal.",
+        "jikoku": "出雲市",
+        "diaryaku": "出雲市"
+      },
+      {
+        "id": 2,
+        "name": "outerterminal.",
+        "jikoku": "播州赤穂",
+        "diaryaku": "播州赤穂"
+      },
+      {
+        "id": 3,
+        "name": "outerterminal.",
+        "jikoku": "網干",
+        "diaryaku": "網干"
+      },
+      {
+        "id": 4,
+        "name": "outerterminal.",
+        "jikoku": "倉吉",
+        "diaryaku": "倉吉"
+      },
+      {
+        "id": 5,
+        "name": "outerterminal.",
+        "jikoku": "鳥取",
+        "diaryaku": "鳥取"
+      },
+      {
+        "id": 6,
+        "name": "outerterminal.",
+        "jikoku": "浜坂",
+        "diaryaku": "浜坂"
+      },
+      {
+        "id": 7,
+        "name": "outerterminal.",
+        "jikoku": "香住",
+        "diaryaku": "香住"
+      },
+      {
+        "id": 8,
+        "name": "outerterminal.",
+        "jikoku": "豊岡",
+        "diaryaku": "豊岡"
+      },
+      {
+        "id": 9,
+        "name": "outerterminal.",
+        "jikoku": "上郡",
+        "diaryaku": "上郡"
+      },
+      {
+        "id": 10,
+        "name": "outerterminal.",
+        "jikoku": "城崎温泉",
+        "diaryaku": "城崎温泉"
+      },
+      {
+        "id": 11,
+        "name": "outerterminal.",
+        "jikoku": "琴平",
+        "diaryaku": "琴平"
+      }
+    ]
+  }
+]

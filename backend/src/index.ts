@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import app from "./app.js";
-import { initPrisma, testDatabaseConnection, disconnectPrisma } from "./config/database.js";
+import { initPrisma, disconnectPrisma } from "./config/database.js";
 import { importStations } from "./parsers/oudParser.js";
 
 const PORT = process.env.PORT || 3000;
@@ -24,17 +24,9 @@ async function startServer(): Promise<void> {
     console.log("⏳ Initializing Prisma...");
     initPrisma();
 
-    console.log("⏳ Testing database connection...");
-    // タイムアウト付きでDB接続テスト
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Database connection timeout (5s)")), 5000)
-    );
-    const connectionPromise = testDatabaseConnection();
-    await Promise.race([connectionPromise, timeoutPromise]);
-
-    // stations.json をインポート
-    console.log("⏳ Importing stations...");
-    await importStations();
+    // DB初期化処理：DBが空の場合のみstations.jsonをインポート
+    console.log("⏳ Checking database and initializing if needed...");
+    await importStations(); // 条件付きインポート（DBに既存データがあればスキップ）
 
     // サーバーをリッスン開始
     app.listen(PORT, () => {

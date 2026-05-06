@@ -3,10 +3,15 @@ export let FileFormat: number = 0; // ここでグローバルに定義
 import { Station } from "../constants/stationmap";
 import { TrainData, TrainType, OudData, Diagrams } from "../constants/Traindatamap";
 import { Time } from '../utils/Time'; // Timeクラスをインポート
+
 interface DiaUploaderProps {
     onOudDataLoaded: (data: any) => void;
     onCsvDataLoaded: (rows: any) => void;
 }
+
+// バックエンド使用フラグ（trueでバックエンド、falseでフロント側実装を使用）
+const USE_BACKEND = false;
+
 const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoaded }) => {
     //2つの機能両方ができる
     const handleOudFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -14,18 +19,41 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (event) => {
-            /*const text = event.target?.result as string;
-            const rows = text
-                .trim()
-                .split('\n')
-                .map(row => row.split(','));
-            onCsvDataLoaded(rows);*/
-            //ここから上は表の表示、下はダイヤデータ取り込み
-            const content = event.target?.result;
-            const parsedData = parseOud(content, file);
-            onCsvDataLoaded(parsedData.rows);
-            onOudDataLoaded(parsedData);
+        reader.onload = async (event) => {
+            const content = event.target?.result as string;
+
+            if (USE_BACKEND) {
+                // バックエンド側のAPIを使用
+                try {
+                    const response = await fetch('http://localhost:3000/api/stations/parse-oud', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            fileContent: content,
+                            fileName: file.name,
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Server error: ${response.status}`);
+                    }
+
+                    const parsedData = await response.json();
+                    onCsvDataLoaded(parsedData.rows);
+                    onOudDataLoaded(parsedData);
+                    console.log('OUD file parsed by backend:', parsedData);
+                } catch (err) {
+                    console.error('Error parsing OUD file:', err);
+                    alert('OUDファイルの解析に失敗しました: ' + err);
+                }
+            } else {
+                // フロント側実装を使用（従来通り）
+                const parsedData = parseOud(content, file);
+                onCsvDataLoaded(parsedData.rows);
+                onOudDataLoaded(parsedData);
+            }
         };
         reader.readAsText(file, "shift-jis");
     };
