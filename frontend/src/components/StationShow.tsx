@@ -68,7 +68,7 @@ const saveStationsToDb = async () => {
   return (
     <>
       <button onClick={exportStationsAsJson}>駅情報をJSONでエクスポート</button>
-      <button onClick={saveStationsToDb}>DBに保存</button>
+      <button onClick={saveStationsToDb}>DBに保存(未完成)</button>
       <table>
         <thead>
           <tr>

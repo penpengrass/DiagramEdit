@@ -13,7 +13,9 @@ import DataExport from "./components/DataExport.tsx";
 import Cell from "./Cell.tsx";
 import { StationList } from "./components/StationListByDB.tsx";
 //import { Diagrams } from "./constants/Traindatamap";
-export type ComponentKey = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'I' | 'J';
+export type ComponentKey = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'I' | 'J';
+import StationTimeTable from "./components/StationTimeTable.tsx";
+//import { Diagrams } from "./constants/Traindatamap";
 
 /*const componentsMap = {
   A: {component:DiaTable,props:{CsvTableProps},
@@ -68,12 +70,13 @@ const App: React.FC = () => {
             {selected === 'D' && <TrainData TrainDataA={KudariDataA} typesA={TrainTypeA} stationsA={stations} diagrams={Diagram} />}
             {selected === 'E' && <TrainData TrainDataA={NoboriDataA} typesA={TrainTypeA} stationsA={[...stations].reverse()} diagrams={Diagram} />}
             {selected === 'F' && <Cell />}
+            {selected === 'G' && <StationTimeTable KudariTrainDataA={KudariDataA} NoboriTrainDataA={NoboriDataA} typesA={TrainTypeA} stationsA={stations} diagrams={Diagram} />}
             {selected === 'I' && <DataExport stationsA={stations} />}
             {selected === 'J' && <StationList />}
-          </div>
-        </div>
-      </div>
-    </div>
+          </div >
+        </div >
+      </div >
+    </div >
   );
 };
 

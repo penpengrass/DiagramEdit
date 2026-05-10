@@ -1,0 +1,18 @@
+.stt-side-header{
+    width:30px;
+}
+/* 外側の親要素：要素を左から右へ横に並べる */
+.timetable-row {
+  display: flex;
+  flex-direction: row; /* 横並び */
+  gap: 15px;           /* 列同士の間隔 */
+  overflow-x: auto;    /* はみ出す場合に横スクロール可能にする */
+}
+
+/* 各時刻データ（.stt）：中身を上から下へ縦に並べる */
+.stt {
+  display: flex;
+  flex-direction: column; /* 縦並び */
+  align-items: center;    /* 中央揃え（お好みで） */
+  min-width: 50px;        /* 列の最小幅 */
+}
