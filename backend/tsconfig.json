@@ -42,9 +42,11 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
+    "rootDir": "..",
     "baseUrl": ".",
     "paths": {
-      "@prisma/client": ["./prisma/generated/client"]
+      "@prisma/client": ["./prisma/generated/client"],
+      "@shared/*": ["../shared/*"]
     }
   }
 }

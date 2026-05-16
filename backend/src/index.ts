@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import app from "./app.js";
 import { initPrisma, disconnectPrisma } from "./config/database.js";
-import { importStations } from "./parsers/oudParser.js";
+import { importStations } from './services/stationServices.js';
 
 const PORT = process.env.PORT || 3000;
 
@@ -22,11 +22,11 @@ async function startServer(): Promise<void> {
     logEnvironment();
     
     console.log("⏳ Initializing Prisma...");
-    initPrisma();
+    const prisma = initPrisma();
 
     // DB初期化処理：DBが空の場合のみstations.jsonをインポート
     console.log("⏳ Checking database and initializing if needed...");
-    await importStations(); // 条件付きインポート（DBに既存データがあればスキップ）
+    await importStations(prisma); // 条件付きインポート（DBに既存データがあればスキップ）
 
     // サーバーをリッスン開始
     app.listen(PORT, () => {

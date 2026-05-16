@@ -15,7 +15,9 @@ app.use(cors({
 }));
 
 // ミドルウェア
-app.use(express.json());
+// ペイロード制限を拡大（大きなOUDファイルをサポート）
+app.use(express.json({ limit: '1000mb' }));
+app.use(express.urlencoded({ limit: '1000mb', extended: true }));
 
 // ルートパスへのリクエスト
 app.get("/", (req: any, res: any) => {

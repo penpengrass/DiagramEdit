@@ -23,6 +23,18 @@ model Station {
 
   @@map("stations")//テーブル名の定義
 }
+model TrainType {
+  id        String   @id @default(uuid())
+  code      Int      @unique // oud2ファイル内での種別インデックス (0, 1, 2...)
+  name      String   // 種別名 (例: 新快速)
+  shortName String   // 略称 (例: 新快)
+  color     String?  // 文字色・ダイヤ線色（必要に応じて）
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // リレーション: 1つの種別に複数の列車が紐づく、Trainをまだ作っていない段階
+  //trains    Train[]
+}
 model RailNumber {
   id         Int     @id @default(autoincrement())
   station_id Int

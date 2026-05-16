@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { initPrisma, testDatabaseConnection, disconnectPrisma } from '../src/config/database.js';
-import { importStations } from '../src/parsers/oudParser.js';
+import { importStations, importTrainTypes } from '../../shared/parsers/oudParser.js';
 
 /**
  * Prisma Seed スクリプト
@@ -23,6 +23,9 @@ async function main(): Promise<void> {
 
     console.log("⏳ Importing stations from stations.json...");
     await importStations(undefined, true); // forceImport=true で強制実行
+
+    console.log("⏳ Importing train types from trainTypes.json...");
+    await importTrainTypes(undefined, true); // forceImport=true で強制実行
 
     console.log("✅ Database seed completed successfully!");
   } catch (err: any) {
