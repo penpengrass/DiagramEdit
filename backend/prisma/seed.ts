@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { initPrisma, testDatabaseConnection, disconnectPrisma } from '../src/config/database.js';
-import { importStations, importTrainTypes } from '../../shared/parsers/oudParser.js';
-
+import { importTrainTypes } from '../src/services/trainTypesService.js';
+import { importStations } from '../src/services/stationServices.js';
 /**
  * Prisma Seed スクリプト
  * DB の初期化とデータのシード処理を実行
@@ -22,10 +22,10 @@ async function main(): Promise<void> {
     await Promise.race([connectionPromise, timeoutPromise]);
 
     console.log("⏳ Importing stations from stations.json...");
-    await importStations(undefined, true); // forceImport=true で強制実行
+    await importStations(true); // forceImport=true で強制実行
 
     console.log("⏳ Importing train types from trainTypes.json...");
-    await importTrainTypes(undefined, true); // forceImport=true で強制実行
+    await importTrainTypes(true); // forceImport=true で強制実行
 
     console.log("✅ Database seed completed successfully!");
   } catch (err: any) {

@@ -39,7 +39,7 @@ const DataExport: React.FC<Props> = ({ stationsA }) => {
         // 2. TrainType配列を取得して整形
         const trainTypes = parseTrainTypes(oudData.TrainType);
         
-        const response = await fetch('http://localhost:3000/api/stations/import-train-types', {
+        const response = await fetch('http://localhost:3000/api/train-types/import', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

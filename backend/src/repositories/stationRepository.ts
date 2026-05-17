@@ -1,4 +1,3 @@
-import { PrismaClient } from "@prisma/client";
 import type { Station } from "@prisma/client";
 import { getPrismaClient } from "../config/database.js";
 
@@ -9,9 +8,9 @@ import { getPrismaClient } from "../config/database.js";
 /**
  * 全ての駅情報を取得
  */
-export async function findAllStations(prisma?: PrismaClient): Promise<Station[]> {
-  const client = prisma || getPrismaClient();
-  return await client.station.findMany({
+export async function findAllStations(): Promise<Station[]> {
+  const prisma = getPrismaClient();
+  return await prisma.station.findMany({
     orderBy: {
       id: 'asc',
     },
@@ -23,9 +22,8 @@ export async function findAllStations(prisma?: PrismaClient): Promise<Station[]>
  */
 export async function findStationById(
   id: number,
-  prisma?: PrismaClient
 ): Promise<Station | null> {
-  const client = prisma || getPrismaClient();
+  const client = getPrismaClient();
   return client.station.findUnique({
     where: { id },
   });
@@ -43,9 +41,8 @@ export async function upsertStation(
     railnumber?: string | null;
     outerterminal?: string | null;
   },
-  prisma?: PrismaClient
 ): Promise<Station> {
-  const client = prisma || getPrismaClient();
+  const client = getPrismaClient();
 
   // updateオブジェクトを条件付きで構築
   const updateData: any = {
@@ -94,9 +91,8 @@ export async function upsertStation(
  */
 export async function deleteStation(
   id: number,
-  prisma?: PrismaClient
 ): Promise<Station> {
-  const client = prisma || getPrismaClient();
+  const client = getPrismaClient();
   return client.station.delete({
     where: { id },
   });
@@ -114,10 +110,8 @@ export async function upsertMultipleStations(
     railnumber?: string | null;
     outerterminal?: string | null;
   }>,
-  prisma?: PrismaClient
 ): Promise<void> {
-  const client = prisma || getPrismaClient();
   for (const station of stationsData) {
-    await upsertStation(station, client);
+    await upsertStation(station);
   }
 }

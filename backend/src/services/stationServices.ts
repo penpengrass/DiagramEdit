@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
 import type { Station } from "@prisma/client";
-import { getPrismaClient } from "../config/database.js";
+//import { getPrismaClient } from "../config/database.js";
+import * as stationRepository from "../repositories/stationRepository.js";
 import fs from "fs";
 import path from "path";
 import {
@@ -10,6 +10,13 @@ import {
   upsertMultipleStations,
 } from "../repositories/stationRepository.js";
 
+// Service層が知ってよい型
+type StationRepository = {
+  findAllStations: () => Promise<Station[]>;
+  findStationById: (id: number) => Promise<Station | null>;
+  upsertMultipleStations: (stations: any[]) => Promise<void>;
+  deleteStation: (id: number) => Promise<Station>;
+};
 /**
  * ビジネスロジック層：駅情報のビジネスロジック処理
  */
@@ -17,25 +24,22 @@ import {
 /**
  * 全ての駅情報を取得するサービス
  */
-export async function getAllStations(prisma?: PrismaClient): Promise<Station[]> {
-  const client = prisma || getPrismaClient();
-  return findAllStations(client);
+export async function getAllStations(): Promise<Station[]> {
+  return findAllStations();
 }
 /**
  * メイン関数：stations.json をインポート
  * @param prismaClient - 外部から渡されたPrismaクライアント（オプション）
  * @param forceImport - 強制的にインポートするかどうか（デフォルト: false）
  */
-export async function importStations(prismaClient: any, forceImport: boolean = false): Promise<void> {
-  if (!prismaClient) {
-    throw new Error("importStations requires a Prisma client passed as the first argument");
-  }
-  const prisma = prismaClient;
-
+export async function importStations(
+  forceImport: boolean = false,
+  repository: StationRepository = stationRepository
+): Promise<void> {
   try {
     // DBに既存データがある場合はスキップ
     if (!forceImport) {
-      const existingStations = await findAllStations(prisma);
+      const existingStations = await findAllStations();
       if (existingStations.length > 0) {
         console.log(`✅ Database already contains ${existingStations.length} stations. Skipping import.`);
         return;
@@ -44,16 +48,16 @@ export async function importStations(prismaClient: any, forceImport: boolean = f
 
     const dataPath = path.join(__dirname, "../../../backend/prisma/seeds/stations.json");
     console.log("📂 Loading stations from JSON...");
-    
+
     const stations = loadStationsFromJson(dataPath);
-    
+
     if (stations.length === 0) {
       console.warn("⚠️  No stations to import");
       return;
     }
 
     console.log(`📊 Found ${stations.length} stations to import`);
-    await importStationsToDatabase(stations, prisma);
+    await importStationsToDatabase(stations, repository);
     console.log(`✅ Import successful: ${stations.length} stations imported`);
   } catch (e: any) {
     console.error("❌ Import failed:", e.message || e);
@@ -83,12 +87,12 @@ function loadStationsFromJson(dataPath: string): any[] {
  */
 async function importStationsToDatabase(
   stations: any[],
-  prisma: any
+  repository: StationRepository
 ): Promise<void> {
   for (const station of stations) {
     try {
       console.log(`Processing station: ID=${station.id}, Name=${station.name}`);
-      await upsertMultipleStations([station], prisma);
+      await repository.upsertMultipleStations([station]);
       console.log(`✅ Station ${station.id} imported successfully`);
     } catch (err: any) {
       console.error(`❌ Failed to import station ${station.id}:`, {
@@ -107,16 +111,14 @@ async function importStationsToDatabase(
  */
 export async function getStationById(
   id: number,
-  prisma?: PrismaClient
 ): Promise<Station | null> {
-  const client = prisma || getPrismaClient();
-  
+
   // ID の妥当性チェック
   if (isNaN(id)) {
     throw new Error("無効なID形式です");
   }
 
-  const station = await findStationById(id, client);
+  const station = await findStationById(id);
   if (!station) {
     throw new Error("駅が見つかりません");
   }
@@ -129,9 +131,7 @@ export async function getStationById(
  */
 export async function importStationsService(
   stations: any[],
-  prisma?: PrismaClient
 ): Promise<{ message: string; count: number }> {
-  const client = prisma || getPrismaClient();
 
   // リクエストの検証
   if (!Array.isArray(stations)) {
@@ -150,7 +150,7 @@ export async function importStationsService(
   }
 
   // DB にインポート
-  await upsertMultipleStations(stations, client);
+  await upsertMultipleStations(stations);
 
   return {
     message: "インポート成功",
@@ -163,9 +163,7 @@ export async function importStationsService(
  */
 export async function removeStation(
   id: number,
-  prisma?: PrismaClient
 ): Promise<Station> {
-  const client = prisma || getPrismaClient();
 
   // ID の妥当性チェック
   if (isNaN(id)) {
@@ -173,10 +171,10 @@ export async function removeStation(
   }
 
   // 削除対象の駅が存在するか確認
-  const station = await findStationById(id, client);
+  const station = await findStationById(id);
   if (!station) {
     throw new Error("駅が見つかりません");
   }
 
-  return deleteStation(id, client);
+  return deleteStation(id);
 }

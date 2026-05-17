@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
-import { getPrismaClient } from "../config/database.js";
 import { parseOud } from "@shared/parsers/oudParser";
+import { findAllTrainTypes } from "../repositories/trainTypesRepository.js";
+import * as trainTypesRepository from "../repositories/trainTypesRepository.js";
 import path from "path";
 import fs from "fs";
 /**
@@ -9,7 +9,11 @@ import fs from "fs";
  * import type { TrainType } from "@prisma/client";
  */
 type TrainType = any;
-
+type TrainTypesRepository = {
+  findAllTrainTypes: () => Promise<TrainType[]>;
+  findTrainTypeByCode: (code: number) => Promise<TrainType | null>;
+  upsertMultipleTrainTypes: (trainTypes: any[]) => Promise<TrainType[]>;
+};
 /**
  * ビジネスロジック層：列車種別のビジネスロジック処理
  */
@@ -24,9 +28,7 @@ type TrainType = any;
 export async function importTrainTypesFromOudService(
   fileContent: string,
   fileName: string,
-  prisma?: PrismaClient
 ): Promise<TrainType[]> {
-  const client = prisma || getPrismaClient();
 
   try {
     // OUDファイルを解析
@@ -45,7 +47,7 @@ export async function importTrainTypesFromOudService(
 
     for (const trainType of oudData.TrainType) {
       try {
-        const saved = await (client as any).trainType.upsert({
+        const saved = await (oudData.TrainType as any).trainType.upsert({
           where: { code: trainType.id },
           update: {
             name: trainType.name,
@@ -79,11 +81,8 @@ export async function importTrainTypesFromOudService(
  * 全ての列車種別を取得するサービス
  * @param prisma - Prismaクライアント（オプション）
  */
-export async function getAllTrainTypes(prisma?: PrismaClient): Promise<TrainType[]> {
-  const client = prisma || getPrismaClient();
-  return (client as any).trainType.findMany({
-    orderBy: { code: "asc" },
-  });
+export async function getAllTrainTypes(): Promise<TrainType[]> {
+  return findAllTrainTypes();
 }
 /**
  * trainTypes.json から列車種別を読み込む
@@ -103,18 +102,13 @@ function loadTrainTypesFromJson(dataPath: string): any[] {
  * @param forceImport - 強制的にインポートするかどうか（デフォルト: false）
  */
 export async function importTrainTypes(
-  prismaClient: any,
-  forceImport: boolean = false
+  forceImport: boolean = false,
+  repository: TrainTypesRepository = trainTypesRepository
 ): Promise<void> {
-  if (!prismaClient) {
-    throw new Error("importTrainTypes requires a Prisma client passed as the first argument");
-  }
-  const prisma = prismaClient;
-
   try {
     // DBに既存データがある場合はスキップ
     if (!forceImport) {
-      const existingTrainTypes = await prisma.trainType.findMany();
+      const existingTrainTypes = await repository.findAllTrainTypes();
       if (existingTrainTypes.length > 0) {
         console.log(
           `✅ Database already contains ${existingTrainTypes.length} train types. Skipping import.`
@@ -134,7 +128,7 @@ export async function importTrainTypes(
     }
 
     console.log(`📊 Found ${trainTypes.length} train types to import`);
-    await importTrainTypesToDatabase(trainTypes, prisma);
+    await saveTrainTypesService(trainTypes, repository);
     console.log(`✅ Import successful: ${trainTypes.length} train types imported`);
   } catch (e: any) {
     console.error("❌ Import failed:", e.message || e);
@@ -147,25 +141,12 @@ export async function importTrainTypes(
  */
 export async function importTrainTypesToDatabase(
   trainTypes: any[],
-  prisma: any
+  repository: TrainTypesRepository = trainTypesRepository
 ): Promise<void> {
   for (const trainType of trainTypes) {
     try {
       console.log(`Processing train type: code=${trainType.code}, name=${trainType.name}`);
-      await prisma.trainType.upsert({
-        where: { code: trainType.code },
-        update: {
-          name: trainType.name,
-          shortName: trainType.shortName,
-          color: trainType.color,
-        },
-        create: {
-          code: trainType.code,
-          name: trainType.name,
-          shortName: trainType.shortName,
-          color: trainType.color,
-        },
-      });
+      await repository.upsertMultipleTrainTypes([trainType])
       console.log(`✅ Train type ${trainType.code} imported successfully`);
     } catch (err: any) {
       console.error(`❌ Failed to import train type ${trainType.code}:`, {
@@ -180,94 +161,63 @@ export async function importTrainTypesToDatabase(
 /**
  * 特定のコードの列車種別を取得するサービス
  * @param code - 列車種別コード
- * @param prisma - Prismaクライアント（オプション）
  */
 export async function getTrainTypeByCode(
   code: number,
-  prisma?: PrismaClient
+  repository: TrainTypesRepository = trainTypesRepository
 ): Promise<TrainType | null> {
-  const client = prisma || getPrismaClient();
-  return (client as any).trainType.findUnique({
-    where: { code },
-  });
+  return repository.findTrainTypeByCode(code);
 }
 
 /**
  * フロントエンドから送られた列車種別の配列を直接 DB に保存するサービス
  * @param trainTypes - 列車種別オブジェクトの配列
- * @param prisma - Prismaクライアント（オプション）
  * @returns 保存された列車種別のリスト
  */
 export async function saveTrainTypesService(
   trainTypes: any[],
-  prisma?: PrismaClient
+  repository: TrainTypesRepository = trainTypesRepository
 ): Promise<TrainType[]> {
-  const client = prisma || getPrismaClient();
-
-  try {
-    if (!trainTypes || trainTypes.length === 0) {
-      console.warn("⚠️  No train types to save");
-      return [];
-    }
-
-    console.log(`📊 Saving ${trainTypes.length} train types to database...`);
-
-    const savedTrainTypes: TrainType[] = [];
-
-    // for...of から 通常のforループ（または map / forEach）に変更し、インデックスを使用する
-    for (let i = 0; i < trainTypes.length; i++) {
-      const trainType = trainTypes[i];
-      try {
-        // 文字列の 'undefined' や空文字、欠落など、有効な数値ではないパターンをすべて弾く
-        let code: number;
-
-        if (
-          trainType.code === undefined ||
-          trainType.code === null ||
-          trainType.code === 'undefined' ||
-          trainType.code === ''
-        ) {
-          // 有効なコードがない場合は、配列のインデックス(i)を使用
-          code = i;
-        } else {
-          // 値がある場合は数値に変換
-          code = typeof trainType.code === 'string' ? parseInt(trainType.code, 10) : trainType.code;
-        }
-
-        // それでも NaN になってしまった場合はインデックス(i)にフォールバックする
-        if (isNaN(code)) {
-          console.warn(`⚠️ Invalid code format for ${trainType.name}, fallback to index ${i}`);
-          code = i;
-        }
-        const shortName = trainType.shortName ?? trainType.ryakushou ?? '';
-        const color = trainType.color || '00000000';
-
-        const saved = await (client as any).trainType.upsert({
-          where: { code },
-          update: {
-            name: trainType.name,
-            shortName,
-            color,
-          },
-          create: {
-            code,
-            name: trainType.name,
-            shortName,
-            color,
-          },
-        });
-        savedTrainTypes.push(saved);
-        console.log(`✅ Train type [${code}] ${trainType.name} saved`);
-      } catch (err: any) {
-        console.error(`❌ Failed to save train type at index ${i} [${trainType?.code}]:`, err.message);
-        throw err;
-      }
-    }
-
-    console.log(`✅ Successfully saved ${savedTrainTypes.length} train types`);
-    return savedTrainTypes;
-  } catch (e: any) {
-    console.error("❌ Error saving train types:", e.message || e);
-    throw e;
+  if (!trainTypes || trainTypes.length === 0) {
+    console.warn("⚠️  No train types to save");
+    return [];
   }
+
+  console.log(`📊 Saving ${trainTypes.length} train types to database...`);
+
+  const savedTrainTypes: TrainType[] = [];
+
+  // for...of から 通常のforループ（または map / forEach）に変更し、インデックスを使用する
+  const normalizedTrainTypes = trainTypes.map((trainType, i) => {
+    // 文字列の 'undefined' や空文字、欠落など、有効な数値ではないパターンをすべて弾く
+    let code: number;
+
+    if (
+      trainType.code === undefined ||
+      trainType.code === null ||
+      trainType.code === 'undefined' ||
+      trainType.code === ''
+    ) {
+      // 有効なコードがない場合は、配列のインデックス(i)を使用
+      code = i;
+    } else {
+      // 値がある場合は数値に変換
+      code = typeof trainType.code === 'string' ? parseInt(trainType.code, 10) : trainType.code;
+    }
+
+    // それでも NaN になってしまった場合はインデックス(i)にフォールバックする
+    if (isNaN(code)) {
+      console.warn(`⚠️ Invalid code format for ${trainType.name}, fallback to index ${i}`);
+      code = i;
+    }
+    return {
+      code,
+      name: trainType.name,
+      shortName: trainType.shortName ?? trainType.ryakushou ?? "",
+      color: trainType.color || "00000000",
+    };
+    });
+
+  console.log(`✅ Successfully saved ${savedTrainTypes.length} train types`);
+  return repository.upsertMultipleTrainTypes(normalizedTrainTypes);
 }
