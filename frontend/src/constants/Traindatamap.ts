@@ -1,5 +1,5 @@
 import { Station } from "../constants/stationmap";
-import { Time } from '../utils/Time';
+import { Time } from "@shared/utils/Time";
 //列車種別の一覧
 export interface TrainType {
     id: number;

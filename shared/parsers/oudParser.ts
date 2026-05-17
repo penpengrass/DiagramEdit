@@ -1,14 +1,14 @@
 // NOTE: Do not import PrismaClient or create a client in `shared`.
 // Database access must be provided by the caller (backend).
 //import { upsertMultipleStations, findAllStations } from "../../backend/src/repositories/stationRepository.js";
-import { Time } from "../../backend/src/utils/Time.js";
+import { Time } from '../utils/Time';
 import type {
   Station,
   TrainType,
   TrainData,
   Diagrams,
   OudData,
-} from "../../backend/src/types/types.js";
+} from "@shared/types/types.js";
 
 /**
  * ===== OUDファイル解析関数群 =====

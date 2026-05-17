@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Station} from '../constants/stationmap';
 import { TrainData, TrainType, Diagrams } from "../constants/Traindatamap";
 import '../styles/StationShow.css'
-import { Time } from '../utils/Time'; // 👈 Timeクラスをインポート
+import { Time } from '@shared/utils/Time'; // 👈 Timeクラスをインポート
 import { toABGR } from './TypeShow';
 interface Props {
   KudariTrainDataA: TrainData[]; // 下りデータ
