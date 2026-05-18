@@ -30,10 +30,11 @@ export class Time {
         return new Time(hour, minute);
     }
     public toString(): string {
+        let paddedHour: string;
         if (this.hour < 10) {
-            var paddedHour: string = " " + this.hour.toString().padStart(1, ' 0');
+            paddedHour = " " + this.hour.toString().padStart(1, ' 0');
         } else {
-            var paddedHour: string = this.hour.toString().padStart(2, '0');
+            paddedHour = this.hour.toString().padStart(2, '0');
         }
         //const paddedHour = this.hour.toString().padStart(2, '0');
         const paddedMinute = this.minute.toString().padStart(2, '0');

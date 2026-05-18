@@ -61,7 +61,7 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
         //駅を追加するメソッド
         //this.stations.push(new Station(name, main, layout));
         //var newStation=new Station(name, main, layout);
-        stations.push({ id: countStation, name: name, layout: layout, main: main, railnumber: [], OuterTerminal: [] })
+        stations.push({ id: countStation, name: name, layout: layout, main: main, railnumber: [], OuterTerminal: [], BrunchFromStationID: -1 })
         //this.stations.push({name,main,layout});
     };
     //addStationの中に入れたい
@@ -87,14 +87,14 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
     }*/
     const addTrainData = (td: number, DiaId: number, lines: Array<string>, count: number, KudariData: any, NoboriData: any) => {
         //console.log("td=" + td)
-        var _dir
-        var _Type = ""
-        var _number = ""
-        var _name = ""
-        var _time = []
-        var _OuterTerminal = [];
-        var _OuterArrive = [];
-        for (var _td = td; _td < td + 10; _td++) {
+        let _dir
+        let _Type = ""
+        let _number = ""
+        let _name = ""
+        let _time = []
+        const _OuterTerminal = [];
+        const _OuterArrive = [];
+        for (let _td = td; _td < td + 10; _td++) {
             if (lines[_td] == '.') {
                 break;
             }
@@ -106,13 +106,13 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
             if (lines[_td].startsWith('EkiJikoku=')) _time = getDataFromFile(lines[_td])
             if (lines[_td].startsWith('Ressyamei=')) _name = getDataFromFile(lines[_td])
             if (lines[_td].startsWith('Operation') && lines[_td].includes('=4')) {
-                var word = lines[_td].split('=');
-                var Outer = word[1].split('/');
-                var _pointStationID: string = word[0].replace('Operation', '').slice(0, -1);
-                var terminal: string = Outer[1];
-                var _pointTime: string = Outer[2].replace('$', '');
-                var _terminalStationID: string = terminal.split('$')[0];
-                var _terminalTime = terminal.split('$')[1];
+                const word = lines[_td].split('=');
+                const Outer = word[1].split('/');
+                const _pointStationID: string = word[0].replace('Operation', '').slice(0, -1);
+                const terminal: string = Outer[1];
+                const _pointTime: string = Outer[2].replace('$', '');
+                const _terminalStationID: string = terminal.split('$')[0];
+                const _terminalTime = terminal.split('$')[1];
                 if (lines[_td].includes('B=4')) {
                     _OuterTerminal.push({ pointStationID: _pointStationID, terminalStationID: _terminalStationID, terminalTime: _terminalTime, pointTime: _pointTime })
                 } else if (lines[_td].includes('A=4')) {
@@ -143,7 +143,7 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
             return "00";
         }
         const Ltime = time.split(',')
-        for (var s = 0; s < Ltime.length; s++) {
+        for (let s = 0; s < Ltime.length; s++) {
             let RailNumber: number;
             if (FileFormat == 2) {
                 const RailNumberDevide = Ltime[s].split('$');
@@ -200,22 +200,22 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
         const KudariData: TrainData[] = [];
         const NoboriData: TrainData[] = [];
         const Diagrams: Diagrams[] = [];
-        var count = 0;
+        let count = 0;
         //let TrainId:number=0;
-        var countTrain = 0;
-        var countStation = 0;
+        let countTrain = 0;
+        let countStation = 0;
         let countDia: number = 0;
-        //var station=new Array(1);
+        //let station=new Array(1);
         //OudiaかSecondかを判定する機能が欲しい
         if (lines[0].startsWith('FileType=OuDiaSecond')) {
             FileFormat = 2;
         } else if (lines[0].startsWith('FileType=OuDia.')) {
             FileFormat = 1;
         }
-        for (var td = 0; td < lines.length; td++) {
+        let rosenmei;
+        for (let td = 0; td < lines.length; td++) {
             if (lines[td].startsWith('Rosenmei')) {
-                //rosenmei = lines[td].replace('Rosenmei=', '');
-                var rosenmei = getDataFromFile(lines[td]);
+                rosenmei = lines[td].replace('Rosenmei=', '');
             } else if (lines[td].startsWith('Eki.')) {
                 if (FileFormat == 1) {
                     addStation(countStation, stations, getDataFromFile(lines[td + 1]), getDataFromFile(lines[td + 2]), getDataFromFile(lines[td + 3]));
@@ -226,7 +226,7 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
                     addStation(countStation, stations, getDataFromFile(lines[td + 1]), getDataFromFile(lines[td + 2]), getDataFromFile(lines[td + 3]));
                     while (lines[td + 1] != 'EkiTrack2.') {
                         if (lines[td + 1].startsWith('BrunchCoreEkiIndex')) {
-                            var BrunchID: number = lines[td + 1].replace('BrunchCoreEkiIndex=', '');
+                            const BrunchID: number = lines[td + 1].replace('BrunchCoreEkiIndex=', '');
                             stations[stations.length - 1].BrunchFromStationID = BrunchID;
                         }
                         td++;
@@ -252,7 +252,7 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
                     }
                 }
                 countStation++;
-                //var station=new Station(lines[td+1], lines[td+2], lines[td+3]);
+                //let station=new Station(lines[td+1], lines[td+2], lines[td+3]);
             } else if (lines[td].startsWith('Ressyasyubetsu.')) {
                 addTrainType(count, TrainType, getDataFromFile(lines[td + 1]), getDataFromFile(lines[td + 2]), "#" + getDataFromFile(lines[td + 3]));
                 count++;
@@ -265,7 +265,7 @@ const DiaUploader: React.FC<DiaUploaderProps> = ({ onOudDataLoaded, onCsvDataLoa
 
             }
             if (lines[td].startsWith('Dia.')) {
-                var AddDiagramName = lines[td + 1].replace('DiaName=', '');
+                const AddDiagramName = lines[td + 1].replace('DiaName=', '');
                 addDiagram(Diagrams, countDia, AddDiagramName);
                 countDia++;
                 countTrain = 0;
