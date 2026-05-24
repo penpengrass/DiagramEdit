@@ -40,6 +40,7 @@ const SideBar: React.FC<Props> = ({ onSelect }) => {
         <button onClick={() => onSelect('I')}>データベース化</button>
         <button onClick={() => onSelect('J')}>駅データベース</button>
         <button onClick={() => onSelect('K')}>種別データベース</button>
+        <button onClick={() => onSelect('L')}>列車データベース</button>
       </aside>
     </>
   )

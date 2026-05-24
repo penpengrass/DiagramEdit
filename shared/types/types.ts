@@ -99,3 +99,25 @@ export interface OudData {
     NoboriData: TrainData[];
     Diagrams: Diagrams[];
 }
+
+/**
+ * DB保存用：列車の各駅での到着・発車時刻情報
+ */
+export interface TrainStopTimeData {
+    stationId: number;
+    arrivalMinute?: number; // 0時からの通算分数
+    departureMinute?: number; // 0時からの通算分数
+    trackName?: string; // 番線情報（例："1", "2"）
+    isPass: boolean; // 通過フラグ
+}
+
+/**
+ * DB保存用：1本の列車データ
+ */
+export interface CreateTrainData {
+    trainNumber: string; // 列車番号（例："5031M"）
+    trainName?: string; // 列車名（例："サンライズ瀬戸"）
+    direction: 'Kudari' | 'Nobori'; // 進行方向
+    trainTypeCode: number; // 列車種別のコード（oud2内でのインデックス）
+    stopTimes: TrainStopTimeData[]; // 各駅での時刻情報
+}

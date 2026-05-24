@@ -8,6 +8,8 @@ import type {
   TrainData,
   Diagrams,
   OudData,
+  CreateTrainData,
+  TrainStopTimeData,
 } from "@shared/types/types.js";
 
 /**
@@ -409,7 +411,6 @@ export function parseOud(content: string, fileName: string): OudData {
   const rows = lines.slice(1).map((line: string) => line.split(","));
 
   console.log('Diagrams:', Diagrams);
-
   return {
     headers,
     rows,
@@ -448,3 +449,67 @@ export function parseTrainTypes(trainTypesRaw: any[]): TrainTypeInput[] {
 // Database clients must be provided by the caller (backend). To run imports,
 // call `importStations(prismaClient)` or `importTrainTypes(prismaClient)` from
 // backend code that manages the Prisma client lifecycle.
+
+/**
+ * Timeオブジェクトから0時からの経過分を計算する
+ * @param time - Timeオブジェクト（null可）
+ * @returns 経過分数、またはundefined
+ */
+function timeToMinutes(time: Time | null | undefined): number | undefined {
+  if (!time) return undefined;
+  // Timeオブジェクトから hour と minute を取得（toJSON()を使用）
+  const json = (time as any).toJSON ? (time as any).toJSON() : null;
+  if (!json) return undefined;
+  return json.hour * 60 + json.minute;
+}
+
+/**
+ * TrainDataをDB保存用のCreateTrainDataに変換する
+ * @param trainData - OUDパーサーから取得した列車データ
+ * @returns DB保存用の列車データ
+ */
+export function convertTrainDataForDB(trainData: TrainData): CreateTrainData {
+  // 進行方向を文字列に変換
+  const direction = trainData.dir === 0 ? 'Kudari' : 'Nobori';
+
+  // 列車種別コードを取得（文字列を数値に変換）
+  const trainTypeCode = parseInt(trainData.type, 10);
+
+  // 各駅の時刻情報を変換
+  const stopTimes: TrainStopTimeData[] = trainData.time.flatMap((entry: any, index: number) => {
+    const stopStatus = parseInt(entry.stop, 10); // 0:経由なし, 1:通過, 2:停車 などのステータス
+    if (stopStatus === 0) {
+      return []; // 空配列を返すと、flatMapによって自動的に除外されます
+    }
+    const stationId = index;
+    const arrivalMinute = timeToMinutes(entry.arrive);
+    const departureMinute = timeToMinutes(entry.departure);
+    // 通過駅判定：到着・発車時刻がどちらもない場合
+    const isPass = stopStatus === 1 || (!entry.arrive && !entry.departure);
+
+    return {
+      stationId,
+      arrivalMinute,
+      departureMinute,
+      trackName: entry.railNumberID ? String(entry.railNumberID) : undefined,
+      isPass,
+    };
+  });
+
+  return {
+    trainNumber: trainData.number,
+    trainName: trainData.name || undefined,
+    direction,
+    trainTypeCode,
+    stopTimes,
+  };
+}
+
+/**
+ * 複数の列車データを一括変換する
+ * @param trainDataList - TrainData の配列
+ * @returns CreateTrainData の配列
+ */
+export function convertMultipleTrainsForDB(trainDataList: TrainData[]): CreateTrainData[] {
+  return trainDataList.map(convertTrainDataForDB);
+}

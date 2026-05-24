@@ -3,6 +3,7 @@ import cors from "cors";
 import 'dotenv/config';
 import stationRouter from "./controllers/stationController.js";
 import trainTypeRouter from "./controllers/trainTypeController.js";
+import trainRouter from "./controllers/trainController.js";
 /**
  * Express アプリケーションの初期化とミドルウェア設定
  */
@@ -34,6 +35,7 @@ app.get("/test", (req: any, res: any) => {
 
 // 駅情報 API ルート
 app.use("/api/stations", stationRouter);
-app.use("/api/train-types", trainTypeRouter)
+app.use("/api/train-types", trainTypeRouter);
+app.use("/api/trains", trainRouter);
 
 export default app;

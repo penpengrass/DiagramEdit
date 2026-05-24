@@ -6,48 +6,83 @@
 
 generator client {
   provider = "prisma-client"
-  output = "./generated"
+  output   = "./generated"
 }
 
 datasource db {
   provider = "postgresql"
   //urlは書かない
 }
-model Station {
-  id           Int      @id
-  name         String
-  layout       String
-  main         String
-  railnumber   Json
-  outerterminal Json
 
-  @@map("stations")//テーブル名の定義
+model Station {
+  id             Int             @id
+  name           String
+  layout         String
+  main           String
+  railnumber     Json
+  outerterminal  Json
+  trainStopTimes TrainStopTime[]
+
+  @@map("stations") //テーブル名の定義
 }
+
 model TrainType {
   id        String   @id @default(uuid())
   code      Int      @unique // oud2ファイル内での種別インデックス (0, 1, 2...)
-  name      String   // 種別名 (例: 新快速)
-  shortName String   // 略称 (例: 新快)
-  color     String?  // 文字色・ダイヤ線色（必要に応じて）
+  name      String // 種別名 (例: 新快速)
+  shortName String // 略称 (例: 新快)
+  color     String? // 文字色・ダイヤ線色（必要に応じて）
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // リレーション: 1つの種別に複数の列車が紐づく、Trainをまだ作っていない段階
-  //trains    Train[]
+  // リレーション: 1つの種別に複数の列車が紐づく
+  trains Train[]
 }
+
+// 列車モデル 1本の列車の情報
+model Train {
+  id          String          @id @default(uuid())
+  trainNumber String // Ressyabangou (例: "5031M", "701M")
+  trainName   String? // Ressyamei (例: "サンライズ瀬戸")
+  direction   String // Houkou ("Kudari" または "Nobori")
+  trainTypeId String
+  trainType   TrainType       @relation(fields: [trainTypeId], references: [id])
+  stopTimes   TrainStopTime[]
+
+  // 今後の拡張（車両運用・編成）を見据えたリレーション用の器（オプショナルにしておく）
+  // vehicleUsageId String?
+}
+
+// 列車ごとの各駅の時刻・発着情報
+model TrainStopTime {
+  id        String   @id @default(uuid())
+  trainId   String
+  train     Train    @relation(fields: [trainId], references: [id], onDelete: Cascade)
+  stationId Int
+  station   Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
+
+  // oud2の「1;446$0」形式をパースして使いやすい形にする
+  arrivalMinute   Int? // 0時からの通算経過分（例: 446）。通過・未経由・発のみの場合はnull
+  departureMinute Int? // 0時からの通算経過分。着のみの場合はnull
+  trackName       String? // $0 などの番線情報
+  isPass          Boolean @default(false) // 通過駅フラグ（時刻表記がないが経由する場合など用）
+
+  //@@unique([trainId, stationId]) // 1つの列車が同じ駅に登録されるのは1度のみ
+}
+
 model RailNumber {
-  id         Int     @id @default(autoincrement())
+  id         Int    @id @default(autoincrement())
   station_id Int
-  rail_id    Int     // JSON内のid
+  rail_id    Int // JSON内のid
   name       String
   ryakushou  String
 }
 
 model OuterTerminal {
-  id         Int     @id @default(autoincrement())
-  station_id Int
-  terminal_id Int    // JSON内のid
-  name       String
-  jikoku     String
-  diaryaku   String
+  id          Int    @id @default(autoincrement())
+  station_id  Int
+  terminal_id Int // JSON内のid
+  name        String
+  jikoku      String
+  diaryaku    String
 }
