@@ -477,7 +477,7 @@ export function convertTrainDataForDB(trainData: TrainData): CreateTrainData {
 
   // 各駅の時刻情報を変換
   const stopTimes: TrainStopTimeData[] = trainData.time.flatMap((entry: any, index: number) => {
-    const stopStatus = parseInt(entry.stop, 10); // 0:経由なし, 1:通過, 2:停車 などのステータス
+    const stopStatus = parseInt(entry.stop, 10); // 0:経由なし, 1:停車, 2:通過 などのステータス
     if (stopStatus === 0) {
       return []; // 空配列を返すと、flatMapによって自動的に除外されます
     }
@@ -485,7 +485,7 @@ export function convertTrainDataForDB(trainData: TrainData): CreateTrainData {
     const arrivalMinute = timeToMinutes(entry.arrive);
     const departureMinute = timeToMinutes(entry.departure);
     // 通過駅判定：到着・発車時刻がどちらもない場合
-    const isPass = stopStatus === 1 || (!entry.arrive && !entry.departure);
+    const isPass = stopStatus === 2 || (!entry.arrive && !entry.departure);
 
     return {
       stationId,
