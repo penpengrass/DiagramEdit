@@ -10,7 +10,7 @@ import type {
   OudData,
   CreateTrainData,
   TrainStopTimeData,
-} from "@shared/types/types.js";
+} from "@shared/types/timetable.js";
 
 /**
  * ===== OUDファイル解析関数群 =====

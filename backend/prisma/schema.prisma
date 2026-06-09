@@ -72,7 +72,7 @@ model TrainStopTime {
 
 model RailNumber {
   id         Int    @id @default(autoincrement())
-  station_id Int
+  station_id Int //所属する駅のID
   rail_id    Int // JSON内のid
   name       String
   ryakushou  String
