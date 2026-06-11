@@ -2,27 +2,29 @@ import { Time } from '../utils/Time';
 // shared/types/timetable.ts
 
 export interface TrainStopTime {
-  stationId: string;
-  stationName: string;
-  arrivalMinute: number | null;
-  departureMinute: number | null;
-  trackName: string | null;
-  isPass:boolean;
+    stationId: string;
+    stationName: string;
+    arrivalMinute: number | null;
+    departureMinute: number | null;
+    trackName: string | null;
+    isPass: boolean;
 }
 
 export interface Trains {
-  id: string;
-  trainNumber: string;
-  trainName: string | null;
-  direction: 'Kudari' | 'Nobori';
-  trainType: TrainType;
-  stopTimes: TrainStopTime[];
+    id: string;
+    trainNumber: string;
+    trainName: string | null;
+    direction: 'Kudari' | 'Nobori';
+    trainType: TrainType;
+    stopTimes: TrainStopTime[];
 }
 /**
- * レール番号の型定義
+ * レール番号の型定義(React Native用に将来的に?を付ける必要がある)
  */
 export interface RailNumber {
     id: number;
+    station_id: number;//所属する駅のID
+    rail_id: number;//JSON内のインデックス
     name: string;
     ryakushou: string;
 }
@@ -32,6 +34,8 @@ export interface RailNumber {
  */
 export interface OuterTerminalStation {
     id: number;
+    station_id:number; //路線外発着の接続駅のID
+    terminal_id:number;//JSON内のインデックス
     name: string;
     jikoku: string;
     diaryaku: string;

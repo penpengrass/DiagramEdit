@@ -19,13 +19,20 @@ model Station {
   name           String
   layout         String
   main           String
-  railnumber     Json
+  railnumber     RailNumber[]
   outerterminal  Json
   trainStopTimes TrainStopTime[]
 
   @@map("stations") //テーブル名の定義
 }
-
+model RailNumber {
+  id         Int    @id @default(autoincrement())
+  station_id Int //所属する駅のID
+  rail_id    Int // JSON内のid
+  name       String
+  ryakushou  String
+  station    Station  @relation(fields: [station_id], references: [id], onDelete: Cascade)
+}
 model TrainType {
   id        String   @id @default(uuid())
   code      Int      @unique // oud2ファイル内での種別インデックス (0, 1, 2...)
@@ -68,14 +75,6 @@ model TrainStopTime {
   isPass          Boolean @default(false) // 通過駅フラグ（時刻表記がないが経由する場合など用）
 
   //@@unique([trainId, stationId]) // 1つの列車が同じ駅に登録されるのは1度のみ
-}
-
-model RailNumber {
-  id         Int    @id @default(autoincrement())
-  station_id Int //所属する駅のID
-  rail_id    Int // JSON内のid
-  name       String
-  ryakushou  String
 }
 
 model OuterTerminal {
