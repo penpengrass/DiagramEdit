@@ -37,10 +37,10 @@ const DataExport: React.FC<Props> = ({ stationsA }) => {
 
         // 1. OUDファイルを解析
         const oudData = parseOud(content, file.name);
-        
+
         // 2. TrainType配列を取得して整形
         const trainTypes = parseTrainTypes(oudData.TrainType);
-        
+
         const response = await fetch('http://localhost:3000/api/train-types/import', {
           method: 'POST',
           headers: {
@@ -87,13 +87,13 @@ const DataExport: React.FC<Props> = ({ stationsA }) => {
         console.log(`\n📋 OUDファイル解析完了:`);
         console.log(`  下り列車数: ${oudData.KudariData.length}`);
         console.log(`  上り列車数: ${oudData.NoboriData.length}`);
-        
+        console.log(oudData.stations.length);
         // 2. 列車データ（下り列車と上り列車）を変換
         const allTrains = [
-          ...convertMultipleTrainsForDB(oudData.KudariData),
-          ...convertMultipleTrainsForDB(oudData.NoboriData),
+          ...convertMultipleTrainsForDB(oudData.KudariData, oudData.stations.length),
+          ...convertMultipleTrainsForDB(oudData.NoboriData, oudData.stations.length),
         ];
-        
+
         if (allTrains.length === 0) {
           throw new Error('列車データが見つかりませんでした');
         }
@@ -149,7 +149,7 @@ const DataExport: React.FC<Props> = ({ stationsA }) => {
         style={{ display: 'none' }}
       />
       {message && <div style={{ marginTop: '10px', color: message.includes('✅') ? 'green' : 'red' }}>{message}</div>}
-      
+
       <label htmlFor="trains-input" style={{ marginLeft: '10px' }}>
         <button
           disabled={importingTrains}

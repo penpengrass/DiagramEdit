@@ -32,6 +32,7 @@ model RailNumber {
   name       String
   ryakushou  String
   station    Station  @relation(fields: [station_id], references: [id], onDelete: Cascade)
+  @@map("rail_number") //テーブル名の定義
 }
 model TrainType {
   id        String   @id @default(uuid())
@@ -44,6 +45,7 @@ model TrainType {
 
   // リレーション: 1つの種別に複数の列車が紐づく
   trains Train[]
+  @@map("train_type") //テーブル名の定義
 }
 
 // 列車モデル 1本の列車の情報
@@ -58,6 +60,7 @@ model Train {
 
   // 今後の拡張（車両運用・編成）を見据えたリレーション用の器（オプショナルにしておく）
   // vehicleUsageId String?
+  @@map("train") //テーブル名の定義
 }
 
 // 列車ごとの各駅の時刻・発着情報
@@ -75,6 +78,7 @@ model TrainStopTime {
   isPass          Boolean @default(false) // 通過駅フラグ（時刻表記がないが経由する場合など用）
 
   //@@unique([trainId, stationId]) // 1つの列車が同じ駅に登録されるのは1度のみ
+  @@map("train_stop_time") //テーブル名の定義
 }
 
 model OuterTerminal {
@@ -84,4 +88,5 @@ model OuterTerminal {
   name        String
   jikoku      String
   diaryaku    String
+  @@map("outer_terminal") //テーブル名の定義
 }

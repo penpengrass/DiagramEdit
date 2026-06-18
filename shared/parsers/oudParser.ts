@@ -437,7 +437,7 @@ export interface TrainTypeInput {
 export function parseTrainTypes(trainTypesRaw: any[]): TrainTypeInput[] {
   // ※もしここでテキストパースを行っている場合はその処理を書きます。
   // 今回は引数で生の配列を受け取って整形する想定のインターフェースにします。
-  
+
   return trainTypesRaw.map((item) => ({
     code: String(item.code ?? item.id),
     name: String(item.name),
@@ -468,7 +468,7 @@ function timeToMinutes(time: Time | null | undefined): number | undefined {
  * @param trainData - OUDパーサーから取得した列車データ
  * @returns DB保存用の列車データ
  */
-export function convertTrainDataForDB(trainData: TrainData): CreateTrainData {
+export function convertTrainDataForDB(trainData: TrainData, totalStations: number): CreateTrainData {
   // 進行方向を文字列に変換
   const direction = trainData.dir === 0 ? 'Kudari' : 'Nobori';
 
@@ -481,7 +481,33 @@ export function convertTrainDataForDB(trainData: TrainData): CreateTrainData {
     if (stopStatus === 0) {
       return []; // 空配列を返すと、flatMapによって自動的に除外されます
     }
-    const stationId = index;
+
+    // ★修正・防御ポイント
+    let stationId: number;
+    if (trainData.dir === 0) {
+      // 下りはそのまま
+      stationId = index;
+    } else {
+      // 上りの場合、基本は (総駅数 - 1 - index)
+      const NoboriIndex = totalStations - 1 - index;
+      if (NoboriIndex < 0) {
+        console.log(NoboriIndex)
+        stationId = 0;
+      } else {
+        stationId = NoboriIndex;
+      }
+      // 【防御策】もしデータがズレて stationId が 0 未満（負の数）になった場合のセーフティ
+      if (stationId < 0) {
+        console.warn(`[Warning] stationIdが負の数になりました。入力データを確認してください。index: ${index}, totalStations: ${totalStations}`);
+        // データのズレによる不正登録を防ぐため、スキップする
+        return [];
+      }
+    }
+
+    // さらに、そもそも総駅数を超えたインデックスを指していないかもチェック
+    if (stationId >= totalStations) {
+      return [];
+    }
     const arrivalMinute = timeToMinutes(entry.arrive);
     const departureMinute = timeToMinutes(entry.departure);
     // 通過駅判定：到着・発車時刻がどちらもない場合
@@ -496,6 +522,10 @@ export function convertTrainDataForDB(trainData: TrainData): CreateTrainData {
     };
   });
 
+  // DB保存時に駅順（stationId昇順、または上りの場合は降順など）でソートしておくと、後の処理が楽になります
+  // ここではstationIdの昇順で統一しておきます
+  stopTimes.sort((a, b) => a.stationId - b.stationId);
+
   return {
     trainNumber: trainData.number,
     trainName: trainData.name || undefined,
@@ -508,8 +538,9 @@ export function convertTrainDataForDB(trainData: TrainData): CreateTrainData {
 /**
  * 複数の列車データを一括変換する
  * @param trainDataList - TrainData の配列
+ * @param totalStations - 該当路線の総駅数
  * @returns CreateTrainData の配列
  */
-export function convertMultipleTrainsForDB(trainDataList: TrainData[]): CreateTrainData[] {
-  return trainDataList.map(convertTrainDataForDB);
+export function convertMultipleTrainsForDB(trainDataList: TrainData[], totalStations: number): CreateTrainData[] {
+  return trainDataList.map(td => convertTrainDataForDB(td, totalStations));
 }
