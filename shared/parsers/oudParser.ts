@@ -84,6 +84,7 @@ function addOuterTerminal(
   diaryaku: string
 ): void {
   if (stations[id]) {
+    // Frontend の型に合わせて最小の情報だけ格納する
     stations[id].OuterTerminal.push({
       id: OuterStationID,
       name: name,
@@ -225,11 +226,14 @@ function addTrainData(
       const word = line.split('=');
       const Outer = word[1]?.split('/');
       if (Outer && Outer[1] && word[0]) {
-        const _pointStationID: string = (word[0] || '').replace('Operation', '').slice(0, -1);
+        const _pointStationID = Number((word[0] || '').replace('Operation', '').slice(0, -1));
         const terminal: string = Outer[1];
-        const _pointTime: string = Outer[2]?.replace('$', '') || '';
-        const _terminalStationID: string = terminal.split('$')[0] || '';
-        const _terminalTime = terminal.split('$')[1] || '';
+        const _pointTimeRaw = Outer[2]?.replace('$', '') || '';
+        const _terminalStationID = Number((terminal.split('$')[0] || '').trim()) || 0;
+        const _terminalTimeRaw = terminal.split('$')[1] || '';
+
+        const _terminalTime = _terminalTimeRaw ? Time.fromString(_terminalTimeRaw) : null;
+        const _pointTime = _pointTimeRaw ? Time.fromString(_pointTimeRaw) : null;
 
         if (line.includes('B=4')) {
           _OuterTerminal.push({
@@ -253,12 +257,13 @@ function addTrainData(
 
   _time = timeToEnter(_time, fileFormat);
 
+  const parsedType = Number(_Type) || 0;
   if (_dir === 0) {
     KudariData.push({
       DiaLine: DiaId,
       id: count,
       dir: _dir,
-      type: _Type,
+      type: parsedType,
       number: _number,
       name: _name,
       time: _time,
@@ -270,7 +275,7 @@ function addTrainData(
       DiaLine: DiaId,
       id: count,
       dir: _dir,
-      type: _Type,
+      type: parsedType,
       number: _number,
       name: _name,
       time: _time,
@@ -472,8 +477,8 @@ export function convertTrainDataForDB(trainData: TrainData, totalStations: numbe
   // 進行方向を文字列に変換
   const direction = trainData.dir === 0 ? 'Kudari' : 'Nobori';
 
-  // 列車種別コードを取得（文字列を数値に変換）
-  const trainTypeCode = parseInt(trainData.type, 10);
+  // 列車種別コードを取得
+  const trainTypeCode = Number(trainData.type) || 0;
 
   // 各駅の時刻情報を変換
   const stopTimes: TrainStopTimeData[] = trainData.time.flatMap((entry: any, index: number) => {
@@ -526,12 +531,29 @@ export function convertTrainDataForDB(trainData: TrainData, totalStations: numbe
   // ここではstationIdの昇順で統一しておきます
   stopTimes.sort((a, b) => a.stationId - b.stationId);
 
+  // 路線外発着をDB向けに変換（Time -> 分）
+  const outerdep = (trainData.outerdep || []).map(o => ({
+    pointStationID: Number(o.pointStationID) || 0,
+    terminalStationID: Number(o.terminalStationID) || 0,
+    terminalTime: timeToMinutes(o.terminalTime as any) || undefined,
+    pointTime: timeToMinutes(o.pointTime as any) || undefined,
+  }));
+
+  const outerarrive = (trainData.outerarrive || []).map(o => ({
+    pointStationID: Number(o.pointStationID) || 0,
+    terminalStationID: Number(o.terminalStationID) || 0,
+    terminalTime: timeToMinutes(o.terminalTime as any) || undefined,
+    pointTime: timeToMinutes(o.pointTime as any) || undefined,
+  }));
+
   return {
     trainNumber: trainData.number,
     trainName: trainData.name || undefined,
     direction,
     trainTypeCode,
     stopTimes,
+    outerdep: outerdep.length ? outerdep : undefined,
+    outerarrive: outerarrive.length ? outerarrive : undefined,
   };
 }
 

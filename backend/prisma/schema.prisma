@@ -13,20 +13,36 @@ datasource db {
   provider = "postgresql"
   //urlは書かない
 }
+/// 鉄道路線（oud2ファイル内の [Rosen] に相当）
+/*model Route {
+  id              Int         @id
+  name            String         // Rosenmei (例: "京阪神線")
+  kudariDiaAlias  String?        // KudariDiaAlias
+  noboriDiaAlias  String?        // NoboriDiaAlias
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
+  // リレーション
+  //stations   Station[]
+  trains          Train[]
+  @@map("route") //テーブル名の定義
+}*/
 model Station {
-  id             Int             @id
+  id             Int                    @id
+  //route_id       Int
   name           String
   layout         String
   main           String
   railnumber     RailNumber[]
-  outerterminal  Json
+  outerterminal  Json // フロント側の `OuterTerminal` 配列をそのまま JSON として保持
   trainStopTimes TrainStopTime[]
 
+  //route       Route @relation(fields: [route_id], references: [id], onDelete: Cascade)
   @@map("stations") //テーブル名の定義
 }
+
 model RailNumber {
-  id         Int    @id @default(autoincrement())
+  id         Int     @id @default(autoincrement())
   station_id Int //所属する駅のID
   rail_id    Int // JSON内のid
   name       String
@@ -51,18 +67,26 @@ model TrainType {
 // 列車モデル 1本の列車の情報
 model Train {
   id          String          @id @default(uuid())
+  //route_id       Int
   trainNumber String // Ressyabangou (例: "5031M", "701M")
   trainName   String? // Ressyamei (例: "サンライズ瀬戸")
   direction   String // Houkou ("Kudari" または "Nobori")
   trainTypeId String
   trainType   TrainType       @relation(fields: [trainTypeId], references: [id])
   stopTimes   TrainStopTime[]
+  // 1本の列車に対して、路線外発着データが「0〜2件」紐付く
+  //outerDep  OuterTime[]
+  //outerArrive OuterTime[]
 
+  //route       Route @relation(fields: [route_id], references: [id], onDelete: Cascade)
   // 今後の拡張（車両運用・編成）を見据えたリレーション用の器（オプショナルにしておく）
   // vehicleUsageId String?
   @@map("train") //テーブル名の定義
 }
-
+/*enum Direction {
+  Kudari // 下り
+  Nobori // 上り
+}*/
 // 列車ごとの各駅の時刻・発着情報
 model TrainStopTime {
   id        String   @id @default(uuid())
@@ -81,12 +105,33 @@ model TrainStopTime {
   @@map("train_stop_time") //テーブル名の定義
 }
 
-model OuterTerminal {
-  id          Int    @id @default(autoincrement())
-  station_id  Int
-  terminal_id Int // JSON内のid
-  name        String
-  jikoku      String
-  diaryaku    String
-  @@map("outer_terminal") //テーブル名の定義
+model OuterTerminalStation {
+  id                  Int      @id @default(autoincrement())
+  station_id          Int
+  terminal_id         Int? // JSON内のid（元データの識別子）
+  name                String
+  jikoku_raw          String? // 元のjikoku文字列（駅名や時刻など）
+  // Trainへの路線外発着参照（どの列車の路線外始発/終着かを示す）
+  diaryaku            String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([station_id, terminal_id])
+  @@index([station_id])
+  @@index([terminal_id])
+  @@map("outer_terminal_stations") //テーブル名の定義
+}
+
+model OuterTime {
+  id                Int     @id @default(autoincrement())
+  trainId           String
+  train             Train     @relation(fields: [trainId], references: [id], onDelete: Cascade)
+  // 役割の定義: "DEP" (路線外から出発して線内へ入る) または "ARR" (線内から路線外へ出て到着する)
+  directionType     String    // "DEP" or "ARR"
+  pointStationID    Int
+  terminalStationID Int
+  terminalTime      Int?
+  pointTime         Int?
+
+  @@map("outer_time")
 }

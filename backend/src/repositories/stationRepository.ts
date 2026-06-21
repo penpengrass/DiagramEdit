@@ -40,6 +40,7 @@ export async function upsertStation(
     main?: string | null;
     railnumber?: string | null;
     outerterminal?: string | null;
+    //route_id?: number;
   },
 ): Promise<Station> {
   const client = getPrismaClient();
@@ -48,6 +49,9 @@ export async function upsertStation(
   const updateData: any = {
     name: stationData.name,
   };
+  /*if (stationData.route_id !== undefined) {
+    updateData.route_id = stationData.route_id;
+  }*/
   if (stationData.layout !== undefined) {
     updateData.layout = stationData.layout;
   }
@@ -55,7 +59,18 @@ export async function upsertStation(
     updateData.main = stationData.main;
   }
   if (stationData.railnumber !== undefined) {
-    updateData.railnumber = stationData.railnumber;
+    // `railnumber` は stations.json では配列で来るため、Prisma のネスト作成形式に変換する
+    if (Array.isArray(stationData.railnumber)) {
+      // update 時は既存の railnumber をそのまま更新せず作成のみ行う（重複対策は別途）
+      // Prisma の create に渡す形式: { create: [ { rail_id, name, ryakushou } ] }
+      updateData.railnumber = { create: stationData.railnumber.map((r: any) => ({
+        rail_id: r.id ?? r.rail_id,
+        name: r.name ?? '',
+        ryakushou: r.ryakushou ?? r.ryakushou ?? '',
+      })) };
+    } else {
+      updateData.railnumber = stationData.railnumber;
+    }
   }
   if (stationData.outerterminal !== undefined) {
     updateData.outerterminal = stationData.outerterminal;
@@ -66,6 +81,12 @@ export async function upsertStation(
     id: stationData.id,
     name: stationData.name,
   };
+  /*if (stationData.route_id !== undefined) {
+    createData.route_id = stationData.route_id;
+  } else {
+    // schema 上 route_id は必須なので、指定がない場合はデフォルト 0 を設定する
+    createData.route_id = 0;
+  }*/
   if (stationData.layout !== undefined) {
     createData.layout = stationData.layout;
   }
@@ -73,7 +94,16 @@ export async function upsertStation(
     createData.main = stationData.main;
   }
   if (stationData.railnumber !== undefined) {
-    createData.railnumber = stationData.railnumber;
+    if (Array.isArray(stationData.railnumber)) {
+      createData.railnumber = { create: stationData.railnumber.map((r: any) => ({
+        rail_id: r.id ?? r.rail_id,
+        name: r.name ?? '',
+        ryakushou: r.ryakushou ?? '',
+        //station_id: stationData.id, // unchecked では不要だが ensure for clarity
+      })) };
+    } else {
+      createData.railnumber = stationData.railnumber;
+    }
   }
   if (stationData.outerterminal !== undefined) {
     createData.outerterminal = stationData.outerterminal;
@@ -109,6 +139,7 @@ export async function upsertMultipleStations(
     main?: string | null;
     railnumber?: string | null;
     outerterminal?: string | null;
+    route_id?: number;
   }>,
 ): Promise<void> {
   for (const station of stationsData) {

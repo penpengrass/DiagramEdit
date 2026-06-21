@@ -34,8 +34,6 @@ export interface RailNumber {
  */
 export interface OuterTerminalStation {
     id: number;
-    station_id:number; //路線外発着の接続駅のID
-    terminal_id:number;//JSON内のインデックス
     name: string;
     jikoku: string;
     diaryaku: string;
@@ -87,10 +85,10 @@ export interface TimeEntry {
  * 1列車に関する、路線外発着を含めた駅処理
  */
 export interface OuterTime {
-    pointStationID: string;
-    terminalStationID: string;
-    terminalTime: string;
-    pointTime: string;
+    pointStationID: number;
+    terminalStationID: number;
+    terminalTime: Time;
+    pointTime: Time;
 }
 
 /**
@@ -100,7 +98,7 @@ export interface TrainData {
     DiaLine: number;
     id: number;
     dir: number;
-    type: string;
+    type: number;
     number: string;
     name: string;
     time: TimeEntry[];
@@ -141,5 +139,9 @@ export interface CreateTrainData {
     trainName?: string; // 列車名（例："サンライズ瀬戸"）
     direction: 'Kudari' | 'Nobori'; // 進行方向
     trainTypeCode: number; // 列車種別のコード（oud2内でのインデックス）
+    routeId?: string; // Route の id（schema の route_id に対応）
     stopTimes: TrainStopTimeData[]; // 各駅での時刻情報
+    // 路線外発着情報（DB保存用：時刻は分単位）
+    outerdep?: { pointStationID: number; terminalStationID: number; terminalTime?: number; pointTime?: number }[];
+    outerarrive?: { pointStationID: number; terminalStationID: number; terminalTime?: number; pointTime?: number }[];
 }

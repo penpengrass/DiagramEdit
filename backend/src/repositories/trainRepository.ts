@@ -27,6 +27,7 @@ export async function createTrain(trainData: CreateTrainData): Promise<string> {
     where: {
       trainNumber: trainData.trainNumber,
       direction: trainData.direction,
+      ...(trainData.routeId !== undefined ? { route_id: trainData.routeId } : {}),
     },
   });
 
@@ -40,10 +41,14 @@ export async function createTrain(trainData: CreateTrainData): Promise<string> {
   // 3. Train レコードを作成
   const train = await prisma.train.create({
     data: {
+      //route_id: trainData.routeId ?? 0,
       trainNumber: trainData.trainNumber,
       trainName: trainData.trainName || null,
       direction: trainData.direction,
       trainTypeId: trainType.id,
+      outerTimes:trainData.outerArrive,
+      //outerTimes:trainData.outerDep
+      //ここに路線外の情報を入れたい。
     },
   });
 
@@ -51,6 +56,31 @@ export async function createTrain(trainData: CreateTrainData): Promise<string> {
   if (trainData.stopTimes.length > 0) {
     await createTrainStopTimes(train.id, trainData.stopTimes);
   }
+
+  // 5. 路線外発着（OuterTime）を保存
+  /*if (trainData.outerdep && trainData.outerdep.length > 0) {
+    const depData = trainData.outerdep.map(o => ({
+      trainId: train.id,
+      pointStationID: o.pointStationID,
+      terminalStationID: o.terminalStationID,
+      directionType: 'DEP',
+      terminalTime: o.terminalTime ?? null,
+      pointTime: o.pointTime ?? null,
+    }));
+    await prisma.outerTime.createMany({ data: depData });
+  }
+
+  if (trainData.outerarrive && trainData.outerarrive.length > 0) {
+    const arrData = trainData.outerarrive.map(o => ({
+      trainId: train.id,
+      pointStationID: o.pointStationID,
+      terminalStationID: o.terminalStationID,
+      directionType: 'ARR',
+      terminalTime: o.terminalTime ?? null,
+      pointTime: o.pointTime ?? null,
+    }));
+    await prisma.outerTime.createMany({ data: arrData });
+  }*/
 
   return train.id;
 }

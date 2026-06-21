@@ -65,6 +65,11 @@ function validateTrainData(trainData: CreateTrainData): void {
     throw new Error('Direction must be either "Kudari" or "Nobori"');
   }
 
+  // routeId の確認
+  /*if (typeof trainData.routeId !== 'number' || isNaN(trainData.routeId)) {
+    throw new Error('routeId must be provided as a number');
+  }*/
+
   // 列車種別コードの確認
   if (typeof trainData.trainTypeCode !== 'number' || trainData.trainTypeCode < 0) {
     throw new Error('Train type code must be a non-negative number');
