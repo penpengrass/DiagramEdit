@@ -473,7 +473,7 @@ function timeToMinutes(time: Time | null | undefined): number | undefined {
  * @param trainData - OUDパーサーから取得した列車データ
  * @returns DB保存用の列車データ
  */
-export function convertTrainDataForDB(trainData: TrainData, totalStations: number): CreateTrainData {
+export function convertTrainDataForDB(trainData: TrainData, totalStations: number, diagramId: number): CreateTrainData {
   // 進行方向を文字列に変換
   const direction = trainData.dir === 0 ? 'Kudari' : 'Nobori';
 
@@ -551,6 +551,7 @@ export function convertTrainDataForDB(trainData: TrainData, totalStations: numbe
     trainName: trainData.name || undefined,
     direction,
     trainTypeCode,
+    diagramId,
     stopTimes,
     outerdep: outerdep.length ? outerdep : undefined,
     outerarrive: outerarrive.length ? outerarrive : undefined,
@@ -563,6 +564,6 @@ export function convertTrainDataForDB(trainData: TrainData, totalStations: numbe
  * @param totalStations - 該当路線の総駅数
  * @returns CreateTrainData の配列
  */
-export function convertMultipleTrainsForDB(trainDataList: TrainData[], totalStations: number): CreateTrainData[] {
-  return trainDataList.map(td => convertTrainDataForDB(td, totalStations));
+export function convertMultipleTrainsForDB(trainDataList: TrainData[], totalStations: number, diagram: number): CreateTrainData[] {
+  return trainDataList.map(td => convertTrainDataForDB(td, totalStations, diagram));
 }

@@ -130,7 +130,11 @@ export interface TrainStopTimeData {
     trackName?: string; // 番線情報（例："1", "2"）
     isPass: boolean; // 通過フラグ
 }
-
+export interface Diagrams {
+  id: number;
+  name: string;
+  diaType?: string; // ★追加：平日・休日などを識別する文字列（任意、または必須）
+}
 /**
  * DB保存用：1本の列車データ
  */
@@ -139,6 +143,7 @@ export interface CreateTrainData {
     trainName?: string; // 列車名（例："サンライズ瀬戸"）
     direction: 'Kudari' | 'Nobori'; // 進行方向
     trainTypeCode: number; // 列車種別のコード（oud2内でのインデックス）
+    diagramId: number; //平日ダイヤと休日ダイヤを識別
     routeId?: string; // Route の id（schema の route_id に対応）
     stopTimes: TrainStopTimeData[]; // 各駅での時刻情報
     // 路線外発着情報（DB保存用：時刻は分単位）

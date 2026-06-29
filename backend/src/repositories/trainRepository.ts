@@ -1,9 +1,81 @@
 import { getPrismaClient } from "../config/database.js";
-import type { CreateTrainData, TrainStopTimeData } from '@shared/types/types';
+import type { CreateTrainData } from '@shared/types/timetable';
 
 /**
- * Repository層：列車関連のDB操作を担当
+ * Repository層：列車関連のDB操作（CRUD）のみを担当
  */
+
+function formatOuterTimeValue(value?: number): string {
+  if (value === undefined || value === null) {
+    return '';
+  }
+  return String(value);
+}
+
+function buildOuterTimeCreateData(
+  entries: CreateTrainData['outerdep'] | CreateTrainData['outerarrive'] | undefined,
+  diagram: number,
+  directionType: 'DEP' | 'ARR',
+  isNobori: boolean,
+  totalStationCount: number
+) {
+  if (!entries || entries.length === 0) {
+    return [];
+  }
+
+  return entries.map((entry) => {
+    let correctedBoundaryStationId = entry.pointStationID;
+
+    if (isNobori) {
+      correctedBoundaryStationId = totalStationCount - entry.pointStationID - 1;
+    }
+
+    return {
+      directionType,
+      outerTerminal: {
+        connectOrCreate: {
+          where: { id: entry.terminalStationID },
+          create: {
+            station_id: correctedBoundaryStationId,
+            name: "路線外駅 " + entry.terminalStationID,
+            //jikoku: "路線外駅",
+            //diaryaku: "外",
+          }
+        }
+      },
+      boundaryStation: {
+        connect: { id: correctedBoundaryStationId },
+      },
+      terminalTime: formatOuterTimeValue(entry.terminalTime),
+      boundaryTime: formatOuterTimeValue(entry.pointTime),
+    };
+  });
+}
+
+export async function findDiagramByDiaType(diaType: string) {
+  const prisma = getPrismaClient();
+  return await prisma.diagram.findFirst({
+    where: { diaType },
+    orderBy: { id: 'asc' },
+  });
+}
+
+export async function findDiagramById(diagramId: number) {
+  const prisma = getPrismaClient();
+  return await prisma.diagram.findUnique({
+    where: { id: diagramId },
+  });
+}
+
+export async function createDiagram(diaType: string) {
+  const prisma = getPrismaClient();
+  return await prisma.diagram.create({
+    data: {
+      name: diaType === 'holiday' ? '休日ダイヤ' : '平日ダイヤ',
+      diaType,
+    },
+  });
+}
 
 /**
  * 1本の列車とその各駅の時刻情報をDBに保存する
@@ -12,22 +84,15 @@ import type { CreateTrainData, TrainStopTimeData } from '@shared/types/types';
  */
 export async function createTrain(trainData: CreateTrainData): Promise<string> {
   const prisma = getPrismaClient();
-
-  // 1. TrainTypeを取得（コードで検索）
-  const trainType = await prisma.trainType.findUnique({
-    where: { code: trainData.trainTypeCode },
-  });
-
-  if (!trainType) {
-    throw new Error(`TrainType with code ${trainData.trainTypeCode} not found`);
-  }
-
-  // 2. 既存の同じ列車番号・方向の列車を検索して削除
+  const totalStationCount = await prisma.station.count();
+  // もしお使いのデータの仕様で dir = 0 が上りなら、判定を == 0 に変更してください。
+  const isNobori = trainData.direction == 'Nobori'
+  //const diagram = trainData.diagramId || await getDiagramIdForSearch(trainData.diagramId, trainData.diaType);
   const existingTrain = await prisma.train.findFirst({
     where: {
       trainNumber: trainData.trainNumber,
+      diagramId: trainData.diagramId,
       direction: trainData.direction,
-      ...(trainData.routeId !== undefined ? { route_id: trainData.routeId } : {}),
     },
   });
 
@@ -37,161 +102,83 @@ export async function createTrain(trainData: CreateTrainData): Promise<string> {
       where: { id: existingTrain.id },
     });
   }
-
-  // 3. Train レコードを作成
-  const train = await prisma.train.create({
+ // 3. Train レコードを作成
+ console.log(`[Repository] 保存実行中... 列車番号: ${trainData.trainNumber}`);
+  const newTrain = await prisma.train.create({
     data: {
-      //route_id: trainData.routeId ?? 0,
       trainNumber: trainData.trainNumber,
-      trainName: trainData.trainName || null,
+      trainName: trainData.trainName ?? null,
       direction: trainData.direction,
-      trainTypeId: trainType.id,
-      outerTimes:trainData.outerArrive,
-      //outerTimes:trainData.outerDep
-      //ここに路線外の情報を入れたい。
+      diagram: {
+        connect: { id: trainData.diagramId },
+      },
+      trainType: {
+        connect: { code: trainData.trainTypeCode },
+      },
+      stopTimes: {
+        create: trainData.stopTimes.map((stop) => ({
+          station: {
+            connect: { id: stop.stationId },
+          },
+          arrivalMinute: stop.arrivalMinute ?? null,
+          departureMinute: stop.departureMinute ?? null,
+          trackName: stop.trackName ?? null,
+          isPass: stop.isPass ?? false,
+        })),
+      },
+      outerTimes: {
+        create: [
+          ...buildOuterTimeCreateData(trainData.outerdep, trainData.diagramId, 'DEP', isNobori, totalStationCount),
+          ...buildOuterTimeCreateData(trainData.outerarrive, trainData.diagramId, 'ARR', isNobori, totalStationCount),
+        ],
+      },
     },
   });
+  console.log(`[Repository] 保存完了。 確定したレコードID: ${newTrain.id}`);
 
-  // 4. TrainStopTime レコードを一括作成
-  if (trainData.stopTimes.length > 0) {
-    await createTrainStopTimes(train.id, trainData.stopTimes);
-  }
-
-  // 5. 路線外発着（OuterTime）を保存
-  /*if (trainData.outerdep && trainData.outerdep.length > 0) {
-    const depData = trainData.outerdep.map(o => ({
-      trainId: train.id,
-      pointStationID: o.pointStationID,
-      terminalStationID: o.terminalStationID,
-      directionType: 'DEP',
-      terminalTime: o.terminalTime ?? null,
-      pointTime: o.pointTime ?? null,
-    }));
-    await prisma.outerTime.createMany({ data: depData });
-  }
-
-  if (trainData.outerarrive && trainData.outerarrive.length > 0) {
-    const arrData = trainData.outerarrive.map(o => ({
-      trainId: train.id,
-      pointStationID: o.pointStationID,
-      terminalStationID: o.terminalStationID,
-      directionType: 'ARR',
-      terminalTime: o.terminalTime ?? null,
-      pointTime: o.pointTime ?? null,
-    }));
-    await prisma.outerTime.createMany({ data: arrData });
-  }*/
-
-  return train.id;
+  return newTrain.id;
 }
 
 /**
- * 複数の列車をまとめて保存する
- * @param trainsData 複数の列車データ
- * @returns 保存された列車IDの配列
- */
-export async function createMultipleTrains(trainsData: CreateTrainData[]): Promise<string[]> {
-  const trainIds: string[] = [];
-
-  console.log(`\n【開始】${trainsData.length} 件の列車データをインポートします`);
-
-  for (let i = 0; i < trainsData.length; i++) {
-    const trainData = trainsData[i];
-    if (trainData !== undefined) {
-      try {
-        console.log(`  [${i + 1}/${trainsData.length}] 列車番号: ${trainData.trainNumber}, 方向: ${trainData.direction}, 停車駅数: ${trainData.stopTimes.length}`);
-        const trainId = await createTrain(trainData);
-        trainIds.push(trainId);
-        console.log(`    ✅ 成功 (ID: ${trainId})`);
-      } catch (error: any) {
-        console.error(`    ❌ エラー: ${error.message}`);
-        throw error;
-      }
-    }
-  }
-
-  console.log(`【完了】${trainIds.length} 件のインポートが完了しました\n`);
-  return trainIds;
-}
-
-/**
- * 列車の各駅の時刻情報を保存する
- * @param trainId 列車ID
- * @param stopTimes 各駅の時刻情報
- */
-async function createTrainStopTimes(
-  trainId: string,
-  stopTimes: TrainStopTimeData[]
-): Promise<void> {
-  const prisma = getPrismaClient();
-
-  const stopTimeData = stopTimes.map((stopTime) => ({
-    trainId,
-    stationId: stopTime.stationId,
-    arrivalMinute: stopTime.arrivalMinute ?? null,
-    departureMinute: stopTime.departureMinute ?? null,
-    trackName: stopTime.trackName ?? null,
-    isPass: stopTime.isPass,
-  }));
-  
-  await prisma.trainStopTime.createMany({
-    data: stopTimeData,
-  });
-}
-
-/**
- * 指定した列車IDの列車を取得（停車駅情報を含む）
- * @param trainId 列車ID
- * @returns 列車データ、または null
+ * 列車IDで列車データを取得
  */
 export async function getTrainWithStops(trainId: string) {
   const prisma = getPrismaClient();
-
   return await prisma.train.findUnique({
     where: { id: trainId },
     include: {
       trainType: true,
       stopTimes: {
-        include: {
-          station: true,
-        },
-        orderBy: {
-          stationId: 'asc',
-        },
+        include: { station: true },
+        orderBy: { stationId: 'asc' },
       },
     },
   });
 }
 
 /**
- * 全ての列車を取得
- * @returns 列車データの配列
+ * あるダイヤの全ての列車を取得
  */
-export async function getAllTrains() {
+export async function getAllTrains(diagramId: number) {
   const prisma = getPrismaClient();
-
   return await prisma.train.findMany({
+    where: { diagramId },
     include: {
       trainType: true,
       stopTimes: {
-        include: {
-          station: true,
-        },
+        include: { station: true },
       },
     },
   });
 }
 
 /**
- * 特定の方向（Kudari/Nobori）の列車を取得
- * @param direction 進行方向
- * @returns 列車データの配列
+ * 特定の方向の列車を取得
  */
-export async function getTrainsByDirection(direction: 'Kudari' | 'Nobori') {
+export async function getTrainsByDirection(diagramId: number, direction: 'Kudari' | 'Nobori') {
   const prisma = getPrismaClient();
-
   return await prisma.train.findMany({
-    where: { direction },
+    where: { diagramId, direction },
     include: {
       trainType: true,
       stopTimes: true,
@@ -204,18 +191,17 @@ export async function getTrainsByDirection(direction: 'Kudari' | 'Nobori') {
  * @param trainNumber 列車番号
  * @returns 列車データ、または null
  */
-export async function getTrainByNumber(trainNumber: string) {
+export async function getTrainByNumber(diagramId: number, trainNumber: string) {
   const prisma = getPrismaClient();
-
   return await prisma.train.findFirst({
-    where: { trainNumber },
+    where: { diagramId, trainNumber },
     include: {
       trainType: true,
       stopTimes: {
-        include: {
-          station: true,
-        },
+        include: { station: true },
+        orderBy: { stationId: 'asc' },
       },
+      diagram: true,
     },
   });
 }

@@ -13,22 +13,36 @@ datasource db {
   provider = "postgresql"
   //urlは書かない
 }
-/// 鉄道路線（oud2ファイル内の [Rosen] に相当）
-/*model Route {
-  id              Int         @id
-  name            String         // Rosenmei (例: "京阪神線")
-  kudariDiaAlias  String?        // KudariDiaAlias
-  noboriDiaAlias  String?        // NoboriDiaAlias
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
 
-  // リレーション
-  //stations   Station[]
-  trains          Train[]
-  @@map("route") //テーブル名の定義
-}*/
+/// 鉄道路線（oud2ファイル内の [Rosen] に相当）
+/**
+ * model Route {
+ * id              Int         @id
+ * name            String         // Rosenmei (例: "京阪神線")
+ * kudariDiaAlias  String?        // KudariDiaAlias
+ * noboriDiaAlias  String?        // NoboriDiaAlias
+ * createdAt       DateTime       @default(now())
+ * updatedAt       DateTime       @updatedAt
+ * // リレーション
+ * //stations   Station[]
+ * trains          Train[]
+ * @@map("route") //テーブル名の定義
+ * }
+ */
+ //平日ダイヤと休日ダイヤを識別する。
+model Diagram {
+  id      Int    @id @default(autoincrement())
+  name    String // 例: "平日ダイヤ", "土休日ダイヤ"
+  // ダイヤ種別を判定するためのカラムを追加
+  // (Enumにするか、Stringで "weekday" / "holiday" などを入れる)
+  diaType String @default("weekday")
+
+  trains Train[] // 紐づく列車たち
+  @@index([diaType])
+}
+
 model Station {
-  id             Int                    @id
+  id             Int             @id
   //route_id       Int
   name           String
   layout         String
@@ -40,37 +54,42 @@ model Station {
   //route       Route @relation(fields: [route_id], references: [id], onDelete: Cascade)
   // OuterTimeモデルの boundaryStation と紐づく逆リレーション
   // 1つの境界駅に対して、複数の路線外発着データが紐づくため配列にする
-  outerTimes     OuterTime[]     @relation("BoundaryStation")
+  outerTimes OuterTime[] @relation("BoundaryStation")
+
   @@map("stations") //テーブル名の定義
 }
+
 //路線外の駅マスタ
 model OuterTerminalStation {
-  id                  Int      @id @default(autoincrement())
-  station_id          Int  //接続駅のID
-  terminal_id         Int? // JSON内のid（元データの識別子）
-  name                String //路線外の駅そのもの
+  id              Int         @id @default(autoincrement())
+  station_id      Int //接続駅のID
+  terminal_id     Int? // JSON内のid（元データの識別子）
+  name            String //路線外の駅そのもの
   // Trainへの路線外発着参照（どの列車の路線外始発/終着かを示す）
-  ryakushou            String? //駅名の略称(頭文字など)
+  ryakushou       String? //駅名の略称(頭文字など)
   // リレーション
   outerTrainTimes OuterTime[] // この路線外駅を発着する各列車のデータ
   //作成日と更新日
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
   @@unique([station_id, terminal_id])
   @@index([station_id])
   @@index([terminal_id])
   @@map("outer_terminal_stations") //テーブル名の定義
 }
+
 model RailNumber {
   id         Int     @id @default(autoincrement())
   station_id Int //所属する駅のID
   rail_id    Int // JSON内のid
   name       String
   ryakushou  String
-  station    Station  @relation(fields: [station_id], references: [id], onDelete: Cascade)
+  station    Station @relation(fields: [station_id], references: [id], onDelete: Cascade)
+
   @@map("rail_number") //テーブル名の定義
 }
+
 model TrainType {
   id        String   @id @default(uuid())
   code      Int      @unique // oud2ファイル内での種別インデックス (0, 1, 2...)
@@ -82,6 +101,7 @@ model TrainType {
 
   // リレーション: 1つの種別に複数の列車が紐づく
   trains Train[]
+
   @@map("train_type") //テーブル名の定義
 }
 
@@ -95,28 +115,34 @@ model Train {
   trainTypeId String
   trainType   TrainType       @relation(fields: [trainTypeId], references: [id])
   stopTimes   TrainStopTime[]
+  diagramId   Int // 所属するダイヤのID
+  diagram     Diagram         @relation(fields: [diagramId], references: [id])
   // 1本の列車に対して、路線外発着データが「0〜2件」紐付く
   //outerDep  OuterTime[]
   //outerArrive OuterTime[]
   // OuterTimeモデルの train と紐づく逆リレーション
   // 1つの列車が複数の路線外発着を持つため配列にする
-  outerTimes     OuterTime[]
+  outerTimes  OuterTime[]
+
   //route       Route @relation(fields: [route_id], references: [id], onDelete: Cascade)
   // 今後の拡張（車両運用・編成）を見据えたリレーション用の器（オプショナルにしておく）
   // vehicleUsageId String?
   @@map("train") //テーブル名の定義
 }
-/*enum Direction {
-  Kudari // 下り
-  Nobori // 上り
-}*/
+
+/**
+ * enum Direction {
+ * Kudari // 下り
+ * Nobori // 上り
+ * }
+ */
 // 列車ごとの各駅の時刻・発着情報
 model TrainStopTime {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   trainId   String
-  train     Train    @relation(fields: [trainId], references: [id], onDelete: Cascade)
+  train     Train   @relation(fields: [trainId], references: [id], onDelete: Cascade)
   stationId Int
-  station   Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  station   Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
 
   // oud2の「1;446$0」形式をパースして使いやすい形にする
   arrivalMinute   Int? // 0時からの通算経過分（例: 446）。通過・未経由・発のみの場合はnull
@@ -129,23 +155,22 @@ model TrainStopTime {
 }
 
 model OuterTime {
-  id                Int     @id @default(autoincrement())
-  trainId           String
-  train             Train     @relation(fields: [trainId], references: [id], onDelete: Cascade)
+  id              Int                  @id @default(autoincrement())
+  trainId         String
+  train           Train                @relation(fields: [trainId], references: [id], onDelete: Cascade)
   // 役割の定義: "DEP" (路線外から出発して線内へ入る) または "ARR" (線内から路線外へ出て到着する)
-  directionType     String    // "DEP" or "ARR"
+  directionType   String // "DEP" or "ARR"
   // ① どこ（路線外の駅）へ行くか / から来るか
-  outerTerminalId   Int
-  outerTerminal     OuterTerminalStation @relation(fields: [outerTerminalId], references: [id])
-  
+  outerTerminalId Int
+  outerTerminal   OuterTerminalStation @relation(fields: [outerTerminalId], references: [id])
+
   // ② 自路線のどの駅から分岐するか（境界駅）
   boundaryStationId Int
-  boundaryStation   Station   @relation("BoundaryStation", fields: [boundaryStationId], references: [id], onDelete: Cascade)
+  boundaryStation   Station @relation("BoundaryStation", fields: [boundaryStationId], references: [id], onDelete: Cascade)
   // ③ 時刻データ (文字列 "hhmm" または 分換算の整数など、Timeクラスと相互変換しやすい形に)
-  terminalTime      String        // 路線外の始発・終着駅の時刻 (例: "0615")
-  boundaryTime      String        // 自路線の境界駅での時刻 (例: "0700")
+  terminalTime      String // 路線外の始発・終着駅の時刻 (例: "0615")
+  boundaryTime      String // 自路線の境界駅での時刻 (例: "0700")
 
   @@unique([trainId, outerTerminalId, boundaryStationId]) // 重複防止
-
   @@map("outer_time")
 }
