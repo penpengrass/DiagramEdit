@@ -63,12 +63,10 @@ model Station {
 model OuterTerminalStation {
   id              Int         @id @default(autoincrement())
   station_id      Int //接続駅のID
-  terminal_id     Int? // JSON内のid（元データの識別子）
+  terminal_id     Int // JSON内のid（元データの識別子）
   name            String //路線外の駅そのもの
   // Trainへの路線外発着参照（どの列車の路線外始発/終着かを示す）
   ryakushou       String? //駅名の略称(頭文字など)
-  // リレーション
-  outerTrainTimes OuterTime[] // この路線外駅を発着する各列車のデータ
   //作成日と更新日
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
@@ -162,8 +160,6 @@ model OuterTime {
   directionType   String // "DEP" or "ARR"
   // ① どこ（路線外の駅）へ行くか / から来るか
   outerTerminalId Int
-  outerTerminal   OuterTerminalStation @relation(fields: [outerTerminalId], references: [id])
-
   // ② 自路線のどの駅から分岐するか（境界駅）
   boundaryStationId Int
   boundaryStation   Station @relation("BoundaryStation", fields: [boundaryStationId], references: [id], onDelete: Cascade)

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import * as trainService from '../services/trainService.js';
 import type { CreateTrainData } from '@shared/types/timetable';
+import { toExternalId } from '../utils/idConverter.js';
 
 /**
  * Controller層：HTTPリクエスト・レスポンスを処理
@@ -20,7 +21,33 @@ function parseDiagramId(value: unknown): number | undefined {
 function getDiaType(value: unknown): string {
   return typeof value === 'string' && value.trim() !== '' ? value : 'weekday';
 }
-
+/**
+ * データベースから取得した列車データの各種駅IDをフロント用に0始まりに逆変換する
+ */
+function mapTrainToExternal(train: any) {
+  if (!train) return null;
+  return {
+    ...train,
+    // ⭕️ 停車駅情報の stationId をすべてフロント用の0始まりに戻す
+    stopTimes: Array.isArray(train.stopTimes)
+      ? train.stopTimes.map((stop: any) => ({
+          ...stop,
+          stationId: toExternalId(stop.stationId),
+          station: stop.station
+            ? { ...stop.station, id: toExternalId(stop.station.id) }
+            : undefined,
+        }))
+      : undefined,
+    // ⭕️ 路線外情報（あれば）の各種駅IDをすべてフロント用の0始まりに戻す
+    outerTimes: Array.isArray(train.outerTimes)
+      ? train.outerTimes.map((outer: any) => ({
+          ...outer,
+          station_id: toExternalId(outer.station_id),
+          terminal_id: toExternalId(outer.terminal_id),
+        }))
+      : undefined,
+  };
+}
 /**
  * POST /api/trains
  * 単一の列車データを保存する
@@ -128,11 +155,11 @@ trainRouter.get('/', async (req: Request, res: Response) => {
       getDiaType(req.query.diaType),
     );
     const trains = await trainService.getAllTrains(diagramId);
-
+    const externalTrains = trains.map((t) => mapTrainToExternal(t));
     res.status(200).json({
       success: true,
       diagramId,
-      data: trains,
+      data: externalTrains,
       count: trains.length,
     });
   } catch (error) {
@@ -159,11 +186,11 @@ trainRouter.get('/by-direction/:direction', async (req: Request, res: Response) 
       getDiaType(req.query.diaType),
     );
     const trains = await trainService.getTrainsByDirection(diagramId, direction);
-
+    const externalTrains = trains.map((t) => mapTrainToExternal(t));
     res.status(200).json({
       success: true,
       diagramId,
-      data: trains,
+      data: externalTrains,
       count: trains.length,
     });
   } catch (error) {
@@ -190,18 +217,18 @@ trainRouter.get('/by-number/:trainNumber', async (req: Request, res: Response) =
       getDiaType(req.query.diaType),
     );
     const train = await trainService.getTrainByNumber(diagramId, trainNumber);
-
+    
     if (!train) {
       res.status(404).json({
         error: 'Train not found',
       });
       return;
     }
-
+    const externalTrain = mapTrainToExternal(train);
     res.status(200).json({
       success: true,
       diagramId,
-      data: train,
+      data: externalTrain,
     });
   } catch (error) {
     console.error('Error fetching train by number:', error);
@@ -234,10 +261,10 @@ trainRouter.get('/:trainId', async (req: Request, res: Response) => {
       });
       return;
     }
-
+   const externalTrain = mapTrainToExternal(train);
     res.status(200).json({
       success: true,
-      data: train,
+      data: externalTrain,
     });
   } catch (error) {
     console.error('Error fetching train:', error);

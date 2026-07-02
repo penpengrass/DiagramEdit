@@ -6,7 +6,7 @@ import {
   removeStation,
 } from "../services/stationServices.js";
 import { parseOud } from "@shared/parsers/oudParser";
-
+import { toDbId, toExternalId } from "../utils/idConverter.js";
 /**
  * プレゼンテーション層：HTTP リクエスト/レスポンスの処理
  */
@@ -14,13 +14,18 @@ import { parseOud } from "@shared/parsers/oudParser";
 const router = express.Router();
 
 /**
- * 全駅情報を取得、これはプレゼンテーション層に存在するべき
+ * 全駅情報を取得
  * GET /api/stations
  */
 router.get("/", async (req: any, res: any) => {
   try {
     const stations = await getAllStations();
-    res.json(stations);
+   const externalStations = stations.map((station) => ({
+      ...station,
+      id: toExternalId(station.id),
+    }));
+    
+    res.json(externalStations);
   } catch (err: any) {
     console.error("Error fetching stations:", err);
     res.status(500).json({ error: err.message });
@@ -33,9 +38,15 @@ router.get("/", async (req: any, res: any) => {
  */
 router.get("/:id", async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
-    const station = await getStationById(id);
-    res.json(station);
+    const rawId = parseInt(req.params.id);
+    const dbId = toDbId(rawId);
+    
+    const station = await getStationById(dbId);
+    const externalStation = station ? {
+      ...station,
+      id: toExternalId(station.id),
+    } : null;
+    res.json(externalStation);
   } catch (err: any) {
     if (err.message.includes("無効な")) {
       return res.status(400).json({ error: err.message });
@@ -94,9 +105,15 @@ router.post("/parse-oud", async (req: any, res: any) => {
  */
 router.delete("/:id", async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
-    const station = await removeStation(id);
-    res.json({ message: "削除成功", station });
+    const rawId = parseInt(req.params.id);
+    const dbId = toDbId(rawId);
+    const station = await removeStation(dbId);
+    const externalStation = {
+      ...station,
+      id: toExternalId(station.id),
+    };
+
+    res.json({ message: "削除成功", station: externalStation });
   } catch (err: any) {
     if (err.message.includes("無効な")) {
       return res.status(400).json({ error: err.message });

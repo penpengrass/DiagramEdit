@@ -3,6 +3,7 @@ import type { Station } from "@prisma/client";
 import * as stationRepository from "../repositories/stationRepository.js";
 import * as trainRepository from "../repositories/trainRepository.js"
 import * as outerTerminalRepository from "../repositories/outerTerminalRepository.js";
+import { toDbId } from "../utils/idConverter.js";
 import fs from "fs";
 import path from "path";
 import {
@@ -95,7 +96,11 @@ async function importStationsToDatabase(
   for (const station of stations) {
     try {
       console.log(`Processing station: ID=${station.id}, Name=${station.name}`);
-      await repository.upsertMultipleStations([station]);
+      const dbStation = {
+        ...station,
+        id: toDbId(station.id)
+      };
+      await repository.upsertMultipleStations([dbStation]);
       console.log(`✅ Station ${station.id} imported successfully`);
     } catch (err: any) {
       console.error(`❌ Failed to import station ${station.id}:`, {
@@ -117,9 +122,8 @@ async function importOuterTerminalsToDatabase(
     if (!Array.isArray(station.outerterminal)) return [];
 
     return station.outerterminal.map((terminal: any) => ({
-      station_id: station.id,
-      terminal_id: terminal.id ?? null,
-      name: terminal.jikoku ?? terminal.name ?? "",
+      station_id: toDbId(station.id),
+      terminal_id: terminal.id !== undefined && terminal.id !== null ? toDbId(terminal.id) : "エラー",name: terminal.jikoku ?? terminal.name ?? "",
       ryakushou: terminal.diaryaku ?? null,
     }));
   });
@@ -214,7 +218,11 @@ export async function importAllDiaDataService(parsedOudData: any): Promise<void>
     // ステップ1: 自路線の駅マスタ (Station) のインポート
     // ----------------------------------------------------
     if (parsedOudData.stations && parsedOudData.stations.length > 0) {
-      await stationRepository.upsertMultipleStations(parsedOudData.stations);
+      const dbStations = parsedOudData.stations.map((st: any) => ({
+        ...st,
+        id: toDbId(st.id)
+      }));
+      await stationRepository.upsertMultipleStations(dbStations);
       console.log(`[Import] 自線駅マスタを登録しました: ${parsedOudData.stations.length}件`);
     }
 
@@ -224,7 +232,12 @@ export async function importAllDiaDataService(parsedOudData: any): Promise<void>
     // ----------------------------------------------------
     if (parsedOudData.outerTerminals && parsedOudData.outerTerminals.length > 0) {
       // Service層にはPrismaを書かず、Repository層の関数に配列を丸ごと渡す
-      await outerTerminalRepository.createManyOuterTerminals(parsedOudData.outerTerminals);
+      const dbOuterTerminals = parsedOudData.outerTerminals.map((ot: any) => ({
+        ...ot,
+        station_id: toDbId(ot.station_id),
+        terminal_id: toDbId(ot.terminal_id)
+      }));
+      await outerTerminalRepository.createManyOuterTerminals(dbOuterTerminals);
       console.log(`[Import] 路線外駅マスタを登録しました: ${parsedOudData.outerTerminals.length}件`);
     } else {
       console.log("[Import] 登録対象の路線外駅マスタはありません");
@@ -235,7 +248,7 @@ export async function importAllDiaDataService(parsedOudData: any): Promise<void>
     // ----------------------------------------------------
     if (parsedOudData.trains && parsedOudData.trains.length > 0) {
       console.log(`[Import] 列車データの登録を開始します...`);
-      
+
       // ループを回して、1本ずつ repository の createTrain を呼び出す
       for (const trainData of parsedOudData.trains) {
         try {
@@ -243,7 +256,7 @@ export async function importAllDiaDataService(parsedOudData: any): Promise<void>
         } catch (trainError) {
           console.error(`列車番号 ${trainData.trainNumber} の登録に失敗しました:`, trainError);
           // 1本の失敗で全体を止めない場合は throw せずに continue; させることも可能
-          throw trainError; 
+          throw trainError;
         }
       }
       console.log(`[Import] 列車・時刻表データを登録しました: ${parsedOudData.trains.length}件`);
