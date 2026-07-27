@@ -2,6 +2,20 @@
 import { useEffect, useState } from 'react';
 import { formatTime as sharedFormatTime } from '../utils/Time';
 
+// 路線外発着の型定義（DBのOuterTime、OuterTerminalStationテーブルを想定）
+interface OuterTimeData {
+  id: number;
+  trainId: number;
+  pointStationId: number;       // 分岐・合流する自路線の駅ID
+  terminalStationId: number | null; // 路線外の実際のターミナル駅ID（マスタ）
+  terminalStationName: string; // バックエンド側でインクルードした駅名
+  outerTerminalStation: {
+    name: string;
+  };
+  pointTime: string | number;   // 分岐駅の時刻
+  terminalTime: string | number;// 路線外ターミナル駅の時刻
+}
+
 interface TrainStopTime {
   stationId: number;
   arrivalMinute: number | null;
@@ -21,15 +35,71 @@ interface TrainData {
     name: string;
   };
   stopTimes?: TrainStopTime[];
+  // DBから一緒に取得することを想定した路線外発着プロパティ
+  outerArrive?: OuterTimeData[]; // 終着側の直通先情報（配列または単一オブジェクト）
+  outerDep?: OuterTimeData[];    // 始発側の直通先情報
 }
+
 interface Station {
   id: number;
   name: string;
 }
 
+// 路線外情報を表示するコンポーネント (TrainData.tsxの構造を移植)
+interface OuterTerminalProps {
+  onedata: TrainData;
+  showArr?: boolean;
+  showDep?: boolean;
+  cellType?: 'th' | 'td';
+  formatTimeFn: (time: any) => string; // 時刻フォーマット関数を受け取る
+}
+
+const OuterTerminal: React.FC<OuterTerminalProps> = ({ onedata, showArr = true, showDep = true, cellType = 'th', formatTimeFn }) => {
+  const Cell = cellType === 'th' ? 'th' : 'td';
+
+  // 配列・オブジェクトどちらでも安全に1件目を取得
+  const outerArr = Array.isArray(onedata.outerArrive) ? onedata.outerArrive[0] : onedata.outerArrive;
+  const outerDep = Array.isArray(onedata.outerDep) ? onedata.outerDep[0] : onedata.outerDep;
+  console.log(outerArr)
+  const cellStyle: React.CSSProperties = {
+    border: '1px solid #ddd',
+    padding: '8px',
+    fontSize: '11px',
+    fontWeight: 'normal',
+    textAlign: 'center',
+    backgroundColor: '#fff'
+  };
+
+  return (
+    <Cell style={cellStyle}>
+      <div style={{ minHeight: '32px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        {showDep && (
+          outerDep ? (
+            <div style={{ color: '#d32f2f' }}>
+              発: {formatTimeFn ? formatTimeFn(outerDep.terminalTime) : outerDep.terminalTime} {outerDep.terminalStationName || `駅${outerDep.terminalStationId}`}
+            </div>
+          ) : (
+            <div style={{ color: '#ccc' }}>&nbsp;</div>
+          )
+        )}
+        {showArr && (
+          outerArr ? (
+            <div style={{ color: '#1976d2' }}>
+              着: {formatTimeFn ? formatTimeFn(outerArr.terminalTime) : outerArr.terminalTime} {outerArr.terminalStationName || `駅${outerArr.terminalStationId}`}
+            </div>
+          ) : (
+            <div style={{ color: '#ccc' }}>&nbsp;</div>
+          )
+        )}
+      </div>
+    </Cell>
+  );
+};
+
 export const TimeTableByDB = () => {
   const [trainData, setTrainData] = useState<TrainData[]>([]);
   const [stations, setStations] = useState<Station[]>([]);
+  const [outerTerminalNamesById, setOuterTerminalNamesById] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,25 +114,66 @@ export const TimeTableByDB = () => {
       try {
         // 駅情報を取得
         const stationRes = await fetch('http://localhost:3000/api/stations');
-        if (!stationRes.ok) {
-          throw new Error(`Station API error! status: ${stationRes.status}`);
-        }
+        if (!stationRes.ok) throw new Error(`Station API error! status: ${stationRes.status}`);
         const stationResponse = await stationRes.json();
         const stationList = Array.isArray(stationResponse.data) ? stationResponse.data : stationResponse;
         setStations(stationList);
 
-        // 列車データを取得
-        const trainRes = await fetch('http://localhost:3000/api/trains');
-        if (!trainRes.ok) {
-          throw new Error(`Train API error! status: ${trainRes.status}`);
+        // 路線外駅マスタ情報を取得
+        const outerTerminalRes = await fetch('http://localhost:3000/api/outer-terminals');
+        if (outerTerminalRes.ok) {
+          const outerTerminalResponse = await outerTerminalRes.json();
+          const outerTerminals: Array<{ id?: number; name?: string }> = Array.isArray(outerTerminalResponse)
+            ? outerTerminalResponse
+            : (Array.isArray(outerTerminalResponse?.data) ? outerTerminalResponse.data : []);
+
+          const nameMap = outerTerminals.reduce<Record<number, string>>((acc, terminal) => {
+            if (typeof terminal?.id === 'number' && typeof terminal?.name === 'string' && terminal.name.trim() !== '') {
+              acc[terminal.id] = terminal.name;
+            }
+            return acc;
+          }, {});
+          setOuterTerminalNamesById(nameMap);
+        } else {
+          setOuterTerminalNamesById({});
         }
+
+        // 列車データと路線外発着のデータを取得
+        const trainRes = await fetch('http://localhost:3000/api/trains');
+        if (!trainRes.ok) throw new Error(`Train API error! status: ${trainRes.status}`);
         const trainResponse = await trainRes.json();
         const trains = Array.isArray(trainResponse.data) ? trainResponse.data : trainResponse;
-        setTrainData(trains);
+        const normalizedTrains = (Array.isArray(trains) ? trains : []).map((train: any) => {
+          const outerTimes = Array.isArray(train.outerTimes)
+            ? train.outerTimes
+            : undefined;
+
+          return {
+            ...train,
+            outerArrive: Array.isArray(train.outerArrive)
+              ? train.outerArrive
+              : outerTimes?.filter((outer: any) => outer.directionType === 'ARR'),
+            outerDep: Array.isArray(train.outerDep)
+              ? train.outerDep
+              : outerTimes?.filter((outer: any) => outer.directionType === 'DEP'),
+          };
+        });
+
+        console.log("=== [DEBUG] APIから取得した列車データ全件 ===", normalizedTrains);
+        const sampleTrain = normalizedTrains.find((train: TrainData) => Boolean(train.trainNumber)) ?? normalizedTrains[1];
+        if (sampleTrain) {
+          console.log("=== [DEBUG] 列車サンプルのオブジェクト詳細 ===", {
+            id: sampleTrain.id,
+            trainNumber: sampleTrain.trainNumber,
+            outerArrive: sampleTrain.outerArrive,
+            outerDep: sampleTrain.outerDep,
+          });
+        }
+        setTrainData(normalizedTrains);
         setError(null);
       } catch (err) {
         console.error("データ取得失敗:", err);
-        setError("駅データまたは列車データの取得に失敗しました。バックエンドが起動しているか確認してください。");
+        setError("駅データまたは列車データの取得に失敗しました。");
       } finally {
         setLoading(false);
       }
@@ -73,9 +184,7 @@ export const TimeTableByDB = () => {
 
   // 時刻を分数から "HHMM" 形式の文字列に変換（1桁の時間は先頭にスペース）
   const minuteToTimeString = (minute: number | null | undefined): string => {
-    if (minute === null || minute === undefined) {
-      return '';
-    }
+    if (minute === null || minute === undefined) return '';
     const hours = Math.floor(minute / 60);
     const mins = minute % 60;
     const paddedHours = hours < 10 ? ' ' + hours.toString() : hours.toString().padStart(2, '0');
@@ -83,47 +192,91 @@ export const TimeTableByDB = () => {
     return `${paddedHours}${paddedMins}`;
   };
 
-  // 時刻を分数から TrainData.tsx と同じ形式に変換
-  const formatTime = (minute: number | null | undefined): string => {
-    if (minute === null || minute === undefined) {
-      return '-';
+  const formatTime = (minuteVal: number | string | null | undefined): string => {
+    if (minuteVal === null || minuteVal === undefined || minuteVal === '') return '-';
+    if (typeof minuteVal === 'string' && minuteVal.includes(':')) return minuteVal; // すでに "HH:MM" 形式の場合
+    const num = Number(minuteVal);
+    if (isNaN(num)) return String(minuteVal);
+    return sharedFormatTime(minuteToTimeString(num));
+  };
+
+  // 線内の「実際の始発駅・終着駅」を割り出すロジック (TrainData.tsxより移植)
+  const getTerminalStations = (train: TrainData) => {
+    let start = '';
+    let end = '';
+
+    const isReal = (min: number | null | undefined) => min !== null && min !== undefined;
+
+    // 表示上の駅順（orderedStations）に沿って走査
+    for (let i = 0; i < orderedStations.length; i++) {
+      const stop = train.stopTimes?.find((s) => s.stationId === orderedStations[i].id);
+      if (stop && !stop.isPass && (isReal(stop.arrivalMinute) || isReal(stop.departureMinute))) {
+        start = orderedStations[i].name;
+        break;
+      }
     }
-    const timeStr = minuteToTimeString(minute);
-    return sharedFormatTime(timeStr);
+
+    for (let i = orderedStations.length - 1; i >= 0; i--) {
+      const stop = train.stopTimes?.find((s) => s.stationId === orderedStations[i].id);
+      if (stop && !stop.isPass && (isReal(stop.arrivalMinute) || isReal(stop.departureMinute))) {
+        end = orderedStations[i].name;
+        break;
+      }
+    }
+
+    return { start, end };
   };
 
-  // stationId から駅名を取得
-  const getStationName = (stationId: number): string => {
-    const station = stations.find((s) => s.id === stationId);
-    return station ? station.name : `駅 ${stationId}`;
-  };
+  // 路線外発着の表示名を取得するロジック
+  const getOuterName = (train: TrainData, isDeparture: boolean): string => {
+    const outer = isDeparture
+      ? (Array.isArray(train.outerDep) ? train.outerDep[0] : train.outerDep)
+      : (Array.isArray(train.outerArrive) ? train.outerArrive[0] : train.outerArrive);
 
-  // 指定セルが「非空要素の上下の間にある空白」か判定する。||か・・・かを判定する。
-  const isBetweenNonEmpty = (train: TrainData, stationIndex: number, field: 'arrival' | 'departure'): boolean => {
-    // 現在の駅の値を取得
-    const currentStation = orderedStations[stationIndex];
-    const currentStop = train.stopTimes?.find((s) => s.stationId === currentStation.id);
+    if (!outer) return '';
 
-    const currentValue = field === 'arrival' ? currentStop?.arrivalMinute : currentStop?.departureMinute;
-    const isEmpty = currentValue === null || currentValue === undefined;
+    const lookupName = outer.terminalStationId != null
+      ? outerTerminalNamesById[outer.terminalStationId]
+      : undefined;
 
-    if (!isEmpty) return false;
+    const resolvedName = (
+      outer.terminalStationName
+      || outer.outerTerminalStation?.name
+      || lookupName
+      || (outer.terminalStationId ? `駅 ${outer.terminalStationId}` : '')
+    );
 
-    // 非空要素の判定関数
-    const isReal = (minute: number | null | undefined): boolean => minute !== null && minute !== undefined;
-
-    // 上部に時刻がある
-    const above = orderedStations.slice(0, stationIndex).some((st) => {
-      const stop = train.stopTimes?.find((s) => s.stationId === st.id);
-      const value = field === 'arrival' ? stop?.arrivalMinute : stop?.departureMinute;
-      return isReal(value);
+    console.log('[OuterTerminalName]', {
+      trainNumber: train.trainNumber,
+      isDeparture,
+      terminalStationId: outer.terminalStationId,
+      pointStationId:outer.pointStationId,
+      terminalStationName: outer.terminalStationName,
+      outerTerminalStationName: outer.outerTerminalStation?.name,
+      lookupName,
+      resolvedName,
     });
 
-    // 下部に時刻がある
+    return resolvedName;
+  };
+
+  const isBetweenNonEmpty = (train: TrainData, stationIndex: number, field: 'arrival' | 'departure'): boolean => {
+    const currentStation = orderedStations[stationIndex];
+    const currentStop = train.stopTimes?.find((s) => s.stationId === currentStation.id);
+    const currentValue = field === 'arrival' ? currentStop?.arrivalMinute : currentStop?.departureMinute;
+
+    if (currentValue !== null && currentValue !== undefined) return false;
+
+    const isReal = (minute: number | null | undefined): boolean => minute !== null && minute !== undefined;
+
+    const above = orderedStations.slice(0, stationIndex).some((st) => {
+      const stop = train.stopTimes?.find((s) => s.stationId === st.id);
+      return isReal(field === 'arrival' ? stop?.arrivalMinute : stop?.departureMinute);
+    });
+
     const below = orderedStations.slice(stationIndex + 1).some((st) => {
       const stop = train.stopTimes?.find((s) => s.stationId === st.id);
-      const value = field === 'arrival' ? stop?.arrivalMinute : stop?.departureMinute;
-      return isReal(value);
+      return isReal(field === 'arrival' ? stop?.arrivalMinute : stop?.departureMinute);
     });
 
     return above && below;
@@ -149,8 +302,16 @@ export const TimeTableByDB = () => {
   // TrainData.tsx と同様のロジック★
   // 上り（Nobori）の場合は駅一覧を逆順にし、下りの場合はそのままの順序にする
   const orderedStations = directionFilter === 'Nobori' ? [...stations].reverse() : stations;
-  console.log(partOfTrains)
-  //この行より下だけを修正してほしい。
+  console.log(partOfTrains[1].outerDep)
+  // 共通のヘッダーセルスタイル
+  const thStyle: React.CSSProperties = {
+    border: '1px solid #ddd',
+    padding: '10px',
+    backgroundColor: '#fafafa',
+    fontWeight: 'bold',
+    fontSize: '12px'
+  };
+
   return (
     <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
       <h2>時刻表（データベース）</h2>
@@ -207,37 +368,90 @@ export const TimeTableByDB = () => {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ borderCollapse: 'collapse', fontSize: '13px', textAlign: 'center' }}>
             <thead>
+              {/* 1行目: 列車番号 */}
               <tr style={{ backgroundColor: '#f4f4f4' }}>
-                <th style={{ border: '1px solid #ddd', padding: '10px', minWidth: '100px' }}>駅名 / 列車</th>
+                <th style={{ ...thStyle, minWidth: '120px', textAlign: 'left' }}>列車番号</th>
                 {partOfTrains.map((train) => (
-                  <th key={train.id} style={{ border: '1px solid #ddd', padding: '10px', minWidth: '90px' }}>
+                  <th key={`num-${train.id}`} style={{ ...thStyle, minWidth: '90px' }}>
                     <div style={{ fontWeight: 'bold', color: '#005bac' }}>{train.trainNumber}</div>
+                  </th>
+                ))}
+              </tr>
+
+              {/* 2行目: 種別・列車名 */}
+              <tr style={{ backgroundColor: '#f4f4f4' }}>
+                <th style={{ ...thStyle, textAlign: 'left' }}>種別</th>
+                {partOfTrains.map((train) => (
+                  <th key={`type-${train.id}`} style={{ ...thStyle }}>
                     <div style={{ fontSize: '11px', color: '#555' }}>{train.trainType?.name || '種別名なし'}</div>
                     <div style={{ fontSize: '11px', color: '#555' }}>{train.trainName || ''}</div>
                   </th>
                 ))}
               </tr>
+
+              {/* 3行目: 始発駅（TrainData.tsx準拠） */}
+              <tr>
+                <th style={{ ...thStyle, textAlign: 'left' }}>始発駅</th>
+                {partOfTrains.map((train) => {
+                  const terms = getTerminalStations(train);
+                  const outerName = getOuterName(train, true);
+                  return (
+                    <th key={`start-${train.id}`} style={{ ...thStyle, fontWeight: 'normal' }}>
+                      <div style={{ color: outerName ? '#d32f2f' : '#000' }}>
+                        {outerName || terms.start || ""}
+                      </div>
+                    </th>
+                  );
+                })}
+              </tr>
+
+              {/* 4行目: 終着駅（TrainData.tsx準拠） */}
+              <tr>
+                <th style={{ ...thStyle, textAlign: 'left' }}>終着駅</th>
+                {partOfTrains.map((train) => {
+                  const terms = getTerminalStations(train);
+                  const outerName = getOuterName(train, false);
+                  return (
+                    <th key={`end-${train.id}`} style={{ ...thStyle, fontWeight: 'normal' }}>
+                      <div style={{ color: outerName ? '#1976d2' : '#000' }}>
+                        {outerName || terms.end || ""}
+                      </div>
+                    </th>
+                  );
+                })}
+              </tr>
+
+              {/* 5行目: 路線外始発（種別の下、駅一覧の上の位置） */}
+              <tr>
+                <th style={{ ...thStyle, textAlign: 'left' }}>路線外始発</th>
+                {partOfTrains.map((train) => (
+                  <OuterTerminal
+                    key={`outer-dep-${train.id}`}
+                    onedata={train}
+                    showArr={false}
+                    showDep={true}
+                    cellType="th"
+                    formatTimeFn={formatTime}
+                  />
+                ))}
+              </tr>
             </thead>
+
             <tbody>
-              {/* 表示用に並び替えられた駅一覧（orderedStations）を基準に1行ずつループ */}
+              {/* 駅一覧ループ */}
               {orderedStations.map((station, stationIndex) => (
                 <tr key={station.id}>
-                  {/* 駅名を表示 */}
                   <td style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#fafafa', fontWeight: 'bold', textAlign: 'left' }}>
                     {station.name}
                   </td>
 
-                  {/* 各列車を横に並べるループ */}
                   {partOfTrains.map((train) => {
-                    // 現在表示している行の駅IDに一致する停車時間を取得
                     const stop = train.stopTimes?.find((s) => s.stationId === station.id);
 
-                    // 駅のデータ自体が存在しない場合、空セルを返す
                     if (!stop) {
                       return <td key={train.id} style={{ border: '1px solid #ddd', padding: '8px', color: '#ccc' }}>-</td>;
                     }
 
-                    // レ点（通過駅）の場合の早期リターン
                     if (stop.isPass) {
                       return (
                         <td key={train.id} style={{ border: '1px solid #ddd', padding: '8px' }}>
@@ -246,14 +460,12 @@ export const TimeTableByDB = () => {
                       );
                     }
 
-                    // 画面の見た目上の「1つ前の行の駅」を取得（上り・下りどちらのモードでも、画面の上にある駅が手前の駅となる）
                     const prevStation = stationIndex > 0 ? orderedStations[stationIndex - 1] : null;
                     const prevStop = prevStation ? train.stopTimes?.find((s) => s.stationId === prevStation.id) : null;
 
                     // --- 到着時刻の処理 ---
                     let arrivalDisplay = '';
                     if (stop.arrivalMinute !== null) {
-                      // 画面上で手前にある駅の発車時刻が存在しない、またはその駅自体に停まらないなら、ここが画面上での「始発駅」扱い
                       const prevDeparture = prevStop?.departureMinute;
                       const isPrevEmpty = prevDeparture === null || prevDeparture === undefined;
 
@@ -266,7 +478,6 @@ export const TimeTableByDB = () => {
                       arrivalDisplay = '・・・';
                     }
 
-                    // 空白表示が画面の上下に非空要素が存在するギャップであれば "||" に置き換える
                     if (arrivalDisplay === '・・・' && isBetweenNonEmpty(train, stationIndex, 'arrival')) {
                       arrivalDisplay = '||';
                     }
@@ -276,7 +487,6 @@ export const TimeTableByDB = () => {
                       ? formatTime(stop.departureMinute)
                       : '・・・';
 
-                    // 空白表示が画面の上下に非空要素が存在するギャップであれば "||" に置き換える
                     if (departureDisplay === '・・・' && isBetweenNonEmpty(train, stationIndex, 'departure')) {
                       departureDisplay = '||';
                     }
@@ -287,11 +497,9 @@ export const TimeTableByDB = () => {
                           {arrivalDisplay !== '・・・' && arrivalDisplay !== '||' && (
                             <div style={{ fontSize: '11px', color: '#666' }}>着 {arrivalDisplay}</div>
                           )}
-                          {/* 通過ではない、かつ実データがある場合のみ発車時刻を表示 */}
                           {departureDisplay !== '・・・' && departureDisplay !== '||' && (
                             <div style={{ fontWeight: 'bold' }}>発 {departureDisplay}</div>
                           )}
-                          {/* 着発ともに空白またはギャップの場合のフォールバック表示 */}
                           {arrivalDisplay === '||' && departureDisplay === '||' && (
                             <div style={{ color: '#aaa' }}>||</div>
                           )}
@@ -305,6 +513,23 @@ export const TimeTableByDB = () => {
                 </tr>
               ))}
             </tbody>
+
+            {/* フッター: 路線外終着 */}
+            <tfoot>
+              <tr>
+                <th style={{ ...thStyle, textAlign: 'left' }}>路線外終着</th>
+                {partOfTrains.map((train) => (
+                  <OuterTerminal
+                    key={`outer-arr-${train.id}`}
+                    onedata={train}
+                    showArr={true}
+                    showDep={false}
+                    cellType="td"
+                    formatTimeFn={formatTime}
+                  />
+                ))}
+              </tr>
+            </tfoot>
           </table>
         </div>
       )}

@@ -66,6 +66,8 @@ function addRailNumber(
   if (stations[td]) {
     stations[td].railnumber.push({
       id: countRailNumber,
+      station_id: stations[td].id,
+      rail_id: countRailNumber,
       name: name,
       ryakushou: ryakushou,
     });
@@ -545,7 +547,7 @@ export function convertTrainDataForDB(trainData: TrainData, totalStations: numbe
     terminalTime: timeToMinutes(o.terminalTime as any) || undefined,
     pointTime: timeToMinutes(o.pointTime as any) || undefined,
   }));
-
+  console.log(outerdep);
   return {
     trainNumber: trainData.number,
     trainName: trainData.name || undefined,
@@ -553,8 +555,8 @@ export function convertTrainDataForDB(trainData: TrainData, totalStations: numbe
     trainTypeCode,
     diagramId,
     stopTimes,
-    outerdep: outerdep.length ? outerdep : undefined,
-    outerarrive: outerarrive.length ? outerarrive : undefined,
+    outerdep: outerdep.length ? outerdep as any : undefined,
+    outerarrive: outerarrive.length ? outerarrive as any : undefined,
   };
 }
 

@@ -235,6 +235,7 @@ export async function getAllTrains(diagramId: number) {
       stopTimes: {
         include: { station: true },
       },
+      outerTimes: true,
     },
   });
 }
@@ -249,6 +250,7 @@ export async function getTrainsByDirection(diagramId: number, direction: 'Kudari
     include: {
       trainType: true,
       stopTimes: true,
+      outerTimes: true,
     },
   });
 }
@@ -268,6 +270,7 @@ export async function getTrainByNumber(diagramId: number, trainNumber: string) {
         include: { station: true },
         orderBy: { stationId: 'asc' },
       },
+      outerTimes: true,
       diagram: true,
     },
   });

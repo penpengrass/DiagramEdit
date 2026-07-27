@@ -23,7 +23,12 @@ export async function createOuterTerminal(data: {
 }
 ): Promise<OuterTerminalStation> {
   const client = getPrismaClient();
-  return client.outerTerminalStation.create({ data });
+  const payload = {
+    ...data,
+    terminal_id: data.terminal_id ?? undefined,
+    ryakushou: data.ryakushou ?? undefined,
+  };
+  return client.outerTerminalStation.create({ data: payload as any });
 }
 
 export async function createManyOuterTerminals(rows: Array<{
@@ -34,7 +39,12 @@ export async function createManyOuterTerminals(rows: Array<{
 }>): Promise<void> {
   if (rows.length === 0) return;
   const client = getPrismaClient();
-  await client.outerTerminalStation.createMany({ data: rows, skipDuplicates: true });
+  const normalizedRows = rows.map((row) => ({
+    ...row,
+    terminal_id: row.terminal_id ?? undefined,
+    ryakushou: row.ryakushou ?? undefined,
+  }));
+  await client.outerTerminalStation.createMany({ data: normalizedRows as any, skipDuplicates: true });
 }
 
 export async function deleteOuterTerminalsByStationId(stationId: number): Promise<void> {

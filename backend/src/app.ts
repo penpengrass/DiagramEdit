@@ -4,6 +4,7 @@ import 'dotenv/config';
 import stationRouter from "./controllers/stationController.js";
 import trainTypeRouter from "./controllers/trainTypeController.js";
 import trainRouter from "./controllers/trainController.js";
+import outerTerminalRouter from "./controllers/outerTerminalController.js";
 /**
  * Express アプリケーションの初期化とミドルウェア設定
  */
@@ -37,5 +38,6 @@ app.get("/test", (req: any, res: any) => {
 app.use("/api/stations", stationRouter);
 app.use("/api/train-types", trainTypeRouter);
 app.use("/api/trains", trainRouter);
+app.use("/api/outer-terminals", outerTerminalRouter);
 
 export default app;

@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import * as trainService from '../services/trainService.js';
 import type { CreateTrainData } from '@shared/types/timetable';
 import { toExternalId } from '../utils/idConverter.js';
+import { findAllOuterTerminals } from '../repositories/outerTerminalRepository.js';
 
 /**
  * Controller層：HTTPリクエスト・レスポンスを処理
@@ -21,31 +22,59 @@ function parseDiagramId(value: unknown): number | undefined {
 function getDiaType(value: unknown): string {
   return typeof value === 'string' && value.trim() !== '' ? value : 'weekday';
 }
+
+async function buildOuterTerminalNameMap(): Promise<Record<string, string>> {
+  const outerTerminals = await findAllOuterTerminals();
+
+  return outerTerminals.reduce<Record<string, string>>((acc, terminal) => {
+    if (terminal?.station_id != null && terminal?.terminal_id != null && terminal?.name) {
+      acc[`${terminal.station_id}:${terminal.terminal_id}`] = terminal.name;
+    }
+    return acc;
+  }, {});
+}
+
 /**
  * データベースから取得した列車データの各種駅IDをフロント用に0始まりに逆変換する
  */
-function mapTrainToExternal(train: any) {
+async function mapTrainToExternal(train: any, outerTerminalNameMap: Record<string, string> = {}) {
   if (!train) return null;
+
+  const outerTimes = Array.isArray(train.outerTimes)
+    ? train.outerTimes.map((outer: any) => {
+        const lookupKey = `${outer.boundaryStationId ?? outer.boundaryStation?.id ?? ''}:${outer.outerTerminalId ?? outer.terminalStationId ?? ''}`;
+        const resolvedTerminalName = outerTerminalNameMap[lookupKey]
+          ?? outer.terminalStationName
+          ?? outer.outerTerminal?.name
+          ?? undefined;
+
+        return {
+          ...outer,
+          terminalStationId: outer.outerTerminalId ?? outer.terminalStationId ?? null,
+          pointStationId: outer.boundaryStationId ?? outer.pointStationId ?? null,
+          terminalStationName: resolvedTerminalName,
+          pointTime: outer.boundaryTime ?? outer.pointTime ?? null,
+          terminalTime: outer.terminalTime ?? null,
+        };
+      })
+    : undefined;
+
   return {
     ...train,
     // ⭕️ 停車駅情報の stationId をすべてフロント用の0始まりに戻す
     stopTimes: Array.isArray(train.stopTimes)
       ? train.stopTimes.map((stop: any) => ({
-          ...stop,
-          stationId: toExternalId(stop.stationId),
-          station: stop.station
-            ? { ...stop.station, id: toExternalId(stop.station.id) }
-            : undefined,
-        }))
+        ...stop,
+        stationId: toExternalId(stop.stationId),
+        station: stop.station
+          ? { ...stop.station, id: toExternalId(stop.station.id) }
+          : undefined,
+      }))
       : undefined,
-    // ⭕️ 路線外情報（あれば）の各種駅IDをすべてフロント用の0始まりに戻す
-    outerTimes: Array.isArray(train.outerTimes)
-      ? train.outerTimes.map((outer: any) => ({
-          ...outer,
-          station_id: toExternalId(outer.station_id),
-          terminal_id: toExternalId(outer.terminal_id),
-        }))
-      : undefined,
+    // ⭕️ フロント側でそのまま使えるよう、路線外発着を分解して返す
+    outerTimes,
+    outerArrive: outerTimes?.filter((outer: any) => outer.directionType === 'ARR'),
+    outerDep: outerTimes?.filter((outer: any) => outer.directionType === 'DEP'),
   };
 }
 /**
@@ -88,10 +117,10 @@ trainRouter.post('/batch', async (req: Request, res: Response) => {
     const body = req.body as
       | (CreateTrainData & { diaType?: string })[]
       | {
-          trains?: (CreateTrainData & { diaType?: string })[];
-          diagramId?: number;
-          diaType?: string;
-        };
+        trains?: (CreateTrainData & { diaType?: string })[];
+        diagramId?: number;
+        diaType?: string;
+      };
 
     const trainsData = Array.isArray(body) ? body : body.trains;
 
@@ -155,7 +184,16 @@ trainRouter.get('/', async (req: Request, res: Response) => {
       getDiaType(req.query.diaType),
     );
     const trains = await trainService.getAllTrains(diagramId);
-    const externalTrains = trains.map((t) => mapTrainToExternal(t));
+    const outerTerminalNameMap = await buildOuterTerminalNameMap();
+    const externalTrains = await Promise.all(trains.map((t) => mapTrainToExternal(t, outerTerminalNameMap)));
+    // ーーー ★ レスポンス直前にログを追加 ーーー
+    /*const data = await trainService.getAllTrains(diagramId);
+    console.log("=== [SERVER DEBUG] フロントエンドへ返却する直前のデータサンプル ===");
+    if (data && data.length > 0) {
+      console.log("outerArrive の有無:", !!data[0].outerArrive, "データ件数:", data[0].outerArrive?.length);
+      console.log("outerDep の有無:", !!data[0].outerDep, "データ件数:", data[0].outerDep?.length);
+    }*/
+    //console.log('[outerTimes debug]', JSON.stringify(trains, null, 2));
     res.status(200).json({
       success: true,
       diagramId,
@@ -186,7 +224,8 @@ trainRouter.get('/by-direction/:direction', async (req: Request, res: Response) 
       getDiaType(req.query.diaType),
     );
     const trains = await trainService.getTrainsByDirection(diagramId, direction);
-    const externalTrains = trains.map((t) => mapTrainToExternal(t));
+    const outerTerminalNameMap = await buildOuterTerminalNameMap();
+    const externalTrains = await Promise.all(trains.map((t) => mapTrainToExternal(t, outerTerminalNameMap)));
     res.status(200).json({
       success: true,
       diagramId,
@@ -217,14 +256,15 @@ trainRouter.get('/by-number/:trainNumber', async (req: Request, res: Response) =
       getDiaType(req.query.diaType),
     );
     const train = await trainService.getTrainByNumber(diagramId, trainNumber);
-    
+
     if (!train) {
       res.status(404).json({
         error: 'Train not found',
       });
       return;
     }
-    const externalTrain = mapTrainToExternal(train);
+    const outerTerminalNameMap = await buildOuterTerminalNameMap();
+    const externalTrain = await mapTrainToExternal(train, outerTerminalNameMap);
     res.status(200).json({
       success: true,
       diagramId,
@@ -261,7 +301,8 @@ trainRouter.get('/:trainId', async (req: Request, res: Response) => {
       });
       return;
     }
-   const externalTrain = mapTrainToExternal(train);
+    const outerTerminalNameMap = await buildOuterTerminalNameMap();
+    const externalTrain = await mapTrainToExternal(train, outerTerminalNameMap);
     res.status(200).json({
       success: true,
       data: externalTrain,
