@@ -231,7 +231,8 @@ function addTrainData(
         const _pointStationID = Number((word[0] || '').replace('Operation', '').slice(0, -1));
         const terminal: string = Outer[1];
         const _pointTimeRaw = Outer[2]?.replace('$', '') || '';
-        const _terminalStationID = Number((terminal.split('$')[0] || '').trim()) || 0;
+        const _terminalStationID = (terminal.split('$')[0] || '').trim();
+        console.log(_terminalStationID)
         const _terminalTimeRaw = terminal.split('$')[1] || '';
 
         const _terminalTime = _terminalTimeRaw ? Time.fromString(_terminalTimeRaw) : null;
@@ -308,6 +309,7 @@ export function parseOud(content: string, fileName: string): OudData {
   let countStation = 0;
   let countDia: number = 0;
   let fileFormat: number = 0;
+  let rosenmei = "";
 
   // OudiaかSecondかを判定する
   if (lines[0]?.startsWith('FileType=OuDiaSecond')) {
@@ -321,8 +323,7 @@ export function parseOud(content: string, fileName: string): OudData {
     if (!line) continue;
 
     if (line.startsWith('Rosenmei')) {
-      // 路線名をそのまま取得
-      // var rosenmei = getDataFromFile(lines[td]);
+      rosenmei = getDataFromFile(line);
     } else if (line.startsWith('Eki.')) {
       if (fileFormat === 1) {
         addStation(
@@ -382,7 +383,7 @@ export function parseOud(content: string, fileName: string): OudData {
             getDataFromFile(lines[td + 2] || ''),
             getDataFromFile(lines[td + 3] || '')
           );
-          td += 5;
+          td += 3;
           OuterStationID++;
         }
       }
@@ -413,7 +414,19 @@ export function parseOud(content: string, fileName: string): OudData {
       countTrain = 0;
     }
   }
-
+  console.log(
+    'OuterTerminal master:',
+    stations.map((station) => ({
+      stationId: station.id,
+      stationName: station.name,
+      terminals: station.OuterTerminal.map((terminal) => ({
+        id: terminal.id,
+        name: terminal.name,
+        jikoku: terminal.jikoku,
+        diaryaku: terminal.diaryaku,
+      })),
+    }))
+  );
   const headers = lines[0]?.split(",") || [];
   const rows = lines.slice(1).map((line: string) => line.split(","));
 
@@ -421,7 +434,7 @@ export function parseOud(content: string, fileName: string): OudData {
   return {
     headers,
     rows,
-    rosenmei: "",
+    rosenmei,
     stations,
     TrainType,
     KudariData,
