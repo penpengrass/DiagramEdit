@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Station} from '../constants/stationmap';
-import { TrainData, TrainType, Diagrams } from "../constants/Traindatamap";
+import type { TrainData, TrainType, Diagrams } from '../../../shared/types/timetable';
 import '../styles/StationShow.css'
 import { Time } from '../utils/Time'; // Timeクラスをインポート // 👈 Timeクラスをインポート
 import { toABGR } from './TypeShow';

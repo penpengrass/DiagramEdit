@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import '../styles/TrainData.css'
 import { Station, layoutNameMap } from '../constants/stationmap';
-import { TrainData, TrainType, TimeEntry, Diagrams } from "../constants/Traindatamap";
+import type { TrainData, TrainType, TimeEntry, Diagrams } from '../../../shared/types/timetable';
 import { toABGR } from './TypeShow';
 import { formatTime } from '../utils/Time';  // 追加
 interface TrainDataProps {
@@ -87,13 +87,6 @@ const TrainRowParts: React.FC<TrainRowPartsProps> = ({ TrainDataA, station, rowI
     const RailNumber = station.railnumber[id];
     return RailNumber ? RailNumber.ryakushou : "";
   }
-  // 路線外到着/発着を駅ごとに取得（存在しない場合は undefined）
-  const getOuterFor = (onedata: TrainData) => {
-    const outerArr = (onedata as any).outerarrive;
-    const outerDep = (onedata as any).outerdep;
-    const findByStation = (list: any) => Array.isArray(list) ? list.find((o: any) => Number(o.id) === station.id) : undefined;
-    return { outerArrive: findByStation(outerArr), outerDep: findByStation(outerDep) };
-  };
   // 指定セルが「非空要素の上下の間にある空白」か判定する。||か・・・かを判定する。
   const isBetweenNonEmpty = (onedata: TrainData, idx: number, key: keyof TimeEntry) => {
     //timesは1列車の全時刻のこと

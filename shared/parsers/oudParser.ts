@@ -232,7 +232,7 @@ function addTrainData(
         const terminal: string = Outer[1];
         const _pointTimeRaw = Outer[2]?.replace('$', '') || '';
         const _terminalStationID = (terminal.split('$')[0] || '').trim();
-        console.log(_terminalStationID)
+        //console.log(_terminalStationID)
         const _terminalTimeRaw = terminal.split('$')[1] || '';
 
         const _terminalTime = _terminalTimeRaw ? Time.fromString(_terminalTimeRaw) : null;
@@ -370,22 +370,21 @@ export function parseOud(content: string, fileName: string): OudData {
           railNumber++;
           td += 4;
         }
-
-        td++;
-
+        td+=2;
         // ここに駅の路線外発着駅を追加する
-        while (td + 1 < lines.length && lines[td + 1] === 'OuterTerminal.') {
+        while (td < lines.length && lines[td] === 'OuterTerminal.') {
           addOuterTerminal(
             countStation,
             OuterStationID,
             stations,
+            getDataFromFile(lines[td] || ''),
             getDataFromFile(lines[td + 1] || ''),
-            getDataFromFile(lines[td + 2] || ''),
-            getDataFromFile(lines[td + 3] || '')
+            getDataFromFile(lines[td + 2] || '')
           );
           td += 3;
           OuterStationID++;
         }
+        console.log(stations[0].OuterTerminal)
       }
 
       countStation++;

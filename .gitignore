@@ -27,3 +27,4 @@ dist-ssr
 .github/*
 AGENTS.md
 *.oud2
+/doc/

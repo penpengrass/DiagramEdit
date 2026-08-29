@@ -1,25 +1,6 @@
 //駅に関する情報をすべてここに入れる
 //駅規模を書き換える[]内にEkikiboが入り、:の後に日本語名を入れるという形になっている。別のところに応用できそう
-export interface RailNumber {
-    id: number;
-    name: string;
-    ryakushou: string;
-}
-export interface OuterTerminalStation{
-  id:number;
-  name:string;
-  jikoku:string;
-  diaryaku:string;
-}
-export interface Station {
-    id: number;
-    name: string;
-    main: string;
-    layout: string;
-    railnumber: RailNumber[];
-    OuterTerminal:OuterTerminalStation[];
-    BrunchFromStationID:number;
-}
+export type { RailNumber, OuterTerminalStation, Station } from '../../../shared/types/timetable';
 
 export const layoutNameMap: { [key: string]: { label: string; values: number[] } } = {
   Jikokukeisiki_Hatsu: { label: "発時刻", values: [0, 1, 0, 1] },
