@@ -3,7 +3,12 @@ import '../styles/TrainData.css'
 import { Station, layoutNameMap } from '../constants/stationmap';
 import type { TrainData, TrainType, TimeEntry, Diagrams } from '../../../shared/types/timetable';
 import { toABGR } from './TypeShow';
-import { formatTime } from '../utils/Time';  // 追加
+import { formatTime } from '../utils/Time';
+import {
+  //resolveOuterTerminalName as sharedResolveOuterTerminalName,
+  getTrainTerminalStations as sharedGetTrainTerminalStations,
+  getOrderedStations as sharedGetOrderedStations,
+} from '../../../shared/utils/timetableDisplay';
 interface TrainDataProps {
   TrainDataA: TrainData[];
   typesA: TrainType[];
@@ -297,26 +302,19 @@ const TerminalStations: React.FC<TerminalStationsProps> = ({ TrainDataA, station
       }
       return time as TimeEntry;
     });
-    const isReal = (v: any) => v != null && v !== "" && !(typeof v === 'string' && (v.trim() === '' || v === '・・・' || v === 'レ' || v === '||'));
-    let start = "";
-    let end = "";
-    for (let i = 0; i < stationsA.length; i++) {
-      const t = times[i];
-      if (!t) continue;
-      if (!start && (isReal(t.arrive) || isReal(t.departure))) {
-        start = stationsA[i].name;
-        break;
-      }
-    }
-    for (let i = stationsA.length - 1; i >= 0; i--) {
-      const t = times[i];
-      if (!t) continue;
-      if (!end && (isReal(t.arrive) || isReal(t.departure))) {
-        end = stationsA[i].name;
-        break;
-      }
-    }
-    return { start, end };
+
+    const orderedStations = sharedGetOrderedStations(stationsA, "Kudari");
+    return sharedGetTrainTerminalStations(
+      {
+        stopTimes: times.map((time, index) => ({
+          stationId: orderedStations[index]?.id ?? index,
+          arrivalMinute: typeof time.arrive === "string" ? undefined : time.arrive as any,
+          departureMinute: typeof time.departure === "string" ? undefined : time.departure as any,
+          isPass: time.stop === "0" || time.stop === "2",
+        })),
+      },
+      orderedStations
+    );
   };
   //路線外発着駅を取得
   const getOuterName = (onedata: TrainData, OuterDeparture: boolean) => {
