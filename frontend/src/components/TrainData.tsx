@@ -225,27 +225,64 @@ const TrainRow: React.FC<TrainRowProps> = ({ TrainDataA, station, rowIdx, typesA
     );
 }
 // OuterTerminal はヘッダー(onedata + stations) と行表示(TrainDataA + station) の両方で使われる
+const getOuterTerminalName = (stations: Station[], pointStationID: number | string | undefined, terminalStationID: number | string | undefined): string => {
+  if (!stations || stations.length === 0 || pointStationID == null || terminalStationID == null) return "";
+
+  const pointId = Number(pointStationID);
+  const terminalId = Number(terminalStationID);
+  if (!Number.isFinite(pointId) || !Number.isFinite(terminalId)) return "";
+
+  const pointStation = stations[pointId];
+  if (!pointStation || !Array.isArray(pointStation.OuterTerminal)) return "";
+
+  const target = pointStation.OuterTerminal.find((terminal) => {
+    const id = Number(terminal.id);
+    return Number.isFinite(id) && id === terminalId;
+  });
+
+  return target?.name || "";
+};
+
 const OuterTerminal: React.FC<OuterTerminal> = ({ onedata, stations, showArr = true, showDep = true, cellType = 'th', bgColor }) => {
   //Cellにthもしくはtdを入れるようにする。
   const Cell: any = cellType === 'th' ? 'th' : 'td';
   if (!onedata) return <Cell className="TrainData"><div className="Outer-cell">&nbsp;</div></Cell>;
-  //console.log(stations[0].OuterTerminal[0].jikoku);
-  const getStationByID = (pointStationID: number, terminalStationID: number): string => {
-    if (!stations || stations.length === 0 || pointStationID == null || terminalStationID == null) return "";
-    //const sid = Number(id);
-    //const st = stations[pointStationID].find(s => Number(s.terminalStationID) === terminalStationID);
-    const st = stations[pointStationID].OuterTerminal[terminalStationID]
-    return st ? st.jikoku : "";
-  };
 
   const outerArr = Array.isArray(onedata.outerarrive) ? onedata.outerarrive[0] : onedata.outerarrive;
   const outerDep = Array.isArray(onedata.outerdep) ? onedata.outerdep[0] : onedata.outerdep;
+
+  const outerArrName = outerArr ? getOuterTerminalName(stations, outerArr.pointStationID, outerArr.terminalStationID) : "";
+  const outerDepName = outerDep ? getOuterTerminalName(stations, outerDep.pointStationID, outerDep.terminalStationID) : "";
+
+  const formatOuterTime = (timeValue: any): string => {
+    if (timeValue == null) return "";
+    return typeof timeValue === 'string' ? timeValue : timeValue.toString();
+  };
+
   return (
     <Cell className="TrainData" key={`outer-${onedata.id}`} style={{ color: toABGR(bgColor) ?? 'transparent' }}>
       <div className="Outer-cell">
         <div className="Outer-seq"></div>
-        {showArr ? (outerArr ? <div className="Outer-arrive">着: {outerArr.terminalTime.toString() ?? outerArr.pointTime.toString()}{outerArr.terminalStationID ? ` ${getStationByID(outerArr.pointStationID, outerArr.terminalStationID)}` : ""}</div> : <div className="Outer-empty">&nbsp;</div>) : null}
-        {showDep ? (outerDep ? <div className="Outer-dep">発: {outerDep.terminalTime.toString() ?? outerDep.pointTime.toString()}{outerDep.terminalStationID ? ` ${getStationByID(outerDep.pointStationID, outerDep.terminalStationID)}` : ""}</div> : <div className="Outer-empty">&nbsp;</div>) : null}
+        {showArr ? (
+          outerArr ? (
+            <div className="Outer-arrive">
+              着: {formatOuterTime(outerArr.terminalTime ?? outerArr.pointTime)}
+              {outerArrName ? ` ${outerArrName}` : ""}
+            </div>
+          ) : (
+            <div className="Outer-empty">&nbsp;</div>
+          )
+        ) : null}
+        {showDep ? (
+          outerDep ? (
+            <div className="Outer-dep">
+              発: {formatOuterTime(outerDep.terminalTime ?? outerDep.pointTime)}
+              {outerDepName ? ` ${outerDepName}` : ""}
+            </div>
+          ) : (
+            <div className="Outer-empty">&nbsp;</div>
+          )
+        ) : null}
       </div>
     </Cell>
   );
@@ -285,23 +322,23 @@ const TerminalStations: React.FC<TerminalStationsProps> = ({ TrainDataA, station
   const getOuterName = (onedata: TrainData, OuterDeparture: boolean) => {
     const outerArr = Array.isArray(onedata.outerarrive) ? onedata.outerarrive[0] : onedata.outerarrive;
     const outerDep = Array.isArray(onedata.outerdep) ? onedata.outerdep[0] : onedata.outerdep;
-    const getStationByID = (pointStationID: number, terminalStationID: number): string => {
-      if (!stationsA || stationsA.length === 0 || pointStationID == null || terminalStationID == null) return "";
-      const st = stationsA[pointStationID]?.OuterTerminal?.[terminalStationID];
-      return st ? st.jikoku : "";
-    };
-    if (OuterDeparture) {
-      if (outerDep) {
-        return outerDep.terminalStationID ? getStationByID(outerDep.pointStationID, outerDep.terminalStationID) : (outerDep.pointStationID != null ? (stationsA[outerDep.pointStationID]?.name || "") : "");
-      }
+    const target = OuterDeparture ? outerDep : outerArr;
+
+    if (!target) return "";
+
+    const pointStationId = Number(target.pointStationID);
+    const terminalStationId = Number(target.terminalStationID);
+    if (!Number.isFinite(pointStationId) || !Number.isFinite(terminalStationId)) {
       return "";
-    } else {
-      if (outerArr) {
-        return outerArr.terminalStationID ? getStationByID(outerArr.pointStationID, outerArr.terminalStationID) : (outerArr.pointStationID != null ? (stationsA[outerArr.pointStationID]?.name || "") : "");
-      }
-      return "";
-      
     }
+
+    const pointStation = stationsA[pointStationId];
+    if (!pointStation || !Array.isArray(pointStation.OuterTerminal)) {
+      return "";
+    }
+
+    const terminal = pointStation.OuterTerminal.find((station) => Number(station.id) === terminalStationId);
+    return terminal?.name || "";
   };
 
   return (

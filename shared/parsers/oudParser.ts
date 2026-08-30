@@ -370,21 +370,34 @@ export function parseOud(content: string, fileName: string): OudData {
           railNumber++;
           td += 4;
         }
-        td+=2;
+        td += 2;
         // ここに駅の路線外発着駅を追加する
         while (td < lines.length && lines[td] === 'OuterTerminal.') {
+          let OuterDataLine: number = 2;
+          const OuterTerminalName = getDataFromFile(lines[td + 1] || '')
+          let OuterTerminalRyakushou = "";
+          let OuterTerminalDiaRyaku = "";
+          if (lines[td + 2] == '.') {
+            OuterDataLine = 2;
+          } else if (lines[td + 3] == '.') {
+            OuterDataLine = 3;
+            OuterTerminalRyakushou = getDataFromFile(lines[td + 2] || '')
+          } else if (lines[td + 4] == '.') {
+            OuterDataLine = 4;
+            OuterTerminalRyakushou = getDataFromFile(lines[td + 2] || '')
+            OuterTerminalDiaRyaku = getDataFromFile(lines[td + 3] || '')
+          }
           addOuterTerminal(
             countStation,
             OuterStationID,
             stations,
-            getDataFromFile(lines[td] || ''),
-            getDataFromFile(lines[td + 1] || ''),
-            getDataFromFile(lines[td + 2] || '')
+            OuterTerminalName,
+            OuterTerminalRyakushou,
+            OuterTerminalDiaRyaku
           );
-          td += 3;
+          td += 1 + OuterDataLine;
           OuterStationID++;
         }
-        console.log(stations[0].OuterTerminal)
       }
 
       countStation++;

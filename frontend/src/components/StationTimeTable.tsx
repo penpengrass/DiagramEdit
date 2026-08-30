@@ -87,7 +87,7 @@ const StationTimeTable: React.FC<Props> = ({ KudariTrainDataA, NoboriTrainDataA,
       const getStationByID = (pointStationID: number, terminalStationID: number): string => {
         if (!stationsA || stationsA.length === 0 || pointStationID == null || terminalStationID == null) return "";
         const st = stationsA[pointStationID]?.OuterTerminal?.[terminalStationID];
-        return st ? st.jikoku : "";
+        return st ? st.name : "";
       };
       if (outerArrive.terminalStationID) {
         if (isDownDirection) {
