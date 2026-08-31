@@ -73,11 +73,38 @@ const formatDisplayTime = (val: number | string | null | undefined): string => {
   return sharedFormatTime(minuteToTimeString(num));
 };
 
-// 色文字列をCSS表記へ補正する関数(仮で黒に統一)
+// DBの色は ABGR 形式で保存されていることがあるため、CSS 用には RGB へ変換する
 const formatColor = (colorStr?: string): string => {
-  if (!colorStr) return '#000000';
-  if (colorStr.startsWith('#')) return '#000000';
-  return `#${colorStr}`;
+  if (!colorStr) return 'transparent';
+
+  const value = colorStr.trim();
+  if (!value) return 'transparent';
+
+  const clean = value.replace('#', '').trim();
+
+  if (/^[0-9A-Fa-f]{3}$/.test(clean)) {
+    const expanded = clean.split('').map((ch) => ch + ch).join('').toUpperCase();
+    return `#${expanded}`;
+  }
+
+  if (/^[0-9A-Fa-f]{6}$/.test(clean)) {
+    return `#${clean.toUpperCase()}`;
+  }
+
+  if (/^[0-9A-Fa-f]{8}$/.test(clean)) {
+    // ABGR -> RGB に変換
+    // 例: #000000FF -> #FF0000
+    const alpha = clean.slice(0, 2);
+    const blue = clean.slice(2, 4);
+    const green = clean.slice(4, 6);
+    const red = clean.slice(6, 8);
+    if (alpha === '00' || alpha === 'FF') {
+      return `#${red}${green}${blue}`.toUpperCase();
+    }
+    return `#${red}${green}${blue}`.toUpperCase();
+  }
+
+  return value;
 };
 
 export const StationTimeTableByDB: React.FC = () => {
