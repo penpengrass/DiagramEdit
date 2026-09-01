@@ -13,9 +13,10 @@ import DataExport from "./components/DataExport.tsx";
 import Cell from "./Cell.tsx";
 import { StationList } from "./components/StationListByDB.tsx";
 import { TrainTypeList } from "./components/TrainTypeListByDB.tsx";
-import {TimeTableByDB} from "./components/TimeTableByDB.tsx"
+import { TimeTableByDB } from "./components/TimeTableByDB.tsx"
+import { StationTimeTableByDB } from "./components/StationTimeTableByDB.tsx"
 //import { Diagrams } from "./constants/Traindatamap";
-export type ComponentKey = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'I' | 'J' | 'K' | 'L';
+export type ComponentKey = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'I' | 'J' | 'K' | 'L' | 'M';
 import StationTimeTable from "./components/StationTimeTable.tsx";
 //import { Diagrams } from "./constants/Traindatamap";
 
@@ -77,6 +78,7 @@ const App: React.FC = () => {
             {selected === 'J' && <StationList />}
             {selected === 'K' && <TrainTypeList />}
             {selected === 'L' && <TimeTableByDB />}
+            {selected === 'M' && <StationTimeTableByDB />}
           </div >
         </div >
       </div >
