@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import '../styles/TrainData.css'
 import { Station, layoutNameMap } from '../constants/stationmap';
-import type { TrainData, TrainType, TimeEntry, Diagrams } from '../../../shared/types/timetable';
+import type { TrainData, TrainType, TimeEntry, Diagrams } from '@shared/types/timetable';
 import { toABGR } from './TypeShow';
-import { formatTime } from '../utils/Time';
+import { formatTime } from '@shared/utils/Time';
 import {
   //resolveOuterTerminalName as sharedResolveOuterTerminalName,
   getTrainTerminalStations as sharedGetTrainTerminalStations,
   getOrderedStations as sharedGetOrderedStations,
-} from '../../../shared/utils/timetableDisplay';
+} from '@shared/utils/timetableDisplay';
 interface TrainDataProps {
   TrainDataA: TrainData[];
   typesA: TrainType[];

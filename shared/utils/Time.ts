@@ -11,7 +11,7 @@ export class Time {
         this.minute = minute;
     }
 
-    /**
+     /**
      * 文字列からTimeインスタンスを作成する
      * @param timeString - "809"(8:09)または"1234"(12:34)などの形式
      * @returns Timeインスタンス、またはnull
@@ -27,11 +27,13 @@ export class Time {
         }
 
         const len = timeString.length;
-        if (len !== 3 && len !== 4 && len !== 6) {
+        if (len < 3 || len > 6) {
             console.log(timeString);
-            throw new Error('Invalid format: 時刻は3桁(809)または4桁(1234)で入力してください。');
+            throw new Error('Invalid format: 時刻の桁数が不適切です');
         }
-
+        if (len > 4) {
+            timeString = timeString.slice(0, -2);
+        }
         // slice(-2) は末尾2文字を取得、slice(0, -2) は開始から末尾2文字手前までを取得
         const minute = parseInt(timeString.slice(-2), 10);
         const hour = parseInt(timeString.slice(0, -2), 10);
@@ -55,11 +57,12 @@ export class Time {
         } else {
             paddedHour = this.hour.toString().padStart(2, '0');
         }
+        //const paddedHour = this.hour.toString().padStart(2, '0');
         const paddedMinute = this.minute.toString().padStart(2, '0');
         return `${paddedHour}${paddedMinute}`;
     }
 
-    /**
+/**
      * オブジェクトとしてシリアライズ可能にする
      */
     toJSON() {

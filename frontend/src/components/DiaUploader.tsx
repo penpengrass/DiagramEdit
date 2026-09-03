@@ -1,6 +1,6 @@
 import React from "react";
 export const FileFormat: number = 0; // ここでグローバルに定義
-import { parseOud as parseSharedOud } from '../../../shared/parsers/oudParser';
+import { parseOud as parseSharedOud } from '@shared/parsers/oudParser';
 
 interface DiaUploaderProps {
     onOudDataLoaded: (data: any) => void;

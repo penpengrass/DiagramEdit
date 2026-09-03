@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Station} from '../constants/stationmap';
-import type { TrainData, TrainType, Diagrams } from '../../../shared/types/timetable';
+import type { TrainData, TrainType, Diagrams } from '@shared/types/timetable';
 import '../styles/StationShow.css'
-import { Time } from '../utils/Time'; // Timeクラスをインポート // 👈 Timeクラスをインポート
+import { Time } from '@shared/utils/Time';
 import { toABGR } from './TypeShow';
 interface Props {
   KudariTrainDataA: TrainData[]; // 下りデータ
