@@ -24,5 +24,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-OudFileManual.md
 .github/*
+AGENTS.md
+*.oud2
+/doc/

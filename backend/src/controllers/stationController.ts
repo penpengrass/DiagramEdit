@@ -1,0 +1,128 @@
+import express from "express";
+import {
+  getAllStations,
+  getStationById,
+  importStationsService,
+  removeStation,
+} from "../services/stationServices.js";
+import { parseOud } from "@shared/parsers/oudParser";
+import { toDbId, toExternalId } from "../utils/idConverter.js";
+/**
+ * プレゼンテーション層：HTTP リクエスト/レスポンスの処理
+ */
+
+const router = express.Router();
+
+/**
+ * 全駅情報を取得
+ * GET /api/stations
+ */
+router.get("/", async (req: any, res: any) => {
+  try {
+    const stations = await getAllStations();
+   const externalStations = stations.map((station) => ({
+      ...station,
+      id: toExternalId(station.id),
+    }));
+    
+    res.json(externalStations);
+  } catch (err: any) {
+    console.error("Error fetching stations:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * 特定の駅情報を取得
+ * GET /api/stations/:id
+ */
+router.get("/:id", async (req: any, res: any) => {
+  try {
+    const rawId = parseInt(req.params.id);
+    const dbId = toDbId(rawId);
+    
+    const station = await getStationById(dbId);
+    const externalStation = station ? {
+      ...station,
+      id: toExternalId(station.id),
+    } : null;
+    res.json(externalStation);
+  } catch (err: any) {
+    if (err.message.includes("無効な")) {
+      return res.status(400).json({ error: err.message });
+    }
+    if (err.message.includes("見つかりません")) {
+      return res.status(404).json({ error: err.message });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * 駅情報をDBに追加/更新
+ * POST /api/stations/import
+ */
+router.post("/import", async (req: any, res: any) => {
+  try {
+    const result = await importStationsService(req.body);
+    res.json(result);
+  } catch (err: any) {
+    if (err.message.includes("配列")) {
+      return res.status(400).json({ error: err.message });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * OUDファイルを解析
+ * POST /api/stations/parse-oud
+ * Body: { fileContent: string, fileName: string }
+ */
+router.post("/parse-oud", async (req: any, res: any) => {
+  try {
+    const { fileContent, fileName } = req.body;
+
+    if (!fileContent) {
+      return res.status(400).json({ error: "fileContent is required" });
+    }
+
+    if (!fileName) {
+      return res.status(400).json({ error: "fileName is required" });
+    }
+
+    const oudData = parseOud(fileContent, fileName);
+    res.json(oudData);
+  } catch (err: any) {
+    console.error("Error parsing OUD file:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * 駅情報を削除
+ * DELETE /api/stations/:id
+ */
+router.delete("/:id", async (req: any, res: any) => {
+  try {
+    const rawId = parseInt(req.params.id);
+    const dbId = toDbId(rawId);
+    const station = await removeStation(dbId);
+    const externalStation = {
+      ...station,
+      id: toExternalId(station.id),
+    };
+
+    res.json({ message: "削除成功", station: externalStation });
+  } catch (err: any) {
+    if (err.message.includes("無効な")) {
+      return res.status(400).json({ error: err.message });
+    }
+    if (err.message.includes("見つかりません")) {
+      return res.status(404).json({ error: err.message });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+export default router;

@@ -1,0 +1,26 @@
+[
+  {
+    "code": 0,
+    "name": "普通",
+    "shortName": "普通",
+    "color": "#0000FF"
+  },
+  {
+    "code": 1,
+    "name": "快速",
+    "shortName": "快速",
+    "color": "#FF0000"
+  },
+  {
+    "code": 2,
+    "name": "新快速",
+    "shortName": "新快",
+    "color": "#00FF00"
+  },
+  {
+    "code": 3,
+    "name": "特急",
+    "shortName": "特急",
+    "color": "#FF00FF"
+  }
+]

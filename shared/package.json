@@ -1,0 +1,9 @@
+{
+  "name": "@shared/parsers",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./parsers/oudParser.js",
+  "exports": {
+    "./oudParser": "./parsers/oudParser.js"
+  }
+}
