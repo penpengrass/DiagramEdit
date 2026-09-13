@@ -118,6 +118,7 @@ export interface OudData {
     KudariData: TrainData[];
     NoboriData: TrainData[];
     Diagrams: Diagrams[];
+    KitenJikoku?: number;
 }
 
 /**

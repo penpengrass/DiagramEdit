@@ -74,7 +74,7 @@ const App: React.FC = () => {
             {selected === 'D' && <TrainData TrainDataA={KudariDataA} typesA={TrainTypeA} stationsA={stations} diagrams={Diagram} />}
             {selected === 'E' && <TrainData TrainDataA={NoboriDataA} typesA={TrainTypeA} stationsA={[...stations].reverse()} diagrams={Diagram} />}
             {selected === 'F' && <Cell />}
-            {selected === 'H' && <DiagramView TrainDataA={KudariDataA} stationsA={stations} typesA={TrainTypeA} />}
+            {selected === 'H' && <DiagramView TrainDataA={KudariDataA} NoboriTrainDataA={NoboriDataA} stationsA={stations} typesA={TrainTypeA} kitenJikoku={DiaData.KitenJikoku} />}
             {selected === 'G' && <StationTimeTable KudariTrainDataA={KudariDataA} NoboriTrainDataA={NoboriDataA} typesA={TrainTypeA} stationsA={stations} diagrams={Diagram} />}
             {selected === 'I' && <DataExport stationsA={stations} />}
             {selected === 'J' && <StationList />}

@@ -310,6 +310,7 @@ export function parseOud(content: string, fileName: string): OudData {
   let countDia: number = 0;
   let fileFormat: number = 0;
   let rosenmei = "";
+  let kitenJikoku = 0;
 
   // OudiaかSecondかを判定する
   if (lines[0]?.startsWith('FileType=OuDiaSecond')) {
@@ -322,7 +323,12 @@ export function parseOud(content: string, fileName: string): OudData {
     const line = lines[td];
     if (!line) continue;
 
-    if (line.startsWith('Rosenmei')) {
+    if (line.startsWith('KitenJikoku=')) {
+      const parsedKitenJikoku = Number(getDataFromFile(line));
+      if (Number.isFinite(parsedKitenJikoku)) {
+        kitenJikoku = parsedKitenJikoku;
+      }
+    } else if (line.startsWith('Rosenmei')) {
       rosenmei = getDataFromFile(line);
     } else if (line.startsWith('Eki.')) {
       if (fileFormat === 1) {
@@ -452,6 +458,7 @@ export function parseOud(content: string, fileName: string): OudData {
     KudariData,
     NoboriData,
     Diagrams,
+    KitenJikoku: kitenJikoku,
   };
 }
 

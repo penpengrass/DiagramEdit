@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Station } from '../constants/stationmap';
 import { TrainData, TrainType } from '../constants/Traindatamap';
 import { toABGR } from './TypeShow';
@@ -6,18 +6,30 @@ import { Time } from '../../../shared/utils/Time';
 
 interface Props {
     TrainDataA: TrainData[];
+    NoboriTrainDataA: TrainData[];
     stationsA: Station[];
     typesA: TrainType[];
+    kitenJikoku?: number;
 }
 
-const DiagramView: React.FC<Props> = ({ TrainDataA, stationsA, typesA }) => {
+type DisplayMode = 'kudari' | 'nobori' | 'both';
+
+const DiagramView: React.FC<Props> = ({ TrainDataA, NoboriTrainDataA, stationsA, typesA, kitenJikoku = 0 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [displayMode, setDisplayMode] = useState<DisplayMode>('both');
     useEffect(() => {
-        if (!canvasRef.current || !stationsA.length || !TrainDataA.length) return;
+        if (!canvasRef.current || !stationsA.length) return;
 
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
+        const startHour = Math.floor(kitenJikoku / 100);
+        const startMinute = kitenJikoku % 100;
+        const startTotalMinutes = startHour * 60 + startMinute;
+        const toDiagramMinutes = (time: Time): number => {
+            const totalMinutes = time.getHours() * 60 + time.getMinutes();
+            return (totalMinutes - startTotalMinutes + 24 * 60) % (24 * 60);
+        };
 
         // キャンバスサイズの設定
         const leftMargin = 80;
@@ -61,8 +73,15 @@ const DiagramView: React.FC<Props> = ({ TrainDataA, stationsA, typesA }) => {
             ctx.fillText(station.name.substring(0, 6), 70, y); // 駅名は最大6文字
         });
         console.log(stationsA);
-        // 列車の線を描画、ここが変、ここ以外は一応いけてる。
-        TrainDataA.forEach((train, trainIndex) => {
+        const trainGroups = displayMode === 'kudari'
+            ? [{ trains: TrainDataA, isNobori: false }]
+            : displayMode === 'nobori'
+                ? [{ trains: NoboriTrainDataA, isNobori: true }]
+                : [
+                    { trains: TrainDataA, isNobori: false },
+                    { trains: NoboriTrainDataA, isNobori: true },
+                ];
+        trainGroups.forEach(({ trains, isNobori }) => trains.forEach((train, trainIndex) => {
             if (!train.time || train.time.length < 1) return;
 
             // 列車の色を取得
@@ -81,7 +100,7 @@ const DiagramView: React.FC<Props> = ({ TrainDataA, stationsA, typesA }) => {
                 const departureTime = timeEntry.departure;
 
                 // 駅IDに対応するstationを探す
-                const stationIndex = i;
+                const stationIndex = isNobori ? stationsA.length - 1 - i : i;
                 if (stationIndex === -1) {
                     // デバッグ：駅が見つからない場合
                     console.warn(
@@ -94,14 +113,14 @@ const DiagramView: React.FC<Props> = ({ TrainDataA, stationsA, typesA }) => {
 
                 // 到着時刻をプロット
                 if (arriveTime && arriveTime instanceof Time) {
-                    const totalMinutes = arriveTime.getHours() * 60 + arriveTime.getMinutes();
+                    const totalMinutes = toDiagramMinutes(arriveTime);
                     const x = 80 + totalMinutes;
 
                     // 時刻が大幅に減少した場合（00:00を超えた）、線を途切させる
                     if (!isFirstPoint && i > 0) {
                         const prevTime = train.time[i - 1].arrive;
                         if (prevTime && prevTime instanceof Time) {
-                            const prevTotalMinutes = prevTime.getHours() * 60 + prevTime.getMinutes();
+                            const prevTotalMinutes = toDiagramMinutes(prevTime);
                             if (totalMinutes < prevTotalMinutes - 60) {
                                 ctx.stroke();
                                 ctx.beginPath();
@@ -121,14 +140,14 @@ const DiagramView: React.FC<Props> = ({ TrainDataA, stationsA, typesA }) => {
 
                 // 出発時刻をプロット
                 if (departureTime && departureTime instanceof Time) {
-                    const totalMinutes = departureTime.getHours() * 60 + departureTime.getMinutes();
+                    const totalMinutes = toDiagramMinutes(departureTime);
                     const x = 80 + totalMinutes;
 
                     // 時刻が大幅に減少した場合（00:00を超えた）、線を途切させる
                     if (!isFirstPoint && i > 0) {
                         const prevDeparture = train.time[i - 1].departure;
                         if (prevDeparture && prevDeparture instanceof Time) {
-                            const prevTotalMinutes = prevDeparture.getHours() * 60 + prevDeparture.getMinutes();
+                            const prevTotalMinutes = toDiagramMinutes(prevDeparture);
                             if (totalMinutes < prevTotalMinutes - 60) {
                                 ctx.stroke();
                                 ctx.beginPath();
@@ -151,22 +170,56 @@ const DiagramView: React.FC<Props> = ({ TrainDataA, stationsA, typesA }) => {
             if (pointCount >= 2) {
                 ctx.stroke();
             }
-        });
+        }));
         // 時間ラベルの描画（上部）
         ctx.fillStyle = '#000000';
         ctx.font = 'bold 14px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
         for (let hour = 0; hour <= 24; hour++) {
+            const displayHour = (startHour + hour) % 24;
             const x = 80 + hour * 60;
-            ctx.fillText(hour.toString().padStart(2, '0'), x, 10);
+            ctx.fillText(displayHour.toString().padStart(2, '0'), x, 10);
         }
 
-    }, [TrainDataA, stationsA, typesA]);
+    }, [TrainDataA, NoboriTrainDataA, stationsA, typesA, displayMode, kitenJikoku]);
 
     return (
         <div style={{ padding: '10px', overflow: 'auto', height: '100%' }}>
             <h2>ダイヤグラム</h2>
+            <fieldset style={{ marginBottom: '12px' }}>
+                <legend>表示する列車</legend>
+                <label>
+                    <input
+                        type="radio"
+                        name="diagram-display-mode"
+                        value="kudari"
+                        checked={displayMode === 'kudari'}
+                        onChange={() => setDisplayMode('kudari')}
+                    />
+                    下りのみ
+                </label>
+                <label>
+                    <input
+                        type="radio"
+                        name="diagram-display-mode"
+                        value="nobori"
+                        checked={displayMode === 'nobori'}
+                        onChange={() => setDisplayMode('nobori')}
+                    />
+                    上りのみ
+                </label>
+                <label>
+                    <input
+                        type="radio"
+                        name="diagram-display-mode"
+                        value="both"
+                        checked={displayMode === 'both'}
+                        onChange={() => setDisplayMode('both')}
+                    />
+                    両方
+                </label>
+            </fieldset>
             <canvas
                 ref={canvasRef}
                 style={{
