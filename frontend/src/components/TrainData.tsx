@@ -1,9 +1,14 @@
 import React, { useState } from "react";
 import '../styles/TrainData.css'
 import { Station, layoutNameMap } from '../constants/stationmap';
-import { TrainData, TrainType, TimeEntry, Diagrams } from "../constants/Traindatamap";
+import type { TrainData, TrainType, TimeEntry, Diagrams } from '../../../shared/types/timetable';
 import { toABGR } from './TypeShow';
-import { formatTime } from '../utils/Time';  // 追加
+import { formatTime } from '../utils/Time';
+import {
+  //resolveOuterTerminalName as sharedResolveOuterTerminalName,
+  getTrainTerminalStations as sharedGetTrainTerminalStations,
+  getOrderedStations as sharedGetOrderedStations,
+} from '../../../shared/utils/timetableDisplay';
 interface TrainDataProps {
   TrainDataA: TrainData[];
   typesA: TrainType[];
@@ -87,13 +92,6 @@ const TrainRowParts: React.FC<TrainRowPartsProps> = ({ TrainDataA, station, rowI
     const RailNumber = station.railnumber[id];
     return RailNumber ? RailNumber.ryakushou : "";
   }
-  // 路線外到着/発着を駅ごとに取得（存在しない場合は undefined）
-  const getOuterFor = (onedata: TrainData) => {
-    const outerArr = (onedata as any).outerarrive;
-    const outerDep = (onedata as any).outerdep;
-    const findByStation = (list: any) => Array.isArray(list) ? list.find((o: any) => Number(o.id) === station.id) : undefined;
-    return { outerArrive: findByStation(outerArr), outerDep: findByStation(outerDep) };
-  };
   // 指定セルが「非空要素の上下の間にある空白」か判定する。||か・・・かを判定する。
   const isBetweenNonEmpty = (onedata: TrainData, idx: number, key: keyof TimeEntry) => {
     //timesは1列車の全時刻のこと
@@ -232,27 +230,64 @@ const TrainRow: React.FC<TrainRowProps> = ({ TrainDataA, station, rowIdx, typesA
     );
 }
 // OuterTerminal はヘッダー(onedata + stations) と行表示(TrainDataA + station) の両方で使われる
+const getOuterTerminalName = (stations: Station[], pointStationID: number | string | undefined, terminalStationID: number | string | undefined): string => {
+  if (!stations || stations.length === 0 || pointStationID == null || terminalStationID == null) return "";
+
+  const pointId = Number(pointStationID);
+  const terminalId = Number(terminalStationID);
+  if (!Number.isFinite(pointId) || !Number.isFinite(terminalId)) return "";
+
+  const pointStation = stations[pointId];
+  if (!pointStation || !Array.isArray(pointStation.OuterTerminal)) return "";
+
+  const target = pointStation.OuterTerminal.find((terminal) => {
+    const id = Number(terminal.id);
+    return Number.isFinite(id) && id === terminalId;
+  });
+
+  return target?.name || "";
+};
+
 const OuterTerminal: React.FC<OuterTerminal> = ({ onedata, stations, showArr = true, showDep = true, cellType = 'th', bgColor }) => {
   //Cellにthもしくはtdを入れるようにする。
   const Cell: any = cellType === 'th' ? 'th' : 'td';
   if (!onedata) return <Cell className="TrainData"><div className="Outer-cell">&nbsp;</div></Cell>;
-  //console.log(stations[0].OuterTerminal[0].jikoku);
-  const getStationByID = (pointStationID: number, terminalStationID: number): string => {
-    if (!stations || stations.length === 0 || pointStationID == null || terminalStationID == null) return "";
-    //const sid = Number(id);
-    //const st = stations[pointStationID].find(s => Number(s.terminalStationID) === terminalStationID);
-    const st = stations[pointStationID].OuterTerminal[terminalStationID]
-    return st ? st.jikoku : "";
-  };
 
   const outerArr = Array.isArray(onedata.outerarrive) ? onedata.outerarrive[0] : onedata.outerarrive;
   const outerDep = Array.isArray(onedata.outerdep) ? onedata.outerdep[0] : onedata.outerdep;
+
+  const outerArrName = outerArr ? getOuterTerminalName(stations, outerArr.pointStationID, outerArr.terminalStationID) : "";
+  const outerDepName = outerDep ? getOuterTerminalName(stations, outerDep.pointStationID, outerDep.terminalStationID) : "";
+
+  const formatOuterTime = (timeValue: any): string => {
+    if (timeValue == null) return "";
+    return typeof timeValue === 'string' ? timeValue : timeValue.toString();
+  };
+
   return (
     <Cell className="TrainData" key={`outer-${onedata.id}`} style={{ color: toABGR(bgColor) ?? 'transparent' }}>
       <div className="Outer-cell">
         <div className="Outer-seq"></div>
-        {showArr ? (outerArr ? <div className="Outer-arrive">着: {outerArr.terminalTime.toString() ?? outerArr.pointTime.toString()}{outerArr.terminalStationID ? ` ${getStationByID(outerArr.pointStationID, outerArr.terminalStationID)}` : ""}</div> : <div className="Outer-empty">&nbsp;</div>) : null}
-        {showDep ? (outerDep ? <div className="Outer-dep">発: {outerDep.terminalTime.toString() ?? outerDep.pointTime.toString()}{outerDep.terminalStationID ? ` ${getStationByID(outerDep.pointStationID, outerDep.terminalStationID)}` : ""}</div> : <div className="Outer-empty">&nbsp;</div>) : null}
+        {showArr ? (
+          outerArr ? (
+            <div className="Outer-arrive">
+              着: {formatOuterTime(outerArr.terminalTime ?? outerArr.pointTime)}
+              {outerArrName ? ` ${outerArrName}` : ""}
+            </div>
+          ) : (
+            <div className="Outer-empty">&nbsp;</div>
+          )
+        ) : null}
+        {showDep ? (
+          outerDep ? (
+            <div className="Outer-dep">
+              発: {formatOuterTime(outerDep.terminalTime ?? outerDep.pointTime)}
+              {outerDepName ? ` ${outerDepName}` : ""}
+            </div>
+          ) : (
+            <div className="Outer-empty">&nbsp;</div>
+          )
+        ) : null}
       </div>
     </Cell>
   );
@@ -267,48 +302,41 @@ const TerminalStations: React.FC<TerminalStationsProps> = ({ TrainDataA, station
       }
       return time as TimeEntry;
     });
-    const isReal = (v: any) => v != null && v !== "" && !(typeof v === 'string' && (v.trim() === '' || v === '・・・' || v === 'レ' || v === '||'));
-    let start = "";
-    let end = "";
-    for (let i = 0; i < stationsA.length; i++) {
-      const t = times[i];
-      if (!t) continue;
-      if (!start && (isReal(t.arrive) || isReal(t.departure))) {
-        start = stationsA[i].name;
-        break;
-      }
-    }
-    for (let i = stationsA.length - 1; i >= 0; i--) {
-      const t = times[i];
-      if (!t) continue;
-      if (!end && (isReal(t.arrive) || isReal(t.departure))) {
-        end = stationsA[i].name;
-        break;
-      }
-    }
-    return { start, end };
+
+    const orderedStations = sharedGetOrderedStations(stationsA, "Kudari");
+    return sharedGetTrainTerminalStations(
+      {
+        stopTimes: times.map((time, index) => ({
+          stationId: orderedStations[index]?.id ?? index,
+          arrivalMinute: typeof time.arrive === "string" ? undefined : time.arrive as any,
+          departureMinute: typeof time.departure === "string" ? undefined : time.departure as any,
+          isPass: time.stop === "0" || time.stop === "2",
+        })),
+      },
+      orderedStations
+    );
   };
   //路線外発着駅を取得
   const getOuterName = (onedata: TrainData, OuterDeparture: boolean) => {
     const outerArr = Array.isArray(onedata.outerarrive) ? onedata.outerarrive[0] : onedata.outerarrive;
     const outerDep = Array.isArray(onedata.outerdep) ? onedata.outerdep[0] : onedata.outerdep;
-    const getStationByID = (pointStationID: number, terminalStationID: number): string => {
-      if (!stationsA || stationsA.length === 0 || pointStationID == null || terminalStationID == null) return "";
-      const st = stationsA[pointStationID]?.OuterTerminal?.[terminalStationID];
-      return st ? st.jikoku : "";
-    };
-    if (OuterDeparture) {
-      if (outerDep) {
-        return outerDep.terminalStationID ? getStationByID(outerDep.pointStationID, outerDep.terminalStationID) : (outerDep.pointStationID != null ? (stationsA[outerDep.pointStationID]?.name || "") : "");
-      }
+    const target = OuterDeparture ? outerDep : outerArr;
+
+    if (!target) return "";
+
+    const pointStationId = Number(target.pointStationID);
+    const terminalStationId = Number(target.terminalStationID);
+    if (!Number.isFinite(pointStationId) || !Number.isFinite(terminalStationId)) {
       return "";
-    } else {
-      if (outerArr) {
-        return outerArr.terminalStationID ? getStationByID(outerArr.pointStationID, outerArr.terminalStationID) : (outerArr.pointStationID != null ? (stationsA[outerArr.pointStationID]?.name || "") : "");
-      }
-      return "";
-      
     }
+
+    const pointStation = stationsA[pointStationId];
+    if (!pointStation || !Array.isArray(pointStation.OuterTerminal)) {
+      return "";
+    }
+
+    const terminal = pointStation.OuterTerminal.find((station) => Number(station.id) === terminalStationId);
+    return terminal?.name || "";
   };
 
   return (

@@ -1,6 +1,12 @@
 // frontend/src/components/TimeTableByDB.tsx
 import { useEffect, useState } from 'react';
 import { formatTime as sharedFormatTime } from '../utils/Time';
+import {
+  getOrderedStations as sharedGetOrderedStations,
+  getTrainTerminalStations as sharedGetTrainTerminalStations,
+  isBetweenNonEmpty as sharedIsBetweenNonEmpty,
+  resolveOuterTerminalName as sharedResolveOuterTerminalName,
+} from '../../../shared/utils/timetableDisplay';
 
 // 路線外発着の型定義（DBのOuterTime、OuterTerminalStationテーブルを想定）
 interface OuterTimeData {
@@ -202,29 +208,7 @@ export const TimeTableByDB = () => {
 
   // 線内の「実際の始発駅・終着駅」を割り出すロジック (TrainData.tsxより移植)
   const getTerminalStations = (train: TrainData) => {
-    let start = '';
-    let end = '';
-
-    const isReal = (min: number | null | undefined) => min !== null && min !== undefined;
-
-    // 表示上の駅順（orderedStations）に沿って走査
-    for (let i = 0; i < orderedStations.length; i++) {
-      const stop = train.stopTimes?.find((s) => s.stationId === orderedStations[i].id);
-      if (stop && !stop.isPass && (isReal(stop.arrivalMinute) || isReal(stop.departureMinute))) {
-        start = orderedStations[i].name;
-        break;
-      }
-    }
-
-    for (let i = orderedStations.length - 1; i >= 0; i--) {
-      const stop = train.stopTimes?.find((s) => s.stationId === orderedStations[i].id);
-      if (stop && !stop.isPass && (isReal(stop.arrivalMinute) || isReal(stop.departureMinute))) {
-        end = orderedStations[i].name;
-        break;
-      }
-    }
-
-    return { start, end };
+    return sharedGetTrainTerminalStations(train, orderedStations);
   };
 
   // 路線外発着の表示名を取得するロジック
@@ -233,53 +217,12 @@ export const TimeTableByDB = () => {
       ? (Array.isArray(train.outerDep) ? train.outerDep[0] : train.outerDep)
       : (Array.isArray(train.outerArrive) ? train.outerArrive[0] : train.outerArrive);
 
-    if (!outer) return '';
-
-    const lookupName = outer.terminalStationId != null
-      ? outerTerminalNamesById[outer.terminalStationId]
-      : undefined;
-
-    const resolvedName = (
-      outer.terminalStationName
-      || outer.outerTerminalStation?.name
-      || lookupName
-      || (outer.terminalStationId ? `駅 ${outer.terminalStationId}` : '')
-    );
-
-    console.log('[OuterTerminalName]', {
-      trainNumber: train.trainNumber,
-      isDeparture,
-      terminalStationId: outer.terminalStationId,
-      pointStationId:outer.pointStationId,
-      terminalStationName: outer.terminalStationName,
-      outerTerminalStationName: outer.outerTerminalStation?.name,
-      lookupName,
-      resolvedName,
-    });
-
+    const resolvedName = sharedResolveOuterTerminalName(outer ?? null, outerTerminalNamesById);
     return resolvedName;
   };
 
   const isBetweenNonEmpty = (train: TrainData, stationIndex: number, field: 'arrival' | 'departure'): boolean => {
-    const currentStation = orderedStations[stationIndex];
-    const currentStop = train.stopTimes?.find((s) => s.stationId === currentStation.id);
-    const currentValue = field === 'arrival' ? currentStop?.arrivalMinute : currentStop?.departureMinute;
-
-    if (currentValue !== null && currentValue !== undefined) return false;
-
-    const isReal = (minute: number | null | undefined): boolean => minute !== null && minute !== undefined;
-
-    const above = orderedStations.slice(0, stationIndex).some((st) => {
-      const stop = train.stopTimes?.find((s) => s.stationId === st.id);
-      return isReal(field === 'arrival' ? stop?.arrivalMinute : stop?.departureMinute);
-    });
-
-    const below = orderedStations.slice(stationIndex + 1).some((st) => {
-      const stop = train.stopTimes?.find((s) => s.stationId === st.id);
-      return isReal(field === 'arrival' ? stop?.arrivalMinute : stop?.departureMinute);
-    });
-
-    return above && below;
+    return sharedIsBetweenNonEmpty(train, stationIndex, field, orderedStations);
   };
 
   if (loading) {
@@ -301,8 +244,7 @@ export const TimeTableByDB = () => {
   const partOfTrains = filteredTrains.slice(0, displayLimit);
   // TrainData.tsx と同様のロジック★
   // 上り（Nobori）の場合は駅一覧を逆順にし、下りの場合はそのままの順序にする
-  const orderedStations = directionFilter === 'Nobori' ? [...stations].reverse() : stations;
-  console.log(partOfTrains[1].outerDep)
+  const orderedStations = sharedGetOrderedStations(stations, directionFilter);
   // 共通のヘッダーセルスタイル
   const thStyle: React.CSSProperties = {
     border: '1px solid #ddd',

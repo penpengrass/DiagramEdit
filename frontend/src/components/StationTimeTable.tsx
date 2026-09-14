@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Station} from '../constants/stationmap';
-import { TrainData, TrainType, Diagrams } from "../constants/Traindatamap";
+import type { TrainData, TrainType, Diagrams } from '../../../shared/types/timetable';
 import '../styles/StationShow.css'
 import { Time } from '../utils/Time'; // Timeクラスをインポート // 👈 Timeクラスをインポート
 import { toABGR } from './TypeShow';
@@ -87,7 +87,7 @@ const StationTimeTable: React.FC<Props> = ({ KudariTrainDataA, NoboriTrainDataA,
       const getStationByID = (pointStationID: number, terminalStationID: number): string => {
         if (!stationsA || stationsA.length === 0 || pointStationID == null || terminalStationID == null) return "";
         const st = stationsA[pointStationID]?.OuterTerminal?.[terminalStationID];
-        return st ? st.jikoku : "";
+        return st ? st.name : "";
       };
       if (outerArrive.terminalStationID) {
         if (isDownDirection) {

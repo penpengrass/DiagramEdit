@@ -130,11 +130,6 @@ export interface TrainStopTimeData {
     trackName?: string; // 番線情報（例："1", "2"）
     isPass: boolean; // 通過フラグ
 }
-export interface Diagrams {
-  id: number;
-  name: string;
-  diaType?: string; // ★追加：平日・休日などを識別する文字列（任意、または必須）
-}
 /**
  * DB保存用：1本の列車データ
  */
