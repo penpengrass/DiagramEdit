@@ -4,62 +4,29 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useOudData } from '@/context/oud-data-context';
-import type { TimeEntry, TrainData } from '@shared/types/timetable';
-import { formatTime } from '@shared/utils/Time';
+import type { TrainData } from '@shared/types/timetable';
+import {
+  getOudTrainTableDisplayModel,
+} from '@shared/utils/timetableDisplay';
 
 const STATION_COLUMN_WIDTH = 120;
 const TRAIN_COLUMN_WIDTH = 92;
-
-function getTimeText(entry: TimeEntry | undefined): { arrival: string; departure: string } {
-  if (!entry) {
-    return { arrival: '', departure: '' };
-  }
-
-  if (entry.stop === '2') {
-    return { arrival: 'レ', departure: 'レ' };
-  }
-
-  if (entry.stop === '0') {
-    return { arrival: '・・・', departure: '・・・' };
-  }
-
-  return {
-    arrival: entry.arrive ? formatTime(entry.arrive) : '',
-    departure: entry.departure ? formatTime(entry.departure) : '',
-  };
-}
-
-function getTerminalStationName(
-  train: TrainData,
-  stations: { name: string }[],
-  fromStart: boolean,
-): string {
-  const indices = fromStart
-    ? train.time.map((_, index) => index)
-    : train.time.map((_, index) => train.time.length - index - 1);
-
-  const stationIndex = indices.find((index) => {
-    const entry = train.time[index];
-    return entry && entry.stop !== '0' && entry.stop !== '2' && (entry.arrive || entry.departure);
-  });
-
-  return stationIndex == null ? '' : stations[stationIndex]?.name ?? '';
-}
 
 export default function TrainPreviewScreen() {
   const { parsedData } = useOudData();
   const trains: TrainData[] = [
     ...(parsedData?.KudariData ?? []),
     ...(parsedData?.NoboriData ?? []),
-  ].slice(5, 18);
+  ].slice(5, 30);
   const stations = parsedData?.stations ?? [];
+  const displayModel = getOudTrainTableDisplayModel(trains, parsedData?.TrainType ?? [], stations);
   const tableWidth = STATION_COLUMN_WIDTH + trains.length * TRAIN_COLUMN_WIDTH;
 
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.content}>
-          <ThemedText type="title">列車プレビュー</ThemedText>
+          <ThemedText type="title">時刻表</ThemedText>
           {trains.length > 0 && stations.length > 0 ? (
             <ScrollView horizontal showsHorizontalScrollIndicator>
               <View style={[styles.table, { width: tableWidth }]}>
@@ -67,10 +34,10 @@ export default function TrainPreviewScreen() {
                   <View style={[styles.stationHeader, styles.headerCell]}>
                     <ThemedText type="smallBold">列車番号</ThemedText>
                   </View>
-                  {trains.map((train, index) => (
-                    <View key={`${train.DiaLine}-${train.id}-${index}`} style={[styles.trainHeader, styles.headerCell]}>
-                      <ThemedText type="smallBold" numberOfLines={1}>{train.number}</ThemedText>
-                      <ThemedText type="small">{train.dir === 0 ? '下り' : '上り'}</ThemedText>
+                  {displayModel.columns.map((column) => (
+                    <View key={column.key} style={[styles.trainHeader, styles.headerCell]}>
+                      <ThemedText type="smallBold" numberOfLines={1}>{column.number}</ThemedText>
+                      <ThemedText type="small">{column.direction}</ThemedText>
                     </View>
                   ))}
                 </View>
@@ -78,11 +45,9 @@ export default function TrainPreviewScreen() {
                   <View style={[styles.stationHeader, styles.headerCell]}>
                     <ThemedText type="smallBold">種別</ThemedText>
                   </View>
-                  {trains.map((train, index) => (
-                    <View key={`${train.DiaLine}-${train.id}-type-${index}`} style={[styles.trainHeader, styles.headerCell]}>
-                      <ThemedText type="small" numberOfLines={1}>
-                        {parsedData?.TrainType[train.type]?.ryakushou ?? '種別未定'}
-                      </ThemedText>
+                  {displayModel.columns.map((column) => (
+                    <View key={`${column.key}-type`} style={[styles.trainHeader, styles.headerCell]}>
+                      <ThemedText type="small" numberOfLines={1}>{column.typeShortName}</ThemedText>
                     </View>
                   ))}
                 </View>
@@ -91,31 +56,47 @@ export default function TrainPreviewScreen() {
                     <View style={[styles.stationHeader, styles.headerCell]}>
                       <ThemedText type="smallBold">{label}</ThemedText>
                     </View>
-                    {trains.map((train, index) => (
-                      <View key={`${train.DiaLine}-${train.id}-${label}-${index}`} style={[styles.trainCell, styles.headerCell]}>
+                    {displayModel.columns.map((column) => (
+                      <View key={`${column.key}-${label}`} style={[styles.trainCell, styles.headerCell]}>
                         <ThemedText type="small" numberOfLines={1}>
-                          {getTerminalStationName(train, stations, terminalIndex === 0)}
+                          {terminalIndex === 0 ? column.startStation : column.endStation}
                         </ThemedText>
                       </View>
                     ))}
                   </View>
                 ))}
-                {stations.map((station, stationIndex) => (
-                  <View key={station.id} style={styles.row}>
-                    <View style={[styles.stationHeader, styles.bodyCell]}>
-                      <ThemedText type="small" numberOfLines={1}>{station.name}</ThemedText>
+                <View style={styles.row}>
+                  <View style={[styles.stationHeader, styles.headerCell]}>
+                    <ThemedText type="smallBold">路線外始発</ThemedText>
+                  </View>
+                  {displayModel.columns.map((column) => (
+                    <View key={`${column.key}-outer-departure`} style={[styles.trainCell, styles.headerCell]}>
+                      <ThemedText type="small" numberOfLines={1}>{column.outerDeparture.text}</ThemedText>
                     </View>
-                    {trains.map((train, trainIndex) => {
-                      const time = getTimeText(train.time[stationIndex]);
-                      return (
-                        <View key={`${train.DiaLine}-${train.id}-${station.id}-${trainIndex}`} style={[styles.trainCell, styles.bodyCell]}>
-                          <ThemedText type="small">{time.arrival || ' '}</ThemedText>
-                          <ThemedText type="smallBold">{time.departure || ' '}</ThemedText>
-                        </View>
-                      );
-                    })}
+                  ))}
+                </View>
+                {displayModel.stationRows.map((row) => (
+                  <View key={row.key} style={styles.row}>
+                    <View style={[styles.stationHeader, styles.bodyCell]}>
+                      <ThemedText type="small" numberOfLines={1}>{row.mode === 'railNumber' ? '発着番線' : row.stationName}</ThemedText>
+                    </View>
+                    {row.cells.map((cell) => (
+                      <View key={`${row.key}-${cell.trainKey}`} style={[styles.trainCell, styles.bodyCell]}>
+                        <ThemedText type={row.mode === 'railNumber' ? 'small' : 'smallBold'}>{cell.value}</ThemedText>
+                      </View>
+                    ))}
                   </View>
                 ))}
+                <View style={styles.row}>
+                  <View style={[styles.stationHeader, styles.headerCell]}>
+                    <ThemedText type="smallBold">路線外終着</ThemedText>
+                  </View>
+                  {displayModel.columns.map((column) => (
+                    <View key={`${column.key}-outer-arrival`} style={[styles.trainCell, styles.headerCell]}>
+                      <ThemedText type="small" numberOfLines={1}>{column.outerArrival.text}</ThemedText>
+                    </View>
+                  ))}
+                </View>
               </View>
             </ScrollView>
           ) : (
