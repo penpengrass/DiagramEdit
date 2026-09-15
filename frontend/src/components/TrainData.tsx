@@ -261,46 +261,23 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
       <DiaSelect value={selectedDia} onChange={setSelectedDia} diagrams={diagrams} />
       <table className="tt-table">
         <thead>
-          <tr>
-            <th className="tt-station-header">列車番号</th>
-            {displayModel.columns.map((header) => (
-              <th
-                className="TrainData"
-                key={header.key}
-                style={{ color: toABGR(header.typeColor || 'transparent') }}
-              >
-                <div>{header.number}</div>
-              </th>
-            ))}
-          </tr>
-          <tr>
-            <th className="tt-station-header">種別</th>
-            {displayModel.columns.map((header) => (
-              <th
-                className="TrainData"
-                key={`${header.key}-type`}
-                style={{ color: toABGR(header.typeColor || 'transparent') }}
-              >
-                <div>{header.typeShortName}</div>
-              </th>
-            ))}
-          </tr>
-          <tr>
-            <th className="tt-station-header">始発駅</th>
-            {displayModel.columns.map((header) => (
-              <th className="TrainData" key={`${header.key}-start`}>
-                <div className="Terminal-start">{header.startStation}</div>
-              </th>
-            ))}
-          </tr>
-          <tr>
-            <th className="tt-station-header">終着駅</th>
-            {displayModel.columns.map((header) => (
-              <th className="TrainData" key={`${header.key}-end`}>
-                <div className="Terminal-end">{header.endStation}</div>
-              </th>
-            ))}
-          </tr>
+          {displayModel.headerRows.slice(0, 5).map((row) => (
+            <tr key={row.key}>
+              <th className="tt-station-header">{row.label}</th>
+              {row.values.map((cell) => {
+                const header = displayModel.columns.find((column) => column.key === cell.trainKey);
+                return (
+                  <th
+                    className="TrainData"
+                    key={`${row.key}-${cell.trainKey}`}
+                    style={{ color: toABGR(header?.typeColor || 'transparent') }}
+                  >
+                    <div>{cell.value}</div>
+                  </th>
+                );
+              })}
+            </tr>
+          ))}
           <tr>
             <th className="tt-station-header">路線外始発</th>
             {filteredTrainDataA.map((onedata) => (
@@ -326,7 +303,7 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
         </tbody>
         <tfoot>
           <tr>
-            <th className="tt-station-footer">路線外終着</th>
+            <th className="tt-station-footer">{displayModel.headerRows[5]?.label ?? "路線外終着"}</th>
             {filteredTrainDataA.map((onedata) => (
               <OuterTerminal key={`tfoot-${onedata.DiaLine}-${onedata.id}`} onedata={onedata} stations={stationsA} showArr={true} showDep={false} cellType="td" bgColor={typesA[onedata.type]?.color} />
             ))}

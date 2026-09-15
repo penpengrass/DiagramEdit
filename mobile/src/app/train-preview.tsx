@@ -30,51 +30,18 @@ export default function TrainPreviewScreen() {
           {trains.length > 0 && stations.length > 0 ? (
             <ScrollView horizontal showsHorizontalScrollIndicator>
               <View style={[styles.table, { width: tableWidth }]}>
-                <View style={styles.row}>
-                  <View style={[styles.stationHeader, styles.headerCell]}>
-                    <ThemedText type="smallBold">列車番号</ThemedText>
-                  </View>
-                  {displayModel.columns.map((column) => (
-                    <View key={column.key} style={[styles.trainHeader, styles.headerCell]}>
-                      <ThemedText type="smallBold" numberOfLines={1}>{column.number}</ThemedText>
-                      <ThemedText type="small">{column.direction}</ThemedText>
-                    </View>
-                  ))}
-                </View>
-                <View style={styles.row}>
-                  <View style={[styles.stationHeader, styles.headerCell]}>
-                    <ThemedText type="smallBold">種別</ThemedText>
-                  </View>
-                  {displayModel.columns.map((column) => (
-                    <View key={`${column.key}-type`} style={[styles.trainHeader, styles.headerCell]}>
-                      <ThemedText type="small" numberOfLines={1}>{column.typeShortName}</ThemedText>
-                    </View>
-                  ))}
-                </View>
-                {(['始発駅', '終着駅'] as const).map((label, terminalIndex) => (
-                  <View key={label} style={styles.row}>
+                {displayModel.headerRows.slice(0, 5).map((row) => (
+                  <View key={row.key} style={styles.row}>
                     <View style={[styles.stationHeader, styles.headerCell]}>
-                      <ThemedText type="smallBold">{label}</ThemedText>
+                      <ThemedText type="smallBold">{row.label}</ThemedText>
                     </View>
-                    {displayModel.columns.map((column) => (
-                      <View key={`${column.key}-${label}`} style={[styles.trainCell, styles.headerCell]}>
-                        <ThemedText type="small" numberOfLines={1}>
-                          {terminalIndex === 0 ? column.startStation : column.endStation}
-                        </ThemedText>
+                    {row.values.map((cell) => (
+                      <View key={`${row.key}-${cell.trainKey}`} style={[styles.trainCell, styles.headerCell]}>
+                        <ThemedText type="small" numberOfLines={1}>{cell.value}</ThemedText>
                       </View>
                     ))}
                   </View>
                 ))}
-                <View style={styles.row}>
-                  <View style={[styles.stationHeader, styles.headerCell]}>
-                    <ThemedText type="smallBold">路線外始発</ThemedText>
-                  </View>
-                  {displayModel.columns.map((column) => (
-                    <View key={`${column.key}-outer-departure`} style={[styles.trainCell, styles.headerCell]}>
-                      <ThemedText type="small" numberOfLines={1}>{column.outerDeparture.text}</ThemedText>
-                    </View>
-                  ))}
-                </View>
                 {displayModel.stationRows.map((row) => (
                   <View key={row.key} style={styles.row}>
                     <View style={[styles.stationHeader, styles.bodyCell]}>
@@ -89,11 +56,11 @@ export default function TrainPreviewScreen() {
                 ))}
                 <View style={styles.row}>
                   <View style={[styles.stationHeader, styles.headerCell]}>
-                    <ThemedText type="smallBold">路線外終着</ThemedText>
+                    <ThemedText type="smallBold">{displayModel.headerRows[5]?.label ?? '路線外終着'}</ThemedText>
                   </View>
-                  {displayModel.columns.map((column) => (
-                    <View key={`${column.key}-outer-arrival`} style={[styles.trainCell, styles.headerCell]}>
-                      <ThemedText type="small" numberOfLines={1}>{column.outerArrival.text}</ThemedText>
+                  {displayModel.headerRows[5]?.values.map((cell) => (
+                    <View key={`${displayModel.headerRows[5].key}-${cell.trainKey}`} style={[styles.trainCell, styles.headerCell]}>
+                      <ThemedText type="small" numberOfLines={1}>{cell.value}</ThemedText>
                     </View>
                   ))}
                 </View>

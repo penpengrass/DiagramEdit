@@ -67,8 +67,26 @@ export type OudTrainTableStationRowDisplay = {
   cells: OudTrainTableCellDisplay[];
 };
 
+export type OudTrainTableCellValue = {
+  trainKey: string;
+  value: string;
+};
+
+export type OudTrainTableSection = {
+  key: string;
+  label: string;
+  values: OudTrainTableCellValue[];
+};
+
+export type OudTrainTableRowDisplay = {
+  key: string;
+  label: string;
+  values: OudTrainTableCellValue[];
+};
+
 export type OudTrainTableDisplayModel = {
   columns: OudTrainHeaderDisplay[];
+  headerRows: OudTrainTableRowDisplay[];
   stationRows: OudTrainTableStationRowDisplay[];
 };
 
@@ -155,16 +173,48 @@ export const getOudTrainDisplayCell = (
   };
 };
 
-export const getOudTrainTableDisplayModel = (
+export const getOudHeaderRows = (
+  columns: OudTrainHeaderDisplay[],
+): OudTrainTableRowDisplay[] => [
+  {
+    key: "trainNumber",
+    label: "列車番号",
+    values: columns.map((column) => ({ trainKey: column.key, value: column.number })),
+  },
+  {
+    key: "type",
+    label: "種別",
+    values: columns.map((column) => ({ trainKey: column.key, value: column.typeShortName })),
+  },
+  {
+    key: "startStation",
+    label: "始発駅",
+    values: columns.map((column) => ({ trainKey: column.key, value: column.startStation })),
+  },
+  {
+    key: "endStation",
+    label: "終着駅",
+    values: columns.map((column) => ({ trainKey: column.key, value: column.endStation })),
+  },
+  {
+    key: "outerDeparture",
+    label: "路線外始発",
+    values: columns.map((column) => ({ trainKey: column.key, value: column.outerDeparture.text })),
+  },
+  {
+    key: "outerArrival",
+    label: "路線外終着",
+    values: columns.map((column) => ({ trainKey: column.key, value: column.outerArrival.text })),
+  },
+];
+
+export const getOudStationRows = (
   trains: TrainData[],
-  trainTypes: TrainType[],
   stations: Station[],
-): OudTrainTableDisplayModel => {
-  const columns = trains.map((train) => getOudTrainHeaderDisplay(train, trainTypes, stations));
+): OudTrainTableStationRowDisplay[] => {
+  const direction = trains[0]?.dir ?? 0;
 
-  const stationRows = stations.flatMap((station, rowIdx) => {
-    const direction = trains[0]?.dir ?? 0;
-
+  return stations.flatMap((station, rowIdx) => {
     return getOudStationDisplayModes(station.layout, direction).map((mode) => {
       const cells = trains.map((train) => {
         const entry = train.time[rowIdx];
@@ -191,8 +241,20 @@ export const getOudTrainTableDisplayModel = (
       };
     });
   });
+};
 
-  return { columns, stationRows };
+export const getOudTrainTableDisplayModel = (
+  trains: TrainData[],
+  trainTypes: TrainType[],
+  stations: Station[],
+): OudTrainTableDisplayModel => {
+  const columns = trains.map((train) => getOudTrainHeaderDisplay(train, trainTypes, stations));
+
+  return {
+    columns,
+    headerRows: getOudHeaderRows(columns),
+    stationRows: getOudStationRows(trains, stations),
+  };
 };
 
 export const getOudTrainTerminalStations = <T extends StationLike>(
