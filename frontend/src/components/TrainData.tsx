@@ -261,7 +261,7 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
       <DiaSelect value={selectedDia} onChange={setSelectedDia} diagrams={diagrams} />
       <table className="tt-table">
         <thead>
-          {displayModel.headerRows.slice(0, 5).map((row) => (
+          {displayModel.headerRows.slice(0, 4).map((row) => (
             <tr key={row.key}>
               <th className="tt-station-header">{row.label}</th>
               {row.values.map((cell) => {
@@ -292,7 +292,11 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
                 <div className="Station-cell">{row.mode === "railNumber" ? "発着番線" : row.stationName}</div>
               </td>
               {row.cells.map((cell) => (
-                <td key={`${row.key}-${cell.trainKey}`} className="CTimes">
+                <td
+                  key={`${row.key}-${cell.trainKey}`}
+                  className="CTimes"
+                  style={{ color: toABGR(cell.typeColor || 'transparent') }}
+                >
                   <div className="tt-time">
                     <div className="Time-cell">{cell.value}</div>
                   </div>

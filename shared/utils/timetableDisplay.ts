@@ -29,6 +29,19 @@ export type StationLike = {
 import type { Station, TimeEntry, TrainData, TrainType } from "../types/timetable";
 import { formatTime } from "../utils/Time";
 
+/** フロントとモバイルで共通して使う OUD の種別色変換。 */
+export const toOudDisplayColor = (hex: string): string => {
+  if (!hex) return "";
+  let value = hex.replace("#", "");
+  if (value.length === 3) value = value.split("").map((char) => char + char).join("");
+
+  const red = "";
+  const green = value.slice(2, 4);
+  const blue = value.slice(4, 6);
+  const alpha = value.slice(6, 8);
+  return `#${alpha}${blue}${green}${red}`.toUpperCase();
+};
+
 export type TrainDisplayCell = {
   arrival: string;
   departure: string;
@@ -57,6 +70,7 @@ export type OudTrainHeaderDisplay = {
 export type OudTrainTableCellDisplay = {
   trainKey: string;
   value: string;
+  typeColor: string;
 };
 
 export type OudTrainTableStationRowDisplay = {
@@ -210,6 +224,7 @@ export const getOudHeaderRows = (
 
 export const getOudStationRows = (
   trains: TrainData[],
+  trainTypes: TrainType[],
   stations: Station[],
 ): OudTrainTableStationRowDisplay[] => {
   const direction = trains[0]?.dir ?? 0;
@@ -229,6 +244,7 @@ export const getOudStationRows = (
         return {
           trainKey: `${train.DiaLine}-${train.id}`,
           value,
+          typeColor: trainTypes[train.type]?.color ?? "",
         };
       });
 
@@ -253,7 +269,7 @@ export const getOudTrainTableDisplayModel = (
   return {
     columns,
     headerRows: getOudHeaderRows(columns),
-    stationRows: getOudStationRows(trains, stations),
+    stationRows: getOudStationRows(trains, trainTypes, stations),
   };
 };
 

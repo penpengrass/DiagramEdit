@@ -7,6 +7,7 @@ import { useOudData } from '@/context/oud-data-context';
 import type { TrainData } from '@shared/types/timetable';
 import {
   getOudTrainTableDisplayModel,
+  toOudDisplayColor,
 } from '@shared/utils/timetableDisplay';
 
 const STATION_COLUMN_WIDTH = 120;
@@ -17,7 +18,7 @@ export default function TrainPreviewScreen() {
   const trains: TrainData[] = [
     ...(parsedData?.KudariData ?? []),
     ...(parsedData?.NoboriData ?? []),
-  ].slice(5, 30);
+  ].slice(1, 100);
   const stations = parsedData?.stations ?? [];
   const displayModel = getOudTrainTableDisplayModel(trains, parsedData?.TrainType ?? [], stations);
   const tableWidth = STATION_COLUMN_WIDTH + trains.length * TRAIN_COLUMN_WIDTH;
@@ -49,7 +50,12 @@ export default function TrainPreviewScreen() {
                     </View>
                     {row.cells.map((cell) => (
                       <View key={`${row.key}-${cell.trainKey}`} style={[styles.trainCell, styles.bodyCell]}>
-                        <ThemedText type={row.mode === 'railNumber' ? 'small' : 'smallBold'}>{cell.value}</ThemedText>
+                        <ThemedText
+                          type={row.mode === 'railNumber' ? 'small' : 'smallBold'}
+                          style={{ color: toOudDisplayColor(cell.typeColor) || undefined }}
+                        >
+                          {cell.value}
+                        </ThemedText>
                       </View>
                     ))}
                   </View>

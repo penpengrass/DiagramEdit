@@ -10,7 +10,7 @@ export default function StationTimetableScreen() {
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.content}>
           <StationTimetable
-            stationName="サンプル駅"
+            stationName="サンプル"
             trains={[
               {
                 id: 's1',
