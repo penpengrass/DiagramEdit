@@ -3,6 +3,13 @@ import { Station } from '../constants/stationmap';
 import { TrainData, TrainType } from '../constants/Traindatamap';
 import { toABGR } from './TypeShow';
 import { Time } from '../../../shared/utils/Time';
+import {
+    getDiagramMinutes,
+    getDiagramStartHour,
+    getDiagramStationIndex,
+    getDiagramTrainGroups,
+    type DiagramDisplayMode,
+} from '../../../shared/utils/diagram';
 
 interface Props {
     TrainDataA: TrainData[];
@@ -12,24 +19,16 @@ interface Props {
     kitenJikoku?: number;
 }
 
-type DisplayMode = 'kudari' | 'nobori' | 'both';
-
 const DiagramView: React.FC<Props> = ({ TrainDataA, NoboriTrainDataA, stationsA, typesA, kitenJikoku = 0 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [displayMode, setDisplayMode] = useState<DisplayMode>('both');
+    const [displayMode, setDisplayMode] = useState<DiagramDisplayMode>('both');
     useEffect(() => {
         if (!canvasRef.current || !stationsA.length) return;
 
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
-        const startHour = Math.floor(kitenJikoku / 100);
-        const startMinute = kitenJikoku % 100;
-        const startTotalMinutes = startHour * 60 + startMinute;
-        const toDiagramMinutes = (time: Time): number => {
-            const totalMinutes = time.getHours() * 60 + time.getMinutes();
-            return (totalMinutes - startTotalMinutes + 24 * 60) % (24 * 60);
-        };
+        const startHour = getDiagramStartHour(kitenJikoku);
 
         // キャンバスサイズの設定
         const leftMargin = 80;
@@ -73,14 +72,7 @@ const DiagramView: React.FC<Props> = ({ TrainDataA, NoboriTrainDataA, stationsA,
             ctx.fillText(station.name.substring(0, 6), 70, y); // 駅名は最大6文字
         });
         console.log(stationsA);
-        const trainGroups = displayMode === 'kudari'
-            ? [{ trains: TrainDataA, isNobori: false }]
-            : displayMode === 'nobori'
-                ? [{ trains: NoboriTrainDataA, isNobori: true }]
-                : [
-                    { trains: TrainDataA, isNobori: false },
-                    { trains: NoboriTrainDataA, isNobori: true },
-                ];
+        const trainGroups = getDiagramTrainGroups(TrainDataA, NoboriTrainDataA, displayMode);
         trainGroups.forEach(({ trains, isNobori }) => trains.forEach((train, trainIndex) => {
             if (!train.time || train.time.length < 1) return;
 
@@ -100,7 +92,7 @@ const DiagramView: React.FC<Props> = ({ TrainDataA, NoboriTrainDataA, stationsA,
                 const departureTime = timeEntry.departure;
 
                 // 駅IDに対応するstationを探す
-                const stationIndex = isNobori ? stationsA.length - 1 - i : i;
+                const stationIndex = getDiagramStationIndex(i, stationsA.length, isNobori);
                 if (stationIndex === -1) {
                     // デバッグ：駅が見つからない場合
                     console.warn(
@@ -113,14 +105,14 @@ const DiagramView: React.FC<Props> = ({ TrainDataA, NoboriTrainDataA, stationsA,
 
                 // 到着時刻をプロット
                 if (arriveTime && arriveTime instanceof Time) {
-                    const totalMinutes = toDiagramMinutes(arriveTime);
+                    const totalMinutes = getDiagramMinutes(arriveTime, kitenJikoku);
                     const x = 80 + totalMinutes;
 
                     // 時刻が大幅に減少した場合（00:00を超えた）、線を途切させる
                     if (!isFirstPoint && i > 0) {
                         const prevTime = train.time[i - 1].arrive;
                         if (prevTime && prevTime instanceof Time) {
-                            const prevTotalMinutes = toDiagramMinutes(prevTime);
+                            const prevTotalMinutes = getDiagramMinutes(prevTime, kitenJikoku);
                             if (totalMinutes < prevTotalMinutes - 60) {
                                 ctx.stroke();
                                 ctx.beginPath();
@@ -140,14 +132,14 @@ const DiagramView: React.FC<Props> = ({ TrainDataA, NoboriTrainDataA, stationsA,
 
                 // 出発時刻をプロット
                 if (departureTime && departureTime instanceof Time) {
-                    const totalMinutes = toDiagramMinutes(departureTime);
+                    const totalMinutes = getDiagramMinutes(departureTime, kitenJikoku);
                     const x = 80 + totalMinutes;
 
                     // 時刻が大幅に減少した場合（00:00を超えた）、線を途切させる
                     if (!isFirstPoint && i > 0) {
                         const prevDeparture = train.time[i - 1].departure;
                         if (prevDeparture && prevDeparture instanceof Time) {
-                            const prevTotalMinutes = toDiagramMinutes(prevDeparture);
+                            const prevTotalMinutes = getDiagramMinutes(prevDeparture, kitenJikoku);
                             if (totalMinutes < prevTotalMinutes - 60) {
                                 ctx.stroke();
                                 ctx.beginPath();
