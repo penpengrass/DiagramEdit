@@ -34,6 +34,13 @@ export default function RootLayout() {
             drawerLabel: '列車プレビュー',
           }}
         />
+        <Drawer.Screen
+          name="diagram"
+          options={{
+            title: 'ダイヤグラム',
+            drawerLabel: 'ダイヤグラム',
+          }}
+        />
       </Drawer>
     </OudDataProvider>
   );
