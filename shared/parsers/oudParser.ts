@@ -559,14 +559,14 @@ export function convertTrainDataForDB(trainData: TrainData, totalStations: numbe
   stopTimes.sort((a, b) => a.stationId - b.stationId);
 
   // 路線外発着をDB向けに変換（Time -> 分）
-  const outerdep = (trainData.outerdep || []).map(o => ({
+  const outerdep = (trainData.outerdep || []).map((o: any) => ({
     pointStationID: Number(o.pointStationID) || 0,
     terminalStationID: Number(o.terminalStationID) || 0,
     terminalTime: timeToMinutes(o.terminalTime as any) || undefined,
     pointTime: timeToMinutes(o.pointTime as any) || undefined,
   }));
 
-  const outerarrive = (trainData.outerarrive || []).map(o => ({
+  const outerarrive = (trainData.outerarrive || []).map((o: any) => ({
     pointStationID: Number(o.pointStationID) || 0,
     terminalStationID: Number(o.terminalStationID) || 0,
     terminalTime: timeToMinutes(o.terminalTime as any) || undefined,
