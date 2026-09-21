@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { formatTime as sharedFormatTime } from '../utils/Time';
+import { formatTime as sharedFormatTime } from '@shared/utils/Time';
 import '../styles/StationShow.css';
 
 // --- 型定義 ---

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Station } from "../constants/stationmap";
-import { parseOud, parseTrainTypes, convertMultipleTrainsForDB } from '../../../shared/parsers/oudParser'; // パース関数をフロントで呼ぶ
+import { parseOud, parseTrainTypes, convertMultipleTrainsForDB } from '@shared/parsers/oudParser'; // パース関数をフロントで呼ぶ
 interface Props {
   stationsA: Station[];
 }

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import '../styles/TrainData.css'
-import { Station } from '../constants/stationmap';
-import type { TrainData, TrainType, TimeEntry, Diagrams } from '../../../shared/types/timetable';
+import { Station} from '../constants/stationmap';
+import type { TrainData, TrainType, TimeEntry, Diagrams } from '@shared/types/timetable';
 import { toABGR } from './TypeShow';
 import {
   getOudTrainDisplayCell as sharedGetOudTrainDisplayCell,

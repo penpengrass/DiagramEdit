@@ -12,6 +12,6 @@ export type {
   OudData,
   TrainStopTimeData,
   CreateTrainData,
-} from '../../../shared/types/timetable';
+} from '@shared/types/timetable';
 
-export type { Time } from '../../../shared/utils/Time';
+export type { Time } from '@shared/utils/Time';

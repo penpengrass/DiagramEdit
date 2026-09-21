@@ -1,12 +1,12 @@
 // frontend/src/components/TimeTableByDB.tsx
 import { useEffect, useState } from 'react';
-import { formatTime as sharedFormatTime } from '../utils/Time';
+import { formatTime as sharedFormatTime } from '@shared/utils/Time';
 import {
   getOrderedStations as sharedGetOrderedStations,
   getTrainTerminalStations as sharedGetTrainTerminalStations,
   isBetweenNonEmpty as sharedIsBetweenNonEmpty,
   resolveOuterTerminalName as sharedResolveOuterTerminalName,
-} from '../../../shared/utils/timetableDisplay';
+} from '@shared/utils/timetableDisplay';
 
 // 路線外発着の型定義（DBのOuterTime、OuterTerminalStationテーブルを想定）
 interface OuterTimeData {

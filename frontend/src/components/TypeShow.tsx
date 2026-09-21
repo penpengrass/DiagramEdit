@@ -1,5 +1,5 @@
 import React from 'react';
-import type { TrainType } from '../../../shared/types/timetable';
+import type { TrainType } from '@shared/types/timetable';
 interface Props {
   TrainTypeA: TrainType[];
 }
