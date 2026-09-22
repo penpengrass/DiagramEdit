@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import '../styles/TrainData.css'
-import { Station} from '../constants/stationmap';
+import { Station } from '../constants/stationmap';
 import type { TrainData, TrainType, TimeEntry, Diagrams } from '@shared/types/timetable';
 import { toABGR } from './TypeShow';
 import {
@@ -37,7 +37,7 @@ interface OuterTerminal {
   cellType?: 'th' | 'td';
   bgColor: string;
 }
-interface TerminalStationsProps{
+interface TerminalStationsProps {
   TrainDataA: TrainData[]; // 複数の列車オブジェクト（ヘッダーの列）
   stationsA: Station[];
 }
@@ -255,7 +255,7 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
 
   const filteredTrainDataA = TrainDataA.filter((onedata) => String(onedata.DiaLine) === selectedDia);
   const displayModel = sharedGetOudTrainTableDisplayModel(filteredTrainDataA, typesA, stationsA);
-
+  const direction = filteredTrainDataA[0]?.dir ?? 0;
   return (
     <div>
       <DiaSelect value={selectedDia} onChange={setSelectedDia} diagrams={diagrams} />
@@ -287,10 +287,35 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
         </thead>
         <tbody>
           {displayModel.stationRows.map((row) => (
-            <tr key={row.key}>
+            <tr
+              key={row.key}
+              className={
+                row.isFirstBranchRow
+                  ? direction === 1
+                    ? "branch-station-row-nobori"
+                    : "branch-station-row-kudari"
+                  : undefined
+              }
+              data-branch-core-station-id={row.branchCoreStationId}
+              title={
+                row.isFirstBranchRow && row.branchCoreStationName
+                  ? `分岐駅: ${row.branchCoreStationName}から分岐`
+                  : undefined
+              }
+            >
               <td className="tt-station">
-                <div className="Station-cell">{row.mode === "railNumber" ? "発着番線" : row.stationName}</div>
-              </td>
+                <div className="Station-cell">
+                  {row.mode === "railNumber" ? (
+                    "発着番線"
+                  ) : (
+                    <>
+                      {row.stationName}
+                      {row.isFirstBranchRow && (
+                        <span className="branch-station-badge"></span>
+                      )}
+                    </>
+                  )}
+                </div></td>
               {row.cells.map((cell) => (
                 <td
                   key={`${row.key}-${cell.trainKey}`}

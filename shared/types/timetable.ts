@@ -49,6 +49,7 @@ export interface Station {
     layout: string;
     railnumber: RailNumber[];
     OuterTerminal: OuterTerminalStation[];
+    branchCoreStationId?: number;
     BrunchFromStationID?: number;
 }
 

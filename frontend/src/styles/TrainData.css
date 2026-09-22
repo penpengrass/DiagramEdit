@@ -50,4 +50,26 @@
 tfoot{
   font-weight:bold;
 }
+.branch-station-row-kudari > td {
+  border-top: 4px solid #333 !important;
+}
+.branch-station-row-nobori > td {
+  border-bottom: 4px solid #333 !important;
+}
+
+.branch-station-row-kudari .Station-cell {
+  position: relative;
+}
+.branch-station-row-nobori .Station-cell {
+  position: relative;
+}
+.branch-station-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 4px;
+  color: #333;
+  font-size: 10px;
+  line-height: 1.2;
+  vertical-align: middle;
+}
 /* ...existing code... */
