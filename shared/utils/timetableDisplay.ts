@@ -131,12 +131,12 @@ export const getOudStationDisplayModes = (
 };
 
 const isPlaceholder = (value: string): boolean =>
-  value === "" || value === "・・・" || value === "レ" || value === "||";
+  value === "" || value === "･･･" || value === "レ" || value === "||";
 
 const getRawTimeValue = (entry: TimeEntry | undefined, field: "arrive" | "departure"): string => {
   if (!entry) return "";
   if (entry.stop === "2") return "レ";
-  if (entry.stop === "0") return "・・・";
+  if (entry.stop === "0") return "･･･";
 
   const value = entry[field];
   return value ? formatTime(value) : "";
@@ -151,7 +151,7 @@ const getRawTimeWithGap = (
   field: "arrive" | "departure",
 ): string => {
   const value = getRawTimeValue(train.time[stationIndex], field);
-  if (value !== "・・・") return value;
+  if (value !== "･･･") return value;
 
   const hasTimeAbove = train.time
     .slice(0, stationIndex)
@@ -174,16 +174,16 @@ export const getOudTrainDisplayCell = (
   const departure = getRawTimeWithGap(train, stationIndex, "departure");
 
   const previousDeparture = getRawTimeValue(train.time[stationIndex - 1], "departure");
-  if (arrival === "" && previousDeparture !== "" && previousDeparture !== "・・・" && departure !== "") {
+  if (arrival === "" && previousDeparture !== "" && previousDeparture !== "･･･" && departure !== "") {
     arrival = "〇";
   } else if (arrival === "") {
-    arrival = "・・・";
+    arrival = "･･･";
   }
 
   return {
     arrival,
-    departure: departure || "・・・",
-    railNumber: entry?.stop === "1" ? railNumber : entry?.stop === "0" ? "・・・" : "",
+    departure: departure || "･･･",
+    railNumber: entry?.stop === "1" ? railNumber : entry?.stop === "0" ? "･･･" : "",
   };
 };
 
@@ -355,7 +355,7 @@ export const isEmptyDisplayValue = (value: unknown): boolean => {
   if (value === null || value === undefined) return true;
   if (typeof value === "string") {
     const v = value.trim();
-    return v === "" || v === "・・・" || v === "レ" || v === "||";
+    return v === "" || v === "･･･" || v === "レ" || v === "||";
   }
   return false;
 };

@@ -417,36 +417,36 @@ export const TimeTableByDB = () => {
                         arrivalDisplay = formatTime(stop.arrivalMinute);
                       }
                     } else {
-                      arrivalDisplay = '・・・';
+                      arrivalDisplay = '･･･';
                     }
 
-                    if (arrivalDisplay === '・・・' && isBetweenNonEmpty(train, stationIndex, 'arrival')) {
+                    if (arrivalDisplay === '･･･' && isBetweenNonEmpty(train, stationIndex, 'arrival')) {
                       arrivalDisplay = '||';
                     }
 
                     // --- 発車時刻の処理 ---
                     let departureDisplay = stop.departureMinute !== null
                       ? formatTime(stop.departureMinute)
-                      : '・・・';
+                      : '･･･';
 
-                    if (departureDisplay === '・・・' && isBetweenNonEmpty(train, stationIndex, 'departure')) {
+                    if (departureDisplay === '･･･' && isBetweenNonEmpty(train, stationIndex, 'departure')) {
                       departureDisplay = '||';
                     }
 
                     return (
                       <td key={train.id} style={{ border: '1px solid #ddd', padding: '8px' }}>
                         <div>
-                          {arrivalDisplay !== '・・・' && arrivalDisplay !== '||' && (
+                          {arrivalDisplay !== '･･･' && arrivalDisplay !== '||' && (
                             <div style={{ fontSize: '11px', color: '#666' }}>着 {arrivalDisplay}</div>
                           )}
-                          {departureDisplay !== '・・・' && departureDisplay !== '||' && (
+                          {departureDisplay !== '･･･' && departureDisplay !== '||' && (
                             <div style={{ fontWeight: 'bold' }}>発 {departureDisplay}</div>
                           )}
                           {arrivalDisplay === '||' && departureDisplay === '||' && (
                             <div style={{ color: '#aaa' }}>||</div>
                           )}
-                          {arrivalDisplay === '・・・' && departureDisplay === '・・・' && (
-                            <div style={{ color: '#ccc' }}>・・・</div>
+                          {arrivalDisplay === '･･･' && departureDisplay === '･･･' && (
+                            <div style={{ color: '#ccc' }}>･･･</div>
                           )}
                         </div>
                       </td>

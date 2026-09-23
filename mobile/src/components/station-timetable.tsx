@@ -39,10 +39,13 @@ export function StationTimetable({
         <ThemedText type="smallBold" style={styles.columnTrain}>
           列車
         </ThemedText>
+        <ThemedText type="smallBold" style={styles.columnType}>
+          種別
+        </ThemedText>
         <ThemedText type="smallBold" style={styles.columnTime}>
           時刻
         </ThemedText>
-        <ThemedText type="smallBold" style={styles.columnDetail}>
+        <ThemedText type="smallBold" style={styles.columnDestination}>
           行先
         </ThemedText>
       </ThemedView>
@@ -57,11 +60,12 @@ export function StationTimetable({
               <ThemedText type="smallBold" style={styles.trainNumber}>
                 {train.trainNumber}
               </ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.trainSummary}>
               <ThemedText type="small" style={styles.trainType}>
                 {train.trainType}
               </ThemedText>
             </ThemedView>
-
             <ThemedView style={styles.timeSummary}>
               <ThemedText type="small" style={styles.directionText}>
                 {direction}
@@ -118,11 +122,16 @@ const styles = StyleSheet.create({
   columnTrain: {
     flex: 1.2,
   },
-  columnTime: {
-    flex: 1.4,
+  columnType: {
+    flex: 1.2,
   },
-  columnDetail: {
+  columnTime: {
+    flex: 1.2,
+    fontSize: 15,
+  },
+  columnDestination: {
     flex: 1.4,
+    fontSize: 15,
     textAlign: 'right',
   },
   row: {
@@ -149,7 +158,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   trainType: {
-    opacity: 0.7,
+    opacity: 1,
+    fontSize: 20,
   },
   timeSummary: {
     flex: 1.4,
@@ -164,7 +174,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   timeValue: {
-    fontSize: 15,
+    fontSize: 20,
   },
   detailSummary: {
     flex: 1.4,
@@ -175,7 +185,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   terminalText: {
-    fontSize: 12,
+    fontSize: 20,
     textAlign: 'right',
   },
   trackText: {
