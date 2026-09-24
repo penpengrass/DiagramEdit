@@ -1,7 +1,7 @@
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-  
+import { useTheme } from '@/hooks/use-theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useOudData } from '@/context/oud-data-context';
@@ -12,12 +12,13 @@ import {
   toOudDisplayColor,
 } from '@shared/utils/timetableDisplay';
 
-const STATION_COLUMN_WIDTH = 120;
-const TRAIN_COLUMN_WIDTH = 70;
+const STATION_COLUMN_WIDTH = 60;
+const TRAIN_COLUMN_WIDTH = 50;
 type TimetableDirection = 'down' | 'up';
 
 export default function TrainPreviewScreen() {
   const { parsedData } = useOudData();
+  const theme = useTheme();
   const [direction, setDirection] = useState<TimetableDirection>('down');
   const sourceTrains: TrainData[] = direction === 'down'
     ? (parsedData?.KudariData ?? [])
@@ -31,7 +32,7 @@ export default function TrainPreviewScreen() {
   const outerHeaderRows = [
     {
       key: 'outerDepartureStation',
-      label: '路線外始発駅',
+      label: '始発',
       values: displayModel.columns.map((column) => ({ trainKey: column.key, value: column.outerDeparture.name })),
     },
     {
@@ -43,7 +44,7 @@ export default function TrainPreviewScreen() {
   const outerFooterRows = [
     {
       key: 'outerArrivalStation',
-      label: '路線外終着駅',
+      label: '終着',
       values: displayModel.columns.map((column) => ({ trainKey: column.key, value: column.outerArrival.name })),
     },
     {
@@ -59,7 +60,7 @@ export default function TrainPreviewScreen() {
           <ThemedText type="title">時刻表</ThemedText>
           <View style={styles.directionControl}>
             <Pressable
-              style={[styles.directionButton, direction === 'down' && styles.activeDirectionButton]}
+              style={[styles.directionButton, { backgroundColor: theme.backgroundSelected }, direction === 'down' && styles.activeDirectionButton]}
               onPress={() => setDirection('down')}
               disabled={!parsedData}
             >
@@ -68,7 +69,7 @@ export default function TrainPreviewScreen() {
               </ThemedText>
             </Pressable>
             <Pressable
-              style={[styles.directionButton, direction === 'up' && styles.activeDirectionButton]}
+              style={[styles.directionButton, { backgroundColor: theme.backgroundSelected }, direction === 'up' && styles.activeDirectionButton]}
               onPress={() => setDirection('up')}
               disabled={!parsedData}
             >
@@ -80,78 +81,78 @@ export default function TrainPreviewScreen() {
           {trains.length > 0 && stations.length > 0 ? (
             <View style={styles.tableViewport}>
               <ScrollView horizontal showsHorizontalScrollIndicator>
-                <View style={[styles.table, { width: tableWidth }]}>
-                {[...displayModel.headerRows.slice(0, 4), ...outerHeaderRows].map((row) => (
-                  <View key={row.key} style={styles.row}>
-                    <View style={[styles.stationHeader, styles.headerCell]}>
-                      <ThemedText type="smallBold">{row.label}</ThemedText>
-                    </View>
-                    {row.values.map((cell) => (
-                      <View key={`${row.key}-${cell.trainKey}`} style={[styles.trainCell, styles.headerCell]}>
-                        <ThemedText
-                          type="small"
-                          style={[styles.trainText, { color: toOudDisplayColor(displayModel.columns.find((column) => column.key === cell.trainKey)?.typeColor ?? '') || undefined }]}
-                          numberOfLines={1}
-                        >
-                          {cell.value}
-                        </ThemedText>
+                <View style={[styles.table, { width: tableWidth, borderColor: theme.textSecondary }]}>
+                  {[...displayModel.headerRows.slice(0, 4), ...outerHeaderRows].map((row) => (
+                    <View key={row.key} style={styles.row}>
+                      <View style={[styles.stationHeader, styles.headerCell]}>
+                      <ThemedText type="smallBold" style={{ color: '#000000' }}>{row.label}</ThemedText>
                       </View>
-                    ))}
-                  </View>
-                ))}
-                {displayModel.stationRows.map((row) => (
-                  <View key={row.key} style={styles.row}>
-                    <View style={[styles.stationHeader, styles.bodyCell]}>
-                      <ThemedText type="small" numberOfLines={1}>{row.mode === 'railNumber' ? '発着番線' : row.stationName}</ThemedText>
+                      {row.values.map((cell) => (
+                        <View key={`${row.key}-${cell.trainKey}`} style={[styles.trainCell, styles.headerCell]}>
+                          <ThemedText
+                            type="small"
+                            style={[styles.trainText, { color: toOudDisplayColor(displayModel.columns.find((column) => column.key === cell.trainKey)?.typeColor ?? '') || undefined }]}
+                            numberOfLines={1}
+                          >
+                            {cell.value}
+                          </ThemedText>
+                        </View>
+                      ))}
                     </View>
-                    {row.cells.map((cell) => (
-                      <View key={`${row.key}-${cell.trainKey}`} style={[styles.trainCell, styles.bodyCell]}>
-                        <ThemedText
-                          type={row.mode === 'railNumber' ? 'small' : 'smallBold'}
-                          style={[styles.trainText, { color: toOudDisplayColor(cell.typeColor) || undefined }]}
-                        >
-                          {cell.value}
-                        </ThemedText>
+                  ))}
+                  {displayModel.stationRows.map((row) => (
+                    <View key={row.key} style={styles.row}>
+                      <View style={[styles.stationHeader, styles.bodyCell]}>
+                        <ThemedText type="small" style={{ color: '#000000' }} numberOfLines={1}>{row.mode === 'railNumber' ? '発着番線' : row.stationName}</ThemedText>
                       </View>
-                    ))}
-                  </View>
-                ))}
-                {[...displayModel.headerRows.slice(2, 2), ...outerFooterRows].map((row) => (
-                  <View key={row.key} style={styles.row}>
-                    <View style={[styles.stationHeader, styles.headerCell]}>
-                      <ThemedText type="smallBold">{row.label}</ThemedText>
+                      {row.cells.map((cell) => (
+                        <View key={`${row.key}-${cell.trainKey}`} style={[styles.trainCell, styles.bodyCell]}>
+                          <ThemedText
+                            type={row.mode === 'railNumber' ? 'small' : 'smallBold'}
+                            style={[styles.trainText, { color: toOudDisplayColor(cell.typeColor) || undefined }]}
+                          >
+                            {cell.value}
+                          </ThemedText>
+                        </View>
+                      ))}
                     </View>
-                    {row.values.map((cell) => (
-                      <View key={`${row.key}-${cell.trainKey}`} style={[styles.trainCell, styles.headerCell]}>
-                        <ThemedText
-                          type="small"
-                          style={[styles.trainText, { color: toOudDisplayColor(displayModel.columns.find((column) => column.key === cell.trainKey)?.typeColor ?? '') || undefined }]}
-                          numberOfLines={1}
-                        >
-                          {cell.value}
-                        </ThemedText>
+                  ))}
+                  {[...displayModel.headerRows.slice(2, 2), ...outerFooterRows].map((row) => (
+                    <View key={row.key} style={styles.row}>
+                      <View style={[styles.stationHeader, styles.headerCell]}>
+                      <ThemedText type="smallBold" style={{ color: '#000000' }}>{row.label}</ThemedText>
                       </View>
-                    ))}
-                  </View>
-                ))}
+                      {row.values.map((cell) => (
+                        <View key={`${row.key}-${cell.trainKey}`} style={[styles.trainCell, styles.headerCell]}>
+                          <ThemedText
+                            type="small"
+                            style={[styles.trainText, { color: toOudDisplayColor(displayModel.columns.find((column) => column.key === cell.trainKey)?.typeColor ?? '') || undefined }]}
+                            numberOfLines={1}
+                          >
+                            {cell.value}
+                          </ThemedText>
+                        </View>
+                      ))}
+                    </View>
+                  ))}
                 </View>
               </ScrollView>
-              <ThemedView style={styles.fixedColumn} pointerEvents="none">
+              <ThemedView style={[styles.fixedColumn, { backgroundColor: '#ffffff' }]} pointerEvents="none">
                 {[...displayModel.headerRows.slice(0, 4), ...outerHeaderRows].map((row) => (
                   <View key={`fixed-${row.key}`} style={[styles.stationHeader, styles.headerCell]}>
-                    <ThemedText type="smallBold">{row.label}</ThemedText>
+                    <ThemedText type="smallBold" style={{ color: '#000000' }}>{row.label}</ThemedText>
                   </View>
                 ))}
                 {displayModel.stationRows.map((row) => (
                   <View key={`fixed-${row.key}`} style={[styles.stationHeader, styles.bodyCell]}>
-                    <ThemedText type="small" numberOfLines={1}>
+                    <ThemedText type="small" style={{ color: '#000000' }} numberOfLines={1}>
                       {row.mode === 'railNumber' ? '発着番線' : row.stationName}
                     </ThemedText>
                   </View>
                 ))}
                 {[...displayModel.headerRows.slice(2, 2), ...outerFooterRows].map((row) => (
                   <View key={`fixed-${row.key}`} style={[styles.stationHeader, styles.headerCell]}>
-                    <ThemedText type="smallBold">{row.label}</ThemedText>
+                    <ThemedText type="smallBold" style={{ color: '#000000' }}>{row.label}</ThemedText>
                   </View>
                 ))}
               </ThemedView>
@@ -172,16 +173,16 @@ const styles = StyleSheet.create({
   directionControl: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   directionButton: { minWidth: 80, paddingVertical: 10, paddingHorizontal: 16, alignItems: 'center', borderRadius: 8, backgroundColor: '#e5e7eb' },
   activeDirectionButton: { backgroundColor: '#2563eb' },
-  directionButtonText: { color: '#374151', fontWeight: '700' },
+  directionButtonText: { fontWeight: '700' },
   activeDirectionButtonText: { color: '#ffffff' },
-  table: { borderWidth: 1, borderColor: '#d1d5db' },
+  table: { borderWidth: 1, borderColor: '#d1d5db', backgroundColor: '#ffffff' },
   tableViewport: { width: '100%', position: 'relative' },
   fixedColumn: { position: 'absolute', left: 0, top: 0, zIndex: 2, elevation: 2 },
   row: { flexDirection: 'row' },
-  stationHeader: { width: STATION_COLUMN_WIDTH },
+  stationHeader: {color: '#000000', width: STATION_COLUMN_WIDTH },
   trainHeader: { width: TRAIN_COLUMN_WIDTH },
-  trainCell: { width: TRAIN_COLUMN_WIDTH, alignItems: 'center' },
-  trainText: { textAlign: 'center' },
-  headerCell: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 6, borderRightWidth: 1, borderBottomWidth: 1, borderColor: '#d1d5db', backgroundColor: '#f3f4f6' },
-  bodyCell: { minHeight: 42, justifyContent: 'center', paddingHorizontal: 6, borderRightWidth: 1, borderBottomWidth: 1, borderColor: '#e5e7eb' },
+  trainCell: { height: 20, width: TRAIN_COLUMN_WIDTH, alignItems: 'center' },
+  trainText: { fontSize: 12, textAlign: 'center' },
+  headerCell: { minHeight: 14, justifyContent: 'center', paddingHorizontal: 0, borderRightWidth: 1, borderBottomWidth: 1, borderColor: '#d1d5db', backgroundColor: '#ffffff' },
+  bodyCell: { minHeight: 10, justifyContent: 'center', paddingHorizontal: 0, borderRightWidth: 1, borderBottomWidth: 1, borderColor: '#e5e7eb' },
 });
