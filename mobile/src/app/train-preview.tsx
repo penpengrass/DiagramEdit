@@ -1,5 +1,5 @@
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/use-theme';
 import { ThemedText } from '@/components/themed-text';
@@ -20,6 +20,8 @@ export default function TrainPreviewScreen() {
   const { parsedData } = useOudData();
   const theme = useTheme();
   const [direction, setDirection] = useState<TimetableDirection>('down');
+  const headerScrollRef = useRef<ScrollView>(null);
+  const bodyScrollRef = useRef<ScrollView>(null);
   const sourceTrains: TrainData[] = direction === 'down'
     ? (parsedData?.KudariData ?? [])
     : (parsedData?.NoboriData ?? []);
@@ -56,7 +58,10 @@ export default function TrainPreviewScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          stickyHeaderIndices={trains.length > 0 && stations.length > 0 ? [2] : []}
+        >
           <ThemedText type="title">時刻表</ThemedText>
           <View style={styles.directionControl}>
             <Pressable
@@ -78,11 +83,58 @@ export default function TrainPreviewScreen() {
               </ThemedText>
             </Pressable>
           </View>
-          {trains.length > 0 && stations.length > 0 ? (
-            <View style={styles.tableViewport}>
-              <ScrollView horizontal showsHorizontalScrollIndicator>
-                <View style={[styles.table, { width: tableWidth, borderColor: theme.textSecondary }]}>
+          {trains.length > 0 && stations.length > 0 ? [
+              <View key="sticky-header" style={styles.stickyHeaderViewport}>
+                <ScrollView
+                  ref={headerScrollRef}
+                  horizontal
+                  scrollEnabled={false}
+                  showsHorizontalScrollIndicator={false}
+                >
+                  <View style={[styles.table, { width: tableWidth, borderColor: theme.textSecondary }]}>
+                    {[...displayModel.headerRows.slice(0, 4), ...outerHeaderRows].map((row) => (
+                      <View key={`sticky-${row.key}`} style={styles.row}>
+                        <View style={[styles.stationHeader, styles.headerCell]}>
+                          <ThemedText type="smallBold" style={{ color: '#000000' }}>{row.label}</ThemedText>
+                        </View>
+                        {row.values.map((cell) => (
+                          <View key={`sticky-${row.key}-${cell.trainKey}`} style={[styles.trainCell, styles.headerCell]}>
+                            <ThemedText
+                              type="small"
+                              style={[styles.trainText, { color: toOudDisplayColor(displayModel.columns.find((column) => column.key === cell.trainKey)?.typeColor ?? '') || undefined }]}
+                              numberOfLines={1}
+                            >
+                              {cell.value}
+                            </ThemedText>
+                          </View>
+                        ))}
+                      </View>
+                    ))}
+                  </View>
+                </ScrollView>
+                <ThemedView style={[styles.fixedColumn, styles.stickyFixedColumn, { backgroundColor: '#ffffff' }]} pointerEvents="none">
                   {[...displayModel.headerRows.slice(0, 4), ...outerHeaderRows].map((row) => (
+                    <View key={`sticky-fixed-${row.key}`} style={[styles.stationHeader, styles.headerCell]}>
+                      <ThemedText type="smallBold" style={{ color: '#000000' }}>{row.label}</ThemedText>
+                    </View>
+                  ))}
+                </ThemedView>
+              </View>,
+              <View key="table-body" style={styles.tableViewport}>
+              <ScrollView
+                ref={bodyScrollRef}
+                horizontal
+                showsHorizontalScrollIndicator
+                scrollEventThrottle={16}
+                onScroll={(event) => {
+                  headerScrollRef.current?.scrollTo({
+                    x: event.nativeEvent.contentOffset.x,
+                    animated: false,
+                  });
+                }}
+              >
+                <View style={[styles.table, { width: tableWidth, borderColor: theme.textSecondary }]}>
+                  {displayModel.headerRows.slice(0, 0).map((row) => (
                     <View key={row.key} style={styles.row}>
                       <View style={[styles.stationHeader, styles.headerCell]}>
                       <ThemedText type="smallBold" style={{ color: '#000000' }}>{row.label}</ThemedText>
@@ -138,7 +190,7 @@ export default function TrainPreviewScreen() {
                 </View>
               </ScrollView>
               <ThemedView style={[styles.fixedColumn, { backgroundColor: '#ffffff' }]} pointerEvents="none">
-                {[...displayModel.headerRows.slice(0, 4), ...outerHeaderRows].map((row) => (
+                {displayModel.headerRows.slice(0, 0).map((row) => (
                   <View key={`fixed-${row.key}`} style={[styles.stationHeader, styles.headerCell]}>
                     <ThemedText type="smallBold" style={{ color: '#000000' }}>{row.label}</ThemedText>
                   </View>
@@ -156,8 +208,8 @@ export default function TrainPreviewScreen() {
                   </View>
                 ))}
               </ThemedView>
-            </View>
-          ) : (
+            </View>,
+            ] : (
             <ThemedText type="small">先にOUD2ファイルを読み込んでください。</ThemedText>
           )}
         </ScrollView>
@@ -176,8 +228,10 @@ const styles = StyleSheet.create({
   directionButtonText: { fontWeight: '700' },
   activeDirectionButtonText: { color: '#ffffff' },
   table: { borderWidth: 1, borderColor: '#d1d5db', backgroundColor: '#ffffff' },
+  stickyHeaderViewport: { width: '100%', backgroundColor: '#ffffff', zIndex: 3 },
   tableViewport: { width: '100%', position: 'relative' },
   fixedColumn: { position: 'absolute', left: 0, top: 0, zIndex: 2, elevation: 2 },
+  stickyFixedColumn: { top: 0, zIndex: 4 },
   row: { flexDirection: 'row' },
   stationHeader: {color: '#000000', width: STATION_COLUMN_WIDTH },
   trainHeader: { width: TRAIN_COLUMN_WIDTH },
