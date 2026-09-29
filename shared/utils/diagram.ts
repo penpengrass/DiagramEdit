@@ -8,6 +8,24 @@ export interface DiagramTrainGroup {
     isNobori: boolean;
 }
 
+export interface DiagramPoint {
+    x: number;
+    y: number;
+}
+
+export interface DiagramLineSegment {
+    key: string;
+    segmentKey: string;
+    start: DiagramPoint;
+    end: DiagramPoint;
+    trainType: number;
+}
+
+export const DIAGRAM_MIN_ZOOM = 0.5;
+export const DIAGRAM_MAX_ZOOM = 2;
+export const DIAGRAM_ZOOM_STEP = 0.25;
+export const DIAGRAM_HIT_TOLERANCE = 8;
+
 const MINUTES_PER_DAY = 24 * 60;
 
 export function getDiagramMinutes(time: Time, kitenJikoku = 0): number {
@@ -46,4 +64,89 @@ export function getDiagramTrainGroups(
         { trains: kudariTrains, isNobori: false },
         { trains: noboriTrains, isNobori: true },
     ];
+}
+
+export function getDiagramTrainKey(train: TrainData, isNobori: boolean): string {
+    return `${isNobori ? 'nobori' : 'kudari'}-${train.DiaLine}-${train.id}`;
+}
+
+export function getDiagramLineSegments(
+    groups: DiagramTrainGroup[],
+    stationCount: number,
+    rowHeight: number,
+    kitenJikoku = 0,
+    xOffset = 0,
+): DiagramLineSegment[] {
+    return groups.flatMap(({ trains, isNobori }) => trains.flatMap((train, trainIndex) => {
+        const segments: DiagramLineSegment[] = [];
+        const trainKey = getDiagramTrainKey(train, isNobori);
+        let previousPoint: DiagramPoint | null = null;
+        let segmentIndex = 0;
+
+        train.time.forEach((entry, timeIndex) => {
+            const stationIndex = getDiagramStationIndex(timeIndex, stationCount, isNobori);
+            if (stationIndex < 0 || stationIndex >= stationCount) return;
+            const y = stationIndex * rowHeight + rowHeight / 2;
+
+            (['arrive', 'departure'] as const).forEach((field) => {
+                const time = entry[field];
+                if (!(time instanceof Time)) return;
+
+                const previousTime = timeIndex > 0 ? train.time[timeIndex - 1]?.[field] : undefined;
+                const x = xOffset + getDiagramMinutes(time, kitenJikoku);
+                if (previousTime instanceof Time && getDiagramMinutes(time, kitenJikoku) < getDiagramMinutes(previousTime, kitenJikoku) - 60) {
+                    previousPoint = null;
+                }
+
+                const point = { x, y };
+                if (previousPoint) {
+                    segments.push({
+                        key: trainKey,
+                        segmentKey: `${trainKey}-${trainIndex}-${segmentIndex++}`,
+                        start: previousPoint,
+                        end: point,
+                        trainType: train.type,
+                    });
+                }
+                previousPoint = point;
+            });
+        });
+
+        return segments;
+    }));
+}
+
+export function findNearestDiagramTrainKey(
+    segments: DiagramLineSegment[],
+    point: DiagramPoint,
+    maxDistance: number,
+): string | null {
+    let nearestKey: string | null = null;
+    let nearestDistance = maxDistance;
+
+    segments.forEach(({ key, start, end }) => {
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const lengthSquared = dx * dx + dy * dy;
+        const ratio = lengthSquared === 0 ? 0 : Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared));
+        const distance = Math.hypot(point.x - (start.x + ratio * dx), point.y - (start.y + ratio * dy));
+        if (distance < nearestDistance) {
+            nearestDistance = distance;
+            nearestKey = key;
+        }
+    });
+
+    return nearestKey;
+}
+
+export function adjustDiagramZoom(current: number, direction: -1 | 1): number {
+    return Math.min(DIAGRAM_MAX_ZOOM, Math.max(DIAGRAM_MIN_ZOOM, current + direction * DIAGRAM_ZOOM_STEP));
+}
+
+export function getDiagramLineWidth(isSelected: boolean): number {
+    return isSelected ? 4 : 1;
+}
+
+export function getDiagramHitDistance(zoom: number): number {
+    return DIAGRAM_HIT_TOLERANCE / zoom;
 }
