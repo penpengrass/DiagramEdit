@@ -70,6 +70,15 @@ export function getDiagramTrainKey(train: TrainData, isNobori: boolean): string 
     return `${isNobori ? 'nobori' : 'kudari'}-${train.DiaLine}-${train.id}`;
 }
 
+export function findDiagramTrainByKey(groups: DiagramTrainGroup[], key: string | null): TrainData | undefined {
+    if (!key) return undefined;
+    for (const { trains, isNobori } of groups) {
+        const train = trains.find((item) => getDiagramTrainKey(item, isNobori) === key);
+        if (train) return train;
+    }
+    return undefined;
+}
+
 export function getDiagramLineSegments(
     groups: DiagramTrainGroup[],
     stationCount: number,

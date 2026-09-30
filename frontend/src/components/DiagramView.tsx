@@ -2,11 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Station } from '../constants/stationmap';
 import { TrainData, TrainType } from '../constants/Traindatamap';
 import { toABGR } from './TypeShow';
+import TrainDataTable from './TrainData';
 import { Time } from '../../../shared/utils/Time';
 import {
     adjustDiagramZoom,
     DIAGRAM_MAX_ZOOM,
     DIAGRAM_MIN_ZOOM,
+    findDiagramTrainByKey,
     findNearestDiagramTrainKey,
     getDiagramHitDistance,
     getDiagramMinutes,
@@ -36,6 +38,13 @@ const DiagramView: React.FC<Props> = ({ TrainDataA, NoboriTrainDataA, stationsA,
     const [displayMode, setDisplayMode] = useState<DiagramDisplayMode>('both');
     const [zoom, setZoom] = useState(1);
     const [selectedTrainKey, setSelectedTrainKey] = useState<string | null>(null);
+    const selectedTrain = findDiagramTrainByKey(
+        getDiagramTrainGroups(TrainDataA, NoboriTrainDataA, 'both'),
+        selectedTrainKey,
+    );
+    const selectedTrainStations = selectedTrainKey?.startsWith('nobori-')
+        ? [...stationsA].reverse()
+        : stationsA;
     useEffect(() => {
         if (!canvasRef.current || !timeCanvasRef.current || !stationCanvasRef.current || !stationsA.length) return;
 
@@ -269,7 +278,18 @@ const DiagramView: React.FC<Props> = ({ TrainDataA, NoboriTrainDataA, stationsA,
                 </div>
             </div>
             </div>
-            <div role="complementary" aria-label="列車情報表示領域" style={{ width: '320px', flexShrink: 0, borderLeft: '1px solid #ddd', paddingLeft: '12px', boxSizing: 'border-box' }} />
+            <div role="complementary" aria-label="列車情報表示領域" style={{ width: '320px', flexShrink: 0, minHeight: 0, overflowY: 'auto', borderLeft: '1px solid #ddd', paddingLeft: '12px', boxSizing: 'border-box' }}>
+                <h3>列車時刻表</h3>
+                {selectedTrain && (
+                    <TrainDataTable
+                        TrainDataA={[selectedTrain]}
+                        typesA={typesA}
+                        stationsA={selectedTrainStations}
+                        diagrams={[]}
+                        singleTrain
+                    />
+                )}
+            </div>
         </div>
     );
 };

@@ -15,6 +15,7 @@ interface TrainDataProps {
   typesA: TrainType[];
   stationsA: Station[];
   diagrams: Diagrams[];
+  singleTrain?: boolean;
 }
 interface TrainRowProps {
   TrainDataA: TrainData[];
@@ -250,15 +251,17 @@ const TerminalStations: React.FC<TerminalStationsProps> = ({ TrainDataA, station
   );
 }
 //時刻表示メインコンポーネント
-const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stationsA, diagrams }) => {
+const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stationsA, diagrams, singleTrain = false }) => {
   const [selectedDia, setSelectedDia] = useState("1");
 
-  const filteredTrainDataA = TrainDataA.filter((onedata) => String(onedata.DiaLine) === selectedDia);
+  const filteredTrainDataA = singleTrain
+    ? TrainDataA
+    : TrainDataA.filter((onedata) => String(onedata.DiaLine) === selectedDia);
   const displayModel = sharedGetOudTrainTableDisplayModel(filteredTrainDataA, typesA, stationsA);
 
   return (
     <div>
-      <DiaSelect value={selectedDia} onChange={setSelectedDia} diagrams={diagrams} />
+      {!singleTrain && <DiaSelect value={selectedDia} onChange={setSelectedDia} diagrams={diagrams} />}
       <table className="tt-table">
         <thead>
           {displayModel.headerRows.slice(0, 4).map((row) => (
