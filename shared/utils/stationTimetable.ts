@@ -23,7 +23,7 @@ export interface StationTimetableOptions {
 
 const isRealTime = (value: unknown): boolean => {
   if (value == null || value === '') return false;
-  return !(typeof value === 'string' && ['', '・・・', 'レ', '||'].includes(value.trim()));
+  return !(typeof value === 'string' && ['', '･･･', 'レ', '||'].includes(value.trim()));
 };
 
 const getHour = (value: unknown): number | null => {
