@@ -27,7 +27,7 @@ export default function TrainPreviewScreen() {
   const stations = parsedData
     ? getOrderedStations(parsedData.stations, direction === 'down' ? 'Kudari' : 'Nobori')
     : [];
-  const displayModel = getOudTrainTableDisplayModel(trains, parsedData?.TrainType ?? [], stations);
+  const displayModel = getOudTrainTableDisplayModel(trains, parsedData?.TrainType ?? [], stations, true);
   const tableWidth = STATION_COLUMN_WIDTH + trains.length * TRAIN_COLUMN_WIDTH;
   const outerHeaderRows = [
     {
@@ -102,11 +102,11 @@ export default function TrainPreviewScreen() {
                   ))}
                   {displayModel.stationRows.map((row) => (
                     <View key={row.key} style={styles.row}>
-                      <View style={[styles.stationHeader, styles.bodyCell]}>
+                      <View style={[styles.stationHeader, styles.bodyCell, row.isFirstBranchRow && getBranchLineStyle(row.isOriginBranchRow)]}>
                         <ThemedText type="small" style={{ color: '#000000' }} numberOfLines={1}>{row.mode === 'railNumber' ? '発着番線' : row.stationName}</ThemedText>
                       </View>
                       {row.cells.map((cell) => (
-                        <View key={`${row.key}-${cell.trainKey}`} style={[styles.trainCell, styles.bodyCell]}>
+                        <View key={`${row.key}-${cell.trainKey}`} style={[styles.trainCell, styles.bodyCell, row.isFirstBranchRow && getBranchLineStyle(row.isOriginBranchRow)]}>
                           <ThemedText
                             type={row.mode === 'railNumber' ? 'small' : 'smallBold'}
                             style={[styles.trainText, { color: toOudDisplayColor(cell.typeColor) || undefined }]}
@@ -144,7 +144,7 @@ export default function TrainPreviewScreen() {
                   </View>
                 ))}
                 {displayModel.stationRows.map((row) => (
-                  <View key={`fixed-${row.key}`} style={[styles.stationHeader, styles.bodyCell]}>
+                  <View key={`fixed-${row.key}`} style={[styles.stationHeader, styles.bodyCell, row.isFirstBranchRow && getBranchLineStyle(row.isOriginBranchRow)]}>
                     <ThemedText type="small" style={{ color: '#000000' }} numberOfLines={1}>
                       {row.mode === 'railNumber' ? '発着番線' : row.stationName}
                     </ThemedText>
@@ -185,4 +185,10 @@ const styles = StyleSheet.create({
   trainText: { fontSize: 12, textAlign: 'center' },
   headerCell: { minHeight: 14, justifyContent: 'center', paddingHorizontal: 0, borderRightWidth: 1, borderBottomWidth: 1, borderColor: '#d1d5db', backgroundColor: '#ffffff' },
   bodyCell: { minHeight: 10, justifyContent: 'center', paddingHorizontal: 0, borderRightWidth: 1, borderBottomWidth: 1, borderColor: '#e5e7eb' },
+  branchTop: { borderTopWidth: 4, borderTopColor: '#333333' },
+  branchBottom: { borderBottomWidth: 4, borderBottomColor: '#333333' },
 });
+
+const getBranchLineStyle = (isOriginBranch: boolean) => (
+  isOriginBranch ? styles.branchBottom : styles.branchTop
+);

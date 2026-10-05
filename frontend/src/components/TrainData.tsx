@@ -37,6 +37,12 @@ interface OuterTerminal {
   cellType?: 'th' | 'td';
   bgColor: string;
 }
+
+const getBranchRowClass = (isOriginBranch: boolean, direction: number): string => {
+  const lineAtBottom = isOriginBranch !== (direction === 1);
+  return lineAtBottom ? "branch-station-row-nobori" : "branch-station-row-kudari";
+};
+
 interface TerminalStationsProps {
   TrainDataA: TrainData[]; // 複数の列車オブジェクト（ヘッダーの列）
   stationsA: Station[];
@@ -291,9 +297,7 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
               key={row.key}
               className={
                 row.isFirstBranchRow
-                  ? direction === 1
-                    ? "branch-station-row-nobori"
-                    : "branch-station-row-kudari"
+                  ? getBranchRowClass(row.isOriginBranchRow, direction)
                   : undefined
               }
               data-branch-core-station-id={row.branchCoreStationId}

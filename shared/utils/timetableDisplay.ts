@@ -83,6 +83,7 @@ export type OudTrainTableStationRowDisplay = {
   branchCoreStationId?: number;
   branchCoreStationName?: string;
   isFirstBranchRow: boolean;
+  isOriginBranchRow: boolean;
 };
 
 export type OudTrainTableCellValue = {
@@ -155,14 +156,14 @@ const getRawTimeWithGap = (
   field: "arrive" | "departure",
 ): string => {
   const value = getRawTimeValue(train.time[stationIndex], field);
-  if (value !== "･･･") return value;
+  if (value !== "･･･" && value !== "") return value;
 
   const hasTimeAbove = train.time
     .slice(0, stationIndex)
-    .some((entry) => hasRealRawTime(entry, field));
+    .some((entry) => hasRealRawTime(entry, "arrive") || hasRealRawTime(entry, "departure"));
   const hasTimeBelow = train.time
     .slice(stationIndex + 1)
-    .some((entry) => hasRealRawTime(entry, field));
+    .some((entry) => hasRealRawTime(entry, "arrive") || hasRealRawTime(entry, "departure"));
 
   return hasTimeAbove && hasTimeBelow ? "||" : value;
 };
@@ -177,9 +178,11 @@ export const getOudTrainDisplayCell = (
   let arrival = getRawTimeWithGap(train, stationIndex, "arrive");
   const departure = getRawTimeWithGap(train, stationIndex, "departure");
 
-  const previousDeparture = getRawTimeValue(train.time[stationIndex - 1], "departure");
-  if (arrival === "" && previousDeparture !== "" && previousDeparture !== "･･･" && departure !== "") {
-    arrival = "〇";
+  if (getRawTimeValue(entry, "arrive") === "" && hasRealRawTime(entry, "departure")) {
+    const hasEarlierTime = train.time
+      .slice(0, stationIndex)
+      .some((previousEntry) => hasRealRawTime(previousEntry, "arrive") || hasRealRawTime(previousEntry, "departure"));
+    arrival = hasEarlierTime ? "〇" : "･･･";
   } else if (arrival === "") {
     arrival = "･･･";
   }
@@ -187,7 +190,9 @@ export const getOudTrainDisplayCell = (
   return {
     arrival,
     departure: departure || "･･･",
-    railNumber: entry?.stop === "1" ? railNumber : entry?.stop === "0" ? "･･･" : "",
+    railNumber: arrival === "||" || departure === "||"
+      ? "||"
+      : entry?.stop === "1" ? railNumber : entry?.stop === "0" ? "･･･" : "",
   };
 };
 
@@ -230,6 +235,7 @@ export const getOudStationRows = (
   trains: TrainData[],
   trainTypes: TrainType[],
   stations: Station[],
+  stationsOrderedByDirection = false,
 ): OudTrainTableStationRowDisplay[] => {
   const direction = trains[0]?.dir ?? 0;
 
@@ -268,6 +274,9 @@ export const getOudStationRows = (
         branchCoreStationId: station.branchCoreStationId,
         branchCoreStationName: branchCoreStation?.name,
         isFirstBranchRow: isBranchStation && modeIndex === 0,
+        isOriginBranchRow: isBranchStation && (direction === 0 || stationsOrderedByDirection
+          ? rowIdx < stations.length / 2
+          : rowIdx >= stations.length / 2),
       };
     });
   });
@@ -277,13 +286,14 @@ export const getOudTrainTableDisplayModel = (
   trains: TrainData[],
   trainTypes: TrainType[],
   stations: Station[],
+  stationsOrderedByDirection = false,
 ): OudTrainTableDisplayModel => {
   const columns = trains.map((train) => getOudTrainHeaderDisplay(train, trainTypes, stations));
 
   return {
     columns,
     headerRows: getOudHeaderRows(columns),
-    stationRows: getOudStationRows(trains, trainTypes, stations),
+    stationRows: getOudStationRows(trains, trainTypes, stations, stationsOrderedByDirection),
   };
 };
 
