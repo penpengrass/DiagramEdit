@@ -3,7 +3,6 @@ import { Station } from '../constants/stationmap';
 import { TrainData, TrainType } from '../constants/Traindatamap';
 import { toABGR } from './TypeShow';
 import TrainDataTable from './TrainData';
-import { Time } from '../../../shared/utils/Time';
 import {
     adjustDiagramZoom,
     DIAGRAM_MAX_ZOOM,
@@ -11,13 +10,10 @@ import {
     findDiagramTrainByKey,
     findNearestDiagramTrainKey,
     getDiagramHitDistance,
-    getDiagramMinutes,
     getDiagramLineSegments,
     getDiagramLineWidth,
     getDiagramStartHour,
-    getDiagramStationIndex,
     getDiagramTrainGroups,
-    getDiagramTrainKey,
     type DiagramLineSegment,
     type DiagramDisplayMode,
 } from '../../../shared/utils/diagram';
@@ -118,99 +114,33 @@ const DiagramView: React.FC<Props> = ({ TrainDataA, NoboriTrainDataA, stationsA,
             timeCtx.fillText(displayHour.toString().padStart(2, '0'), hour * 60 * zoom, 20);
         }
         const trainGroups = getDiagramTrainGroups(TrainDataA, NoboriTrainDataA, displayMode);
-        const lineSegments = getDiagramLineSegments(trainGroups, stationsA.length, 40, kitenJikoku);
+        const lineSegments = getDiagramLineSegments(trainGroups, stationsA, 40, kitenJikoku);
         lineSegmentsRef.current = lineSegments;
-        trainGroups.forEach(({ trains, isNobori }) => trains.forEach((train, trainIndex) => {
-            if (!train.time || train.time.length < 1) return;
-
-            // 列車の色を取得
-            //const trainType = typesA.find(t => t.id === train.type);
-            const color = typesA[train.type].color || '#666666';
+        const segmentsByTrain = new Map<string, DiagramLineSegment[]>();
+        lineSegments.forEach((segment) => {
+            const trainSegments = segmentsByTrain.get(segment.key) ?? [];
+            trainSegments.push(segment);
+            segmentsByTrain.set(segment.key, trainSegments);
+        });
+        segmentsByTrain.forEach((segments, trainKey) => {
+            const color = typesA[segments[0].trainType]?.color || '#666666';
             ctx.strokeStyle = toABGR(color);
-            const trainKey = getDiagramTrainKey(train, isNobori);
             ctx.lineWidth = getDiagramLineWidth(selectedTrainKey === trainKey);
             ctx.beginPath();
-            let isFirstPoint = true;
-            let pointCount = 0;
-            //console.log(train.time.length);
-            // 各駅の通過時刻をプロット
-            for (let i = 0; i < train.time.length; i++) {
-                const timeEntry = train.time[i];
-                const arriveTime = timeEntry.arrive;
-                const departureTime = timeEntry.departure;
-
-                // 駅IDに対応するstationを探す
-                const stationIndex = getDiagramStationIndex(i, stationsA.length, isNobori);
-                if (stationIndex === -1) {
-                    // デバッグ：駅が見つからない場合
-                    console.warn(
-                        `Train ${trainIndex}: railNumberID ${timeEntry.railNumberID} not found in stations`
-                    );
-                    continue;
+            segments.forEach((segment) => {
+                if (segment.isBranchDwell) {
+                    const offset = 2;
+                    ctx.moveTo(segment.start.x, segment.start.y - offset);
+                    ctx.lineTo(segment.end.x, segment.end.y - offset);
+                    ctx.moveTo(segment.start.x, segment.start.y + offset);
+                    ctx.lineTo(segment.end.x, segment.end.y + offset);
+                } else {
+                    ctx.moveTo(segment.start.x, segment.start.y);
+                    ctx.lineTo(segment.end.x, segment.end.y);
                 }
-
-                const y = stationIndex * 40 + 20;
-
-                // 到着時刻をプロット
-                if (arriveTime && arriveTime instanceof Time) {
-                    const totalMinutes = getDiagramMinutes(arriveTime, kitenJikoku);
-                    const x = totalMinutes;
-
-                    // 時刻が大幅に減少した場合（00:00を超えた）、線を途切させる
-                    if (!isFirstPoint && i > 0) {
-                        const prevTime = train.time[i - 1].arrive;
-                        if (prevTime && prevTime instanceof Time) {
-                            const prevTotalMinutes = getDiagramMinutes(prevTime, kitenJikoku);
-                            if (totalMinutes < prevTotalMinutes - 60) {
-                                ctx.stroke();
-                                ctx.beginPath();
-                                isFirstPoint = true;
-                            }
-                        }
-                    }
-
-                    if (isFirstPoint) {
-                        ctx.moveTo(x, y);
-                        isFirstPoint = false;
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
-                    pointCount++;
-                }
-
-                // 出発時刻をプロット
-                if (departureTime && departureTime instanceof Time) {
-                    const totalMinutes = getDiagramMinutes(departureTime, kitenJikoku);
-                    const x = totalMinutes;
-
-                    // 時刻が大幅に減少した場合（00:00を超えた）、線を途切させる
-                    if (!isFirstPoint && i > 0) {
-                        const prevDeparture = train.time[i - 1].departure;
-                        if (prevDeparture && prevDeparture instanceof Time) {
-                            const prevTotalMinutes = getDiagramMinutes(prevDeparture, kitenJikoku);
-                            if (totalMinutes < prevTotalMinutes - 60) {
-                                ctx.stroke();
-                                ctx.beginPath();
-                                isFirstPoint = true;
-                            }
-                        }
-                    }
-
-                    if (isFirstPoint) {
-                        ctx.moveTo(x, y);
-                        isFirstPoint = false;
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
-                    pointCount++;
-                }
-            }
-
-            // 最低2点以上ある場合のみ線を描画
-            if (pointCount >= 2) {
-                ctx.stroke();
-            }
-        }));
+            });
+            ctx.stroke();
+        });
     }, [TrainDataA, NoboriTrainDataA, stationsA, typesA, displayMode, kitenJikoku, zoom, selectedTrainKey]);
 
     const handleDiagramClick = (event: React.MouseEvent<HTMLCanvasElement>) => {

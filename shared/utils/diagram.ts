@@ -1,4 +1,4 @@
-import type { TrainData } from '../types/timetable';
+import type { Station, TrainData } from '../types/timetable';
 import { Time } from './Time';
 
 export type DiagramDisplayMode = 'kudari' | 'nobori' | 'both';
@@ -19,6 +19,7 @@ export interface DiagramLineSegment {
     start: DiagramPoint;
     end: DiagramPoint;
     trainType: number;
+    isBranchDwell: boolean;
 }
 
 export const DIAGRAM_MIN_ZOOM = 0.5;
@@ -81,7 +82,7 @@ export function findDiagramTrainByKey(groups: DiagramTrainGroup[], key: string |
 
 export function getDiagramLineSegments(
     groups: DiagramTrainGroup[],
-    stationCount: number,
+    stations: Station[],
     rowHeight: number,
     kitenJikoku = 0,
     xOffset = 0,
@@ -90,21 +91,33 @@ export function getDiagramLineSegments(
         const segments: DiagramLineSegment[] = [];
         const trainKey = getDiagramTrainKey(train, isNobori);
         let previousPoint: DiagramPoint | null = null;
+        let previousStationIndex: number | null = null;
         let segmentIndex = 0;
 
         train.time.forEach((entry, timeIndex) => {
-            const stationIndex = getDiagramStationIndex(timeIndex, stationCount, isNobori);
-            if (stationIndex < 0 || stationIndex >= stationCount) return;
+            const stationIndex = getDiagramStationIndex(timeIndex, stations.length, isNobori);
+            if (stationIndex < 0 || stationIndex >= stations.length) return;
+            // Stop "2" is a pass-through; only "0" means this train does not use this station.
+            if (String(entry.stop) === '0') {
+                previousPoint = null;
+                previousStationIndex = null;
+                return;
+            }
+            // A branch row begins a separate station sequence in OUD2; do not draw across the other route.
+            if (stations[stationIndex]?.branchCoreStationId !== undefined) {
+                previousPoint = null;
+                previousStationIndex = null;
+            }
             const y = stationIndex * rowHeight + rowHeight / 2;
 
             (['arrive', 'departure'] as const).forEach((field) => {
                 const time = entry[field];
                 if (!(time instanceof Time)) return;
 
-                const previousTime = timeIndex > 0 ? train.time[timeIndex - 1]?.[field] : undefined;
                 const x = xOffset + getDiagramMinutes(time, kitenJikoku);
-                if (previousTime instanceof Time && getDiagramMinutes(time, kitenJikoku) < getDiagramMinutes(previousTime, kitenJikoku) - 60) {
+                if (previousPoint && x < previousPoint.x - 60) {
                     previousPoint = null;
+                    previousStationIndex = null;
                 }
 
                 const point = { x, y };
@@ -115,9 +128,12 @@ export function getDiagramLineSegments(
                         start: previousPoint,
                         end: point,
                         trainType: train.type,
+                        isBranchDwell: previousStationIndex === stationIndex
+                            && stations[stationIndex]?.branchCoreStationId !== undefined,
                     });
                 }
                 previousPoint = point;
+                previousStationIndex = stationIndex;
             });
         });
 

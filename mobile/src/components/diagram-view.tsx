@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { Fragment, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import type { Station, TrainData, TrainType } from '@shared/types/timetable';
@@ -35,21 +35,23 @@ function DiagramLine({ segment, color, zoom, selected }: { segment: DiagramLineS
   const length = Math.sqrt(dx * dx + dy * dy);
   const angle = Math.atan2(dy, dx);
   const lineThickness = getDiagramLineWidth(selected) * zoom;
+  const verticalOffset = segment.isBranchDwell ? 2 * zoom : 0;
+  const lineStyle = {
+    backgroundColor: color,
+    left: (segment.start.x - LEFT_MARGIN) * zoom,
+    top: segment.start.y * zoom - lineThickness / 2,
+    width: length * zoom,
+    height: lineThickness,
+    transform: [{ rotate: `${angle}rad` }],
+  };
 
   return (
-    <View
-      style={[
-        styles.trainLine,
-        {
-          backgroundColor: color,
-          left: (segment.start.x - LEFT_MARGIN) * zoom,
-          top: segment.start.y * zoom - lineThickness / 2,
-          width: length * zoom,
-          height: lineThickness,
-          transform: [{ rotate: `${angle}rad` }],
-        },
-      ]}
-    />
+    <Fragment>
+      <View style={[styles.trainLine, lineStyle, { top: lineStyle.top - verticalOffset / 2 }]} />
+      {segment.isBranchDwell && (
+        <View style={[styles.trainLine, lineStyle, { top: lineStyle.top + verticalOffset / 2 }]} />
+      )}
+    </Fragment>
   );
 }
 
@@ -70,8 +72,8 @@ export function DiagramView({ kudariTrains, noboriTrains, stations, trainTypes, 
     [displayMode, kudariTrains, noboriTrains],
   );
   const segments = useMemo(
-    () => getDiagramLineSegments(trainGroups, stations.length, ROW_HEIGHT, kitenJikoku, LEFT_MARGIN),
-    [kitenJikoku, stations.length, trainGroups],
+    () => getDiagramLineSegments(trainGroups, stations, ROW_HEIGHT, kitenJikoku, LEFT_MARGIN),
+    [kitenJikoku, stations, trainGroups],
   );
   const plotWidth = (DIAGRAM_WIDTH - LEFT_MARGIN) * zoom;
   const plotHeight = stations.length * ROW_HEIGHT * zoom;
