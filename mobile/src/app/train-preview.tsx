@@ -27,7 +27,7 @@ export default function TrainPreviewScreen() {
   const stations = parsedData
     ? getOrderedStations(parsedData.stations, direction === 'down' ? 'Kudari' : 'Nobori')
     : [];
-  const displayModel = getOudTrainTableDisplayModel(trains, parsedData?.TrainType ?? [], stations, true);
+  const displayModel = getOudTrainTableDisplayModel(trains, parsedData?.TrainType ?? [], stations);
   const tableWidth = STATION_COLUMN_WIDTH + trains.length * TRAIN_COLUMN_WIDTH;
   const outerHeaderRows = [
     {

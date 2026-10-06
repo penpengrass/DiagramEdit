@@ -235,13 +235,13 @@ export const getOudStationRows = (
   trains: TrainData[],
   trainTypes: TrainType[],
   stations: Station[],
-  stationsOrderedByDirection = false,
 ): OudTrainTableStationRowDisplay[] => {
   const direction = trains[0]?.dir ?? 0;
 
   return stations.flatMap((station, rowIdx) => {
     const displayModes = getOudStationDisplayModes(station.layout, direction);
-    const isBranchStation = station.branchCoreStationId !== undefined;
+    const branchCoreStationId = station.branchCoreStationId;
+    const isBranchStation = branchCoreStationId !== undefined;
     const branchCoreStation = isBranchStation
       ? stations.find(candidate => candidate.id === station.branchCoreStationId)
       : undefined;
@@ -274,9 +274,10 @@ export const getOudStationRows = (
         branchCoreStationId: station.branchCoreStationId,
         branchCoreStationName: branchCoreStation?.name,
         isFirstBranchRow: isBranchStation && modeIndex === 0,
-        isOriginBranchRow: isBranchStation && (direction === 0 || stationsOrderedByDirection
-          ? rowIdx < stations.length / 2
-          : rowIdx >= stations.length / 2),
+        // OUD2's BrunchCoreEkiIndex points to the core station; station IDs retain file order.
+        isOriginBranchRow: branchCoreStationId !== undefined && (direction === 0
+          ? station.id < branchCoreStationId
+          : station.id > branchCoreStationId),
       };
     });
   });
@@ -286,14 +287,13 @@ export const getOudTrainTableDisplayModel = (
   trains: TrainData[],
   trainTypes: TrainType[],
   stations: Station[],
-  stationsOrderedByDirection = false,
 ): OudTrainTableDisplayModel => {
   const columns = trains.map((train) => getOudTrainHeaderDisplay(train, trainTypes, stations));
 
   return {
     columns,
     headerRows: getOudHeaderRows(columns),
-    stationRows: getOudStationRows(trains, trainTypes, stations, stationsOrderedByDirection),
+    stationRows: getOudStationRows(trains, trainTypes, stations),
   };
 };
 
