@@ -102,11 +102,11 @@ export default function TrainPreviewScreen() {
                   ))}
                   {displayModel.stationRows.map((row) => (
                     <View key={row.key} style={styles.row}>
-                      <View style={[styles.stationHeader, styles.bodyCell, row.isFirstBranchRow && getBranchLineStyle(row.isOriginBranchRow)]}>
+                      <View style={[styles.stationHeader, styles.bodyCell, row.isFirstBranchRow && row.branchBorderPosition && getBranchLineStyle(row.branchBorderPosition)]}>
                         <ThemedText type="small" style={{ color: '#000000' }} numberOfLines={1}>{row.mode === 'railNumber' ? '発着番線' : row.stationName}</ThemedText>
                       </View>
                       {row.cells.map((cell) => (
-                        <View key={`${row.key}-${cell.trainKey}`} style={[styles.trainCell, styles.bodyCell, row.isFirstBranchRow && getBranchLineStyle(row.isOriginBranchRow)]}>
+                        <View key={`${row.key}-${cell.trainKey}`} style={[styles.trainCell, styles.bodyCell, row.isFirstBranchRow && row.branchBorderPosition && getBranchLineStyle(row.branchBorderPosition)]}>
                           <ThemedText
                             type={row.mode === 'railNumber' ? 'small' : 'smallBold'}
                             style={[styles.trainText, { color: toOudDisplayColor(cell.typeColor) || undefined }]}
@@ -144,7 +144,7 @@ export default function TrainPreviewScreen() {
                   </View>
                 ))}
                 {displayModel.stationRows.map((row) => (
-                  <View key={`fixed-${row.key}`} style={[styles.stationHeader, styles.bodyCell, row.isFirstBranchRow && getBranchLineStyle(row.isOriginBranchRow)]}>
+                  <View key={`fixed-${row.key}`} style={[styles.stationHeader, styles.bodyCell, row.isFirstBranchRow && row.branchBorderPosition && getBranchLineStyle(row.branchBorderPosition)]}>
                     <ThemedText type="small" style={{ color: '#000000' }} numberOfLines={1}>
                       {row.mode === 'railNumber' ? '発着番線' : row.stationName}
                     </ThemedText>
@@ -189,6 +189,6 @@ const styles = StyleSheet.create({
   branchBottom: { borderBottomWidth: 4, borderBottomColor: '#333333' },
 });
 
-const getBranchLineStyle = (isOriginBranch: boolean) => (
-  isOriginBranch ? styles.branchBottom : styles.branchTop
+const getBranchLineStyle = (position?: "top" | "bottom") => (
+  position === "bottom" ? styles.branchBottom : styles.branchTop
 );

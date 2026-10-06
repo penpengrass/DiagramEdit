@@ -39,9 +39,8 @@ interface OuterTerminal {
   bgColor: string;
 }
 
-const getBranchRowClass = (isOriginBranch: boolean, direction: number): string => {
-  const lineAtBottom = isOriginBranch !== (direction === 1);
-  return lineAtBottom ? "branch-station-row-nobori" : "branch-station-row-kudari";
+const getBranchRowClass = (position: "top" | "bottom"): string => {
+  return position === "top" ? "branch-station-border-top" : "branch-station-border-bottom";
 };
 
 interface TerminalStationsProps {
@@ -299,8 +298,8 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
             <tr
               key={row.key}
               className={
-                row.isFirstBranchRow
-                  ? getBranchRowClass(row.isOriginBranchRow, direction)
+                row.isFirstBranchRow && row.branchBorderPosition
+                  ? getBranchRowClass(row.branchBorderPosition)
                   : undefined
               }
               data-branch-core-station-id={row.branchCoreStationId}

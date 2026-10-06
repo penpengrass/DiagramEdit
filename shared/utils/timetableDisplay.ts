@@ -83,7 +83,7 @@ export type OudTrainTableStationRowDisplay = {
   branchCoreStationId?: number;
   branchCoreStationName?: string;
   isFirstBranchRow: boolean;
-  isOriginBranchRow: boolean;
+  branchBorderPosition?: "top" | "bottom";
 };
 
 export type OudTrainTableCellValue = {
@@ -245,6 +245,9 @@ export const getOudStationRows = (
     const branchCoreStation = isBranchStation
       ? stations.find(candidate => candidate.id === station.branchCoreStationId)
       : undefined;
+    const branchCoreStationIndex = isBranchStation
+      ? stations.findIndex(candidate => candidate.id === branchCoreStationId)
+      : -1;
 
     return displayModes.map((mode, modeIndex) => {
       const cells = trains.map((train) => {
@@ -274,10 +277,10 @@ export const getOudStationRows = (
         branchCoreStationId: station.branchCoreStationId,
         branchCoreStationName: branchCoreStation?.name,
         isFirstBranchRow: isBranchStation && modeIndex === 0,
-        // OUD2's BrunchCoreEkiIndex points to the core station; station IDs retain file order.
-        isOriginBranchRow: branchCoreStationId !== undefined && (direction === 0
-          ? station.id < branchCoreStationId
-          : station.id > branchCoreStationId),
+        // Draw the separator on the side facing the linked core station in timetable row order.
+        branchBorderPosition: isBranchStation && branchCoreStationIndex >= 0
+          ? rowIdx < branchCoreStationIndex ? "bottom" : "top"
+          : undefined,
       };
     });
   });

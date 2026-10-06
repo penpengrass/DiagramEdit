@@ -50,17 +50,17 @@
 tfoot{
   font-weight:bold;
 }
-.branch-station-row-kudari > td {
+.branch-station-border-top > td {
   border-top: 4px solid #333 !important;
 }
-.branch-station-row-nobori > td {
+.branch-station-border-bottom > td {
   border-bottom: 4px solid #333 !important;
 }
 
-.branch-station-row-kudari .Station-cell {
+.branch-station-border-top .Station-cell {
   position: relative;
 }
-.branch-station-row-nobori .Station-cell {
+.branch-station-border-bottom .Station-cell {
   position: relative;
 }
 .branch-station-badge {
