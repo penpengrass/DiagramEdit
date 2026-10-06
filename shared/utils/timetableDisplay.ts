@@ -79,6 +79,11 @@ export type OudTrainTableStationRowDisplay = {
   stationName: string;
   mode: OudStationDisplayMode;
   cells: OudTrainTableCellDisplay[];
+  isBranchStation: boolean;
+  branchCoreStationId?: number;
+  branchCoreStationName?: string;
+  isFirstBranchRow: boolean;
+  isOriginBranchRow: boolean;
 };
 
 export type OudTrainTableCellValue = {
@@ -151,14 +156,14 @@ const getRawTimeWithGap = (
   field: "arrive" | "departure",
 ): string => {
   const value = getRawTimeValue(train.time[stationIndex], field);
-  if (value !== "･･･") return value;
+  if (value !== "･･･" && value !== "") return value;
 
   const hasTimeAbove = train.time
     .slice(0, stationIndex)
-    .some((entry) => hasRealRawTime(entry, field));
+    .some((entry) => hasRealRawTime(entry, "arrive") || hasRealRawTime(entry, "departure"));
   const hasTimeBelow = train.time
     .slice(stationIndex + 1)
-    .some((entry) => hasRealRawTime(entry, field));
+    .some((entry) => hasRealRawTime(entry, "arrive") || hasRealRawTime(entry, "departure"));
 
   return hasTimeAbove && hasTimeBelow ? "||" : value;
 };
@@ -173,9 +178,11 @@ export const getOudTrainDisplayCell = (
   let arrival = getRawTimeWithGap(train, stationIndex, "arrive");
   const departure = getRawTimeWithGap(train, stationIndex, "departure");
 
-  const previousDeparture = getRawTimeValue(train.time[stationIndex - 1], "departure");
-  if (arrival === "" && previousDeparture !== "" && previousDeparture !== "･･･" && departure !== "") {
-    arrival = "〇";
+  if (getRawTimeValue(entry, "arrive") === "" && hasRealRawTime(entry, "departure")) {
+    const hasEarlierTime = train.time
+      .slice(0, stationIndex)
+      .some((previousEntry) => hasRealRawTime(previousEntry, "arrive") || hasRealRawTime(previousEntry, "departure"));
+    arrival = hasEarlierTime ? "〇" : "･･･";
   } else if (arrival === "") {
     arrival = "･･･";
   }
@@ -183,44 +190,46 @@ export const getOudTrainDisplayCell = (
   return {
     arrival,
     departure: departure || "･･･",
-    railNumber: entry?.stop === "1" ? railNumber : entry?.stop === "0" ? "･･･" : "",
+    railNumber: arrival === "||" || departure === "||"
+      ? "||"
+      : entry?.stop === "1" ? railNumber : entry?.stop === "0" ? "･･･" : "",
   };
 };
 
 export const getOudHeaderRows = (
   columns: OudTrainHeaderDisplay[],
 ): OudTrainTableRowDisplay[] => [
-  {
-    key: "trainNumber",
-    label: "列車番号",
-    values: columns.map((column) => ({ trainKey: column.key, value: column.number })),
-  },
-  {
-    key: "type",
-    label: "種別",
-    values: columns.map((column) => ({ trainKey: column.key, value: column.typeShortName })),
-  },
-  {
-    key: "startStation",
-    label: "始発駅",
-    values: columns.map((column) => ({ trainKey: column.key, value: column.startStation })),
-  },
-  {
-    key: "endStation",
-    label: "終着駅",
-    values: columns.map((column) => ({ trainKey: column.key, value: column.endStation })),
-  },
-  {
-    key: "outerDeparture",
-    label: "路線外始発",
-    values: columns.map((column) => ({ trainKey: column.key, value: column.outerDeparture.text })),
-  },
-  {
-    key: "outerArrival",
-    label: "路線外終着",
-    values: columns.map((column) => ({ trainKey: column.key, value: column.outerArrival.text })),
-  },
-];
+    {
+      key: "trainNumber",
+      label: "列車番号",
+      values: columns.map((column) => ({ trainKey: column.key, value: column.number })),
+    },
+    {
+      key: "type",
+      label: "種別",
+      values: columns.map((column) => ({ trainKey: column.key, value: column.typeShortName })),
+    },
+    {
+      key: "startStation",
+      label: "始発駅",
+      values: columns.map((column) => ({ trainKey: column.key, value: column.startStation })),
+    },
+    {
+      key: "endStation",
+      label: "終着駅",
+      values: columns.map((column) => ({ trainKey: column.key, value: column.endStation })),
+    },
+    {
+      key: "outerDeparture",
+      label: "路線外始発",
+      values: columns.map((column) => ({ trainKey: column.key, value: column.outerDeparture.text })),
+    },
+    {
+      key: "outerArrival",
+      label: "路線外終着",
+      values: columns.map((column) => ({ trainKey: column.key, value: column.outerArrival.text })),
+    },
+  ];
 
 export const getOudStationRows = (
   trains: TrainData[],
@@ -230,7 +239,14 @@ export const getOudStationRows = (
   const direction = trains[0]?.dir ?? 0;
 
   return stations.flatMap((station, rowIdx) => {
-    return getOudStationDisplayModes(station.layout, direction).map((mode) => {
+    const displayModes = getOudStationDisplayModes(station.layout, direction);
+    const branchCoreStationId = station.branchCoreStationId;
+    const isBranchStation = branchCoreStationId !== undefined;
+    const branchCoreStation = isBranchStation
+      ? stations.find(candidate => candidate.id === station.branchCoreStationId)
+      : undefined;
+
+    return displayModes.map((mode, modeIndex) => {
       const cells = trains.map((train) => {
         const entry = train.time[rowIdx];
         const railNumber = station.railnumber[entry?.railNumberID ?? -1]?.ryakushou ?? "";
@@ -254,6 +270,14 @@ export const getOudStationRows = (
         stationName: station.name,
         mode,
         cells,
+        isBranchStation,
+        branchCoreStationId: station.branchCoreStationId,
+        branchCoreStationName: branchCoreStation?.name,
+        isFirstBranchRow: isBranchStation && modeIndex === 0,
+        // OUD2's BrunchCoreEkiIndex points to the core station; station IDs retain file order.
+        isOriginBranchRow: branchCoreStationId !== undefined && (direction === 0
+          ? station.id < branchCoreStationId
+          : station.id > branchCoreStationId),
       };
     });
   });
@@ -338,6 +362,18 @@ export const getOudTrainHeaderDisplay = (
     outerDeparture: getOudOuterTerminalDisplay(train, stations, true),
     outerArrival: getOudOuterTerminalDisplay(train, stations, false),
   };
+};
+export const getBranchCoreStation = (
+  station: Station,
+  stations: Station[]
+): Station | undefined => {
+  if (station.branchCoreStationId === undefined) {
+    return undefined;
+  }
+
+  return stations.find(
+    candidate => candidate.id === station.branchCoreStationId
+  );
 };
 
 export const toSingleOuterTime = <T>(value: T | T[] | null | undefined): T | undefined => {

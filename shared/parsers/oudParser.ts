@@ -352,11 +352,12 @@ export function parseOud(content: string, fileName: string): OudData {
 
         while (td + 1 < lines.length && lines[td + 1] !== 'EkiTrack2.') {
           const nextLine = lines[td + 1];
-          if (nextLine?.startsWith('BrunchCoreEkiIndex')) {
-            const BrunchID: string = nextLine.replace('BrunchCoreEkiIndex=', '');
+          if (nextLine?.startsWith('BrunchCoreEkiIndex=')) {
+            const branchCoreStationId = Number(nextLine.substring('BrunchCoreEkiIndex='.length));
             const lastStation = stations[stations.length - 1];
-            if (lastStation) {
-              lastStation.BrunchFromStationID = Number(BrunchID);
+            if (lastStation && Number.isInteger(branchCoreStationId) && branchCoreStationId >= 0) {
+              lastStation.branchCoreStationId = branchCoreStationId;
+              lastStation.BrunchFromStationID = branchCoreStationId;
             }
           }
           td++;
