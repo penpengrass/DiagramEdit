@@ -1,4 +1,4 @@
-import type { Station, TrainData } from '../types/timetable';
+import type { Diagrams, Station, TrainData } from '../types/timetable';
 import { Time } from './Time';
 
 export type DiagramDisplayMode = 'kudari' | 'nobori' | 'both';
@@ -6,6 +6,11 @@ export type DiagramDisplayMode = 'kudari' | 'nobori' | 'both';
 export interface DiagramTrainGroup {
     trains: TrainData[];
     isNobori: boolean;
+}
+
+export interface DiagramSelectionOption {
+    value: string;
+    label: string;
 }
 
 export interface DiagramPoint {
@@ -26,6 +31,8 @@ export const DIAGRAM_MIN_ZOOM = 0.5;
 export const DIAGRAM_MAX_ZOOM = 2;
 export const DIAGRAM_ZOOM_STEP = 0.25;
 export const DIAGRAM_HIT_TOLERANCE = 8;
+export const DIAGRAM_BASE_SCALE = 1.5;
+export const DIAGRAM_STATION_SCALE = DIAGRAM_BASE_SCALE * 0.75;
 
 const MINUTES_PER_DAY = 24 * 60;
 
@@ -65,6 +72,20 @@ export function getDiagramTrainGroups(
         { trains: kudariTrains, isNobori: false },
         { trains: noboriTrains, isNobori: true },
     ];
+}
+
+export function getDiagramSelectionOptions(diagrams: Diagrams[]): DiagramSelectionOption[] {
+    if (diagrams.length > 0) {
+        return diagrams.map((diagram) => ({ value: String(diagram.id + 1), label: diagram.name }));
+    }
+    return [
+        { value: '1', label: '初期ダイヤ' },
+        { value: '2', label: '第2ダイヤ' },
+    ];
+}
+
+export function filterTrainsByDiagram(trains: TrainData[], diagramValue: string): TrainData[] {
+    return trains.filter((train) => String(train.DiaLine) === diagramValue);
 }
 
 export function getDiagramTrainKey(train: TrainData, isNobori: boolean): string {

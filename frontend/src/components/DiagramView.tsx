@@ -1,17 +1,21 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Station } from '../constants/stationmap';
-import { TrainData, TrainType } from '../constants/Traindatamap';
+import { Diagrams, TrainData, TrainType } from '../constants/Traindatamap';
 import { toABGR } from './TypeShow';
 import TrainDataTable from './TrainData';
 import {
     adjustDiagramZoom,
+    DIAGRAM_BASE_SCALE,
     DIAGRAM_MAX_ZOOM,
     DIAGRAM_MIN_ZOOM,
+    DIAGRAM_STATION_SCALE,
+    filterTrainsByDiagram,
     findDiagramTrainByKey,
     findNearestDiagramTrainKey,
     getDiagramHitDistance,
     getDiagramLineSegments,
     getDiagramLineWidth,
+    getDiagramSelectionOptions,
     getDiagramStartHour,
     getDiagramTrainGroups,
     type DiagramLineSegment,
@@ -23,21 +27,25 @@ interface Props {
     NoboriTrainDataA: TrainData[];
     stationsA: Station[];
     typesA: TrainType[];
+    diagrams: Diagrams[];
     kitenJikoku?: number;
 }
 
-const DiagramView: React.FC<Props> = ({ TrainDataA, NoboriTrainDataA, stationsA, typesA, kitenJikoku = 0 }) => {
+const DiagramView: React.FC<Props> = ({ TrainDataA, NoboriTrainDataA, stationsA, typesA, diagrams, kitenJikoku = 0 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const lineSegmentsRef = useRef<DiagramLineSegment[]>([]);
     const timeCanvasRef = useRef<HTMLCanvasElement>(null);
     const stationCanvasRef = useRef<HTMLCanvasElement>(null);
     const [displayMode, setDisplayMode] = useState<DiagramDisplayMode>('both');
+    const [selectedDia, setSelectedDia] = useState('1');
     const [zoom, setZoom] = useState(1);
+    const renderScale = DIAGRAM_BASE_SCALE * zoom;
     const [selectedTrainKey, setSelectedTrainKey] = useState<string | null>(null);
-    const selectedTrain = findDiagramTrainByKey(
-        getDiagramTrainGroups(TrainDataA, NoboriTrainDataA, 'both'),
-        selectedTrainKey,
-    );
+    const diagramOptions = useMemo(() => getDiagramSelectionOptions(diagrams), [diagrams]);
+    const selectedKudariTrains = useMemo(() => filterTrainsByDiagram(TrainDataA, selectedDia), [TrainDataA, selectedDia]);
+    const selectedNoboriTrains = useMemo(() => filterTrainsByDiagram(NoboriTrainDataA, selectedDia), [NoboriTrainDataA, selectedDia]);
+    const selectedDiagramGroups = getDiagramTrainGroups(selectedKudariTrains, selectedNoboriTrains, 'both');
+    const selectedTrain = findDiagramTrainByKey(selectedDiagramGroups, selectedTrainKey);
     const selectedTrainStations = selectedTrainKey?.startsWith('nobori-')
         ? [...stationsA].reverse()
         : stationsA;
@@ -55,17 +63,17 @@ const DiagramView: React.FC<Props> = ({ TrainDataA, NoboriTrainDataA, stationsA,
         const leftMargin = 80;
         const width = 24 * 60;
         const height = stationsA.length * 40; // 駅1つあたり40px
-        canvas.width = Math.round(width * zoom);
-        canvas.height = Math.round(height * zoom);
-        timeCanvasRef.current.width = Math.round(width * zoom);
-        timeCanvasRef.current.height = Math.round(24 * zoom);
-        stationCanvasRef.current.width = Math.round(leftMargin * zoom);
-        stationCanvasRef.current.height = Math.round(height * zoom);
-        ctx.scale(zoom, zoom);
-        timeCtx.scale(zoom, zoom);
-        timeCtx.scale(1 / zoom, 1 / zoom);
-        stationCtx.scale(zoom, zoom);
-        stationCtx.scale(1 / zoom, 1 / zoom);
+        canvas.width = Math.round(width * renderScale);
+        canvas.height = Math.round(height * renderScale);
+        timeCanvasRef.current.width = Math.round(width * renderScale);
+        timeCanvasRef.current.height = Math.round(24 * renderScale);
+        stationCanvasRef.current.width = Math.round(leftMargin * DIAGRAM_STATION_SCALE);
+        stationCanvasRef.current.height = Math.round(height * renderScale);
+        ctx.scale(renderScale, renderScale);
+        timeCtx.scale(renderScale, renderScale);
+        timeCtx.scale(1 / renderScale, 1 / renderScale);
+        stationCtx.scale(renderScale, renderScale);
+        stationCtx.scale(1 / renderScale, 1 / renderScale);
 
         // 背景色
         ctx.fillStyle = '#ffffff';
@@ -94,26 +102,26 @@ const DiagramView: React.FC<Props> = ({ TrainDataA, NoboriTrainDataA, stationsA,
 
         // 駅名の描画（左側）
         stationCtx.fillStyle = '#ffffff';
-        stationCtx.fillRect(0, 0, leftMargin * zoom, height * zoom);
+        stationCtx.fillRect(0, 0, leftMargin * DIAGRAM_STATION_SCALE, height * renderScale);
         stationCtx.fillStyle = '#000000';
         stationCtx.font = '12px sans-serif';
         stationCtx.textAlign = 'right';
         stationCtx.textBaseline = 'middle';
         stationsA.forEach((station, index) => {
-            const y = (index * 40 + 20) * zoom;
+            const y = (index * 40 + 20) * renderScale;
             stationCtx.fillText(station.name.substring(0, 6), 70, y);
         });
         timeCtx.fillStyle = '#ffffff';
-        timeCtx.fillRect(0, 0, width * zoom, 24 * zoom);
+        timeCtx.fillRect(0, 0, width * renderScale, 24 * renderScale);
         timeCtx.fillStyle = '#000000';
         timeCtx.font = 'bold 14px sans-serif';
         timeCtx.textAlign = 'center';
         timeCtx.textBaseline = 'bottom';
         for (let hour = 0; hour <= 24; hour++) {
             const displayHour = (startHour + hour) % 24;
-            timeCtx.fillText(displayHour.toString().padStart(2, '0'), hour * 60 * zoom, 20);
+            timeCtx.fillText(displayHour.toString().padStart(2, '0'), hour * 60 * renderScale, 20);
         }
-        const trainGroups = getDiagramTrainGroups(TrainDataA, NoboriTrainDataA, displayMode);
+        const trainGroups = getDiagramTrainGroups(selectedKudariTrains, selectedNoboriTrains, displayMode);
         const lineSegments = getDiagramLineSegments(trainGroups, stationsA, 40, kitenJikoku);
         lineSegmentsRef.current = lineSegments;
         const segmentsByTrain = new Map<string, DiagramLineSegment[]>();
@@ -141,13 +149,13 @@ const DiagramView: React.FC<Props> = ({ TrainDataA, NoboriTrainDataA, stationsA,
             });
             ctx.stroke();
         });
-    }, [TrainDataA, NoboriTrainDataA, stationsA, typesA, displayMode, kitenJikoku, zoom, selectedTrainKey]);
+    }, [selectedKudariTrains, selectedNoboriTrains, stationsA, typesA, displayMode, kitenJikoku, renderScale, selectedTrainKey]);
 
     const handleDiagramClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
         const bounds = event.currentTarget.getBoundingClientRect();
-        const x = (event.clientX - bounds.left) / zoom;
-        const y = (event.clientY - bounds.top) / zoom;
-        setSelectedTrainKey(findNearestDiagramTrainKey(lineSegmentsRef.current, { x, y }, getDiagramHitDistance(zoom)));
+        const x = (event.clientX - bounds.left) / renderScale;
+        const y = (event.clientY - bounds.top) / renderScale;
+        setSelectedTrainKey(findNearestDiagramTrainKey(lineSegmentsRef.current, { x, y }, getDiagramHitDistance(renderScale)));
     };
 
     return (
@@ -166,6 +174,20 @@ const DiagramView: React.FC<Props> = ({ TrainDataA, NoboriTrainDataA, stationsA,
                     リセット
                 </button>
             </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', flexShrink: 0 }}>
+                    ダイヤ
+                    <select
+                        value={selectedDia}
+                        onChange={(event) => {
+                            setSelectedDia(event.target.value);
+                            setSelectedTrainKey(null);
+                        }}
+                    >
+                        {diagramOptions.map((option) => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                    </select>
+            </label>
             <fieldset style={{ marginBottom: '12px', flexShrink: 0 }}>
                 <legend>表示する列車</legend>
                 <label>
@@ -200,7 +222,7 @@ const DiagramView: React.FC<Props> = ({ TrainDataA, NoboriTrainDataA, stationsA,
                 </label>
             </fieldset>
             <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: `${80 * zoom}px ${1440 * zoom}px`, gridTemplateRows: `${24 * zoom}px ${stationsA.length * 40 * zoom}px`, width: 'max-content' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: `${80 * DIAGRAM_STATION_SCALE}px ${1440 * renderScale}px`, gridTemplateRows: `${24 * renderScale}px ${stationsA.length * 40 * renderScale}px`, width: 'max-content' }}>
                     <div style={{ position: 'sticky', top: 0, left: 0, zIndex: 3, background: '#fff', border: '1px solid #ccc', boxSizing: 'border-box' }} />
                     <canvas ref={timeCanvasRef} style={{ position: 'sticky', top: 0, zIndex: 2, background: '#fff', borderTop: '1px solid #ccc', borderBottom: '1px solid #ccc', boxSizing: 'border-box' }} />
                     <canvas ref={stationCanvasRef} style={{ position: 'sticky', left: 0, zIndex: 2, background: '#fff', borderLeft: '1px solid #ccc', borderRight: '1px solid #ccc', boxSizing: 'border-box' }} />

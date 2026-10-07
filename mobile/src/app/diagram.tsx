@@ -20,6 +20,7 @@ export default function DiagramScreen() {
               noboriTrains={parsedData.NoboriData}
               stations={parsedData.stations}
               trainTypes={parsedData.TrainType}
+              diagrams={parsedData.Diagrams}
               kitenJikoku={parsedData.KitenJikoku}
             />
           ) : (
