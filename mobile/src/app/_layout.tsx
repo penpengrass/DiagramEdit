@@ -30,8 +30,8 @@ export default function RootLayout() {
         <Drawer.Screen
           name="train-preview"
           options={{
-            title: '列車プレビュー',
-            drawerLabel: '列車プレビュー',
+            title: '時刻表',
+            drawerLabel: '時刻表',
           }}
         />
         <Drawer.Screen
@@ -39,6 +39,13 @@ export default function RootLayout() {
           options={{
             title: 'ダイヤグラム',
             drawerLabel: 'ダイヤグラム',
+          }}
+        />
+        <Drawer.Screen
+          name="running-position"
+          options={{
+            title: '走行位置',
+            drawerLabel: '走行位置',
           }}
         />
       </Drawer>
