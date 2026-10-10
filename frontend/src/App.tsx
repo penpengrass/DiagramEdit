@@ -16,8 +16,9 @@ import { StationList } from "./components/StationListByDB.tsx";
 import { TrainTypeList } from "./components/TrainTypeListByDB.tsx";
 import { TimeTableByDB } from "./components/TimeTableByDB.tsx"
 import { StationTimeTableByDB } from "./components/StationTimeTableByDB.tsx"
+import RunningPositionFromFile from "./components/RunningPositionFromFile.tsx";
 //import { Diagrams } from "./constants/Traindatamap";
-export type ComponentKey = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H'| 'I' | 'J' | 'K' | 'L' | 'M';
+export type ComponentKey = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H'| 'I' | 'J' | 'K' | 'L' | 'M' | 'N';
 import StationTimeTable from "./components/StationTimeTable.tsx";
 //import { Diagrams } from "./constants/Traindatamap";
 
@@ -81,6 +82,13 @@ const App: React.FC = () => {
             {selected === 'K' && <TrainTypeList />}
             {selected === 'L' && <TimeTableByDB />}
             {selected === 'M' && <StationTimeTableByDB />}
+            {selected === 'N' && <RunningPositionFromFile
+              stationsA={stations}
+              kudariTrains={KudariDataA}
+              noboriTrains={NoboriDataA}
+              trainTypes={TrainTypeA}
+              diagrams={Diagram}
+            />}
           </div >
         </div >
       </div >
