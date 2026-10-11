@@ -62,6 +62,12 @@ const saveStationsToDb = async () => {
     //見つからない場合はmain(Ekikibo...)をそのまま返すという意味、Null合体演算子
     return map[main]?.label ?? main;
   };
+  const getDisplayLabel = (value: boolean | undefined): string => {
+    if (value === undefined) return '未';
+    return value ? '○' : '×';
+  };
+  const getDirectionDisplay = (station: Station, direction: 'kudari' | 'nobori') =>
+    station.customTimetableDisplay?.[direction];
   if (stationsA.length === 0) {
     return <div>No stations loaded.</div>;
   }
@@ -77,6 +83,8 @@ const saveStationsToDb = async () => {
             <th>表示形式</th>
             <th>駅規模</th>
             <th>分岐駅</th>
+            <th>カスタマイズ時刻表（着発表示）</th>
+            <th>カスタマイズ時刻表（番線表示）</th>
           </tr>
         </thead>
         <tbody>
@@ -92,6 +100,16 @@ const saveStationsToDb = async () => {
               <td>{getViewByObject(station.layout, layoutNameMap)}</td>
               <td>{getMainByObject(station.main, mainNameMap)}</td>
               <td>{station.BrunchFromStationID} {stationsA[station.BrunchFromStationID]?.name}</td>
+              <td>
+                下り: 着{getDisplayLabel(getDirectionDisplay(station, 'kudari')?.arrival)}・発{getDisplayLabel(getDirectionDisplay(station, 'kudari')?.departure)}
+                <br />
+                上り: 着{getDisplayLabel(getDirectionDisplay(station, 'nobori')?.arrival)}・発{getDisplayLabel(getDirectionDisplay(station, 'nobori')?.departure)}
+              </td>
+              <td>
+                下り: {getDisplayLabel(getDirectionDisplay(station, 'kudari')?.track)}
+                <br />
+                上り: {getDisplayLabel(getDirectionDisplay(station, 'nobori')?.track)}
+              </td>
             </tr>
           ))}
         </tbody>

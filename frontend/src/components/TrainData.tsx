@@ -262,7 +262,7 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
   const filteredTrainDataA = singleTrain
     ? TrainDataA
     : TrainDataA.filter((onedata) => String(onedata.DiaLine) === selectedDia);
-  const displayModel = sharedGetOudTrainTableDisplayModel(filteredTrainDataA, typesA, stationsA);
+  const displayModel = sharedGetOudTrainTableDisplayModel(filteredTrainDataA, typesA, stationsA, true);
   const direction = filteredTrainDataA[0]?.dir ?? 0;
   return (
     <div>
@@ -309,19 +309,22 @@ const TrainDataTable: React.FC<TrainDataProps> = ({ TrainDataA, typesA, stations
                   : undefined
               }
             >
-              <td className="tt-station">
-                <div className="Station-cell">
-                  {row.mode === "railNumber" ? (
-                    "発着番線"
-                  ) : (
-                    <>
+              {row.isFirstStationRow && (
+                <td className="tt-station" rowSpan={row.stationRowSpan}>
+                  <div className="Station-cell">
+                    <div>
                       {row.stationName}
                       {row.isFirstBranchRow && (
                         <span className="branch-station-badge"></span>
                       )}
-                    </>
-                  )}
-                </div></td>
+                    </div>
+                    {row.stationRowSpan > 1 &&
+                      displayModel.stationRows.some(
+                        (stationRow) => stationRow.stationId === row.stationId && stationRow.mode === "railNumber",
+                      ) && <div>発着番線</div>}
+                  </div>
+                </td>
+              )}
               {row.cells.map((cell) => (
                 <td
                   key={`${row.key}-${cell.trainKey}`}

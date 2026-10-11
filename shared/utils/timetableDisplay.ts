@@ -26,7 +26,7 @@ export type StationLike = {
   name: string;
 };
 
-import type { Station, TimeEntry, TrainData, TrainType } from "../types/timetable";
+import type { CustomTimetableDirectionDisplay, Station, TimeEntry, TrainData, TrainType } from "../types/timetable";
 import { formatTime } from "../utils/Time";
 
 /** フロントとモバイルで共通して使う OUD の種別色変換。 */
@@ -79,6 +79,8 @@ export type OudTrainTableStationRowDisplay = {
   stationName: string;
   mode: OudStationDisplayMode;
   cells: OudTrainTableCellDisplay[];
+  isFirstStationRow: boolean;
+  stationRowSpan: number;
   isBranchStation: boolean;
   branchCoreStationId?: number;
   branchCoreStationName?: string;
@@ -124,15 +126,18 @@ const stationLayoutValues: Record<string, number[]> = {
 export const getOudStationDisplayModes = (
   layout: string,
   direction: number,
+  customDisplay?: CustomTimetableDirectionDisplay,
+  applyCustomTimetableDisplay = false,
 ): OudStationDisplayMode[] => {
   const values = stationLayoutValues[layout] ?? [0, 0, 0, 0];
-  const arrive = values[direction * 2] === 1;
-  const departure = values[direction * 2 + 1] === 1;
-
-  if (arrive && departure) return ["arrive", "railNumber", "departure"];
-  if (arrive) return ["arrive"];
-  if (departure) return ["departure"];
-  return [];
+  const arrive = customDisplay?.arrival ?? values[direction * 2] === 1;
+  const departure = customDisplay?.departure ?? values[direction * 2 + 1] === 1;
+  const railNumber = customDisplay?.track ?? (!applyCustomTimetableDisplay && arrive && departure);
+  const modes: OudStationDisplayMode[] = [];
+  if (arrive) modes.push("arrive");
+  if (railNumber) modes.push("railNumber");
+  if (departure) modes.push("departure");
+  return modes;
 };
 
 const isPlaceholder = (value: string): boolean =>
@@ -235,11 +240,22 @@ export const getOudStationRows = (
   trains: TrainData[],
   trainTypes: TrainType[],
   stations: Station[],
+  applyCustomTimetableDisplay = false,
 ): OudTrainTableStationRowDisplay[] => {
   const direction = trains[0]?.dir ?? 0;
 
   return stations.flatMap((station, rowIdx) => {
-    const displayModes = getOudStationDisplayModes(station.layout, direction);
+    const customDisplay = applyCustomTimetableDisplay
+      ? direction === 0
+        ? station.customTimetableDisplay?.kudari
+        : station.customTimetableDisplay?.nobori
+      : undefined;
+    const displayModes = getOudStationDisplayModes(
+      station.layout,
+      direction,
+      customDisplay,
+      applyCustomTimetableDisplay,
+    );
     const branchCoreStationId = station.branchCoreStationId;
     const isBranchStation = branchCoreStationId !== undefined;
     const branchCoreStation = isBranchStation
@@ -273,6 +289,8 @@ export const getOudStationRows = (
         stationName: station.name,
         mode,
         cells,
+        isFirstStationRow: modeIndex === 0,
+        stationRowSpan: displayModes.length,
         isBranchStation,
         branchCoreStationId: station.branchCoreStationId,
         branchCoreStationName: branchCoreStation?.name,
@@ -290,13 +308,14 @@ export const getOudTrainTableDisplayModel = (
   trains: TrainData[],
   trainTypes: TrainType[],
   stations: Station[],
+  applyCustomTimetableDisplay = false,
 ): OudTrainTableDisplayModel => {
   const columns = trains.map((train) => getOudTrainHeaderDisplay(train, trainTypes, stations));
 
   return {
     columns,
     headerRows: getOudHeaderRows(columns),
-    stationRows: getOudStationRows(trains, trainTypes, stations),
+    stationRows: getOudStationRows(trains, trainTypes, stations, applyCustomTimetableDisplay),
   };
 };
 

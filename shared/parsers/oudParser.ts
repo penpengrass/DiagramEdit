@@ -10,6 +10,7 @@ import type {
   OudData,
   CreateTrainData,
   TrainStopTimeData,
+  CustomTimetableDirectionDisplay,
 } from "@shared/types/timetable.js";
 
 /**
@@ -31,6 +32,35 @@ function getDataByKeyWord(keyWord: string, str: string): string {
     return str.substring(str.indexOf('=') + 1);
   }
   return "";
+}
+
+function parseDisplayFlag(value: string): boolean | undefined {
+  if (value === "1") return true;
+  if (value === "0") return false;
+  return undefined;
+}
+
+function parseCustomTimetableDisplaySetting(line: string, station: Station | undefined): void {
+  const match = line.match(/^Jikokuhyou(JikokuDisplay|TrackDisplay)(Kudari|Nobori)=(.*)$/);
+  if (!match || !station) return;
+
+  const [, settingType, direction, rawValue] = match;
+  const display = station.customTimetableDisplay ?? (station.customTimetableDisplay = {});
+  const directionDisplay: CustomTimetableDirectionDisplay =
+    display[direction === "Kudari" ? "kudari" : "nobori"] ??
+    (display[direction === "Kudari" ? "kudari" : "nobori"] = {});
+
+  if (settingType === "TrackDisplay") {
+    const track = parseDisplayFlag(rawValue);
+    if (track !== undefined) directionDisplay.track = track;
+    return;
+  }
+
+  const [arrivalRaw, departureRaw] = rawValue.split(",");
+  const arrival = parseDisplayFlag(arrivalRaw ?? "");
+  const departure = parseDisplayFlag(departureRaw ?? "");
+  if (arrival !== undefined) directionDisplay.arrival = arrival;
+  if (departure !== undefined) directionDisplay.departure = departure;
 }
 
 /**
@@ -349,6 +379,14 @@ export function parseOud(content: string, fileName: string): OudData {
           getDataFromFile(lines[td + 2] || ''),
           getDataFromFile(lines[td + 3] || '')
         );
+
+        for (let stationLine = td + 1; stationLine < lines.length; stationLine++) {
+          const stationSettingLine = lines[stationLine];
+          if (stationSettingLine?.startsWith('Eki.')) break;
+          if (stationSettingLine) {
+            parseCustomTimetableDisplaySetting(stationSettingLine, stations[countStation]);
+          }
+        }
 
         while (td + 1 < lines.length && lines[td + 1] !== 'EkiTrack2.') {
           const nextLine = lines[td + 1];

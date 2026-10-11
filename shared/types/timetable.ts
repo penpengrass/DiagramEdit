@@ -39,6 +39,17 @@ export interface OuterTerminalStation {
     diaryaku: string;
 }
 
+export interface CustomTimetableDirectionDisplay {
+    arrival?: boolean;
+    departure?: boolean;
+    track?: boolean;
+}
+
+export interface CustomTimetableDisplay {
+    kudari?: CustomTimetableDirectionDisplay;
+    nobori?: CustomTimetableDirectionDisplay;
+}
+
 /**
  * 駅の型定義
  */
@@ -51,6 +62,7 @@ export interface Station {
     OuterTerminal: OuterTerminalStation[];
     branchCoreStationId?: number;
     BrunchFromStationID?: number;
+    customTimetableDisplay?: CustomTimetableDisplay;
 }
 
 /**

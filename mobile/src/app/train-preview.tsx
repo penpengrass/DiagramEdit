@@ -29,7 +29,7 @@ export default function TrainPreviewScreen() {
   const stations = parsedData
     ? getOrderedStations(parsedData.stations, direction === 'down' ? 'Kudari' : 'Nobori')
     : [];
-  const displayModel = getOudTrainTableDisplayModel(trains, parsedData?.TrainType ?? [], stations);
+  const displayModel = getOudTrainTableDisplayModel(trains, parsedData?.TrainType ?? [], stations, true);
   const tableWidth = STATION_COLUMN_WIDTH + trains.length * TRAIN_COLUMN_WIDTH;
   const outerHeaderRows = [
     {
@@ -154,9 +154,7 @@ export default function TrainPreviewScreen() {
                   ))}
                   {displayModel.stationRows.map((row) => (
                     <View key={row.key} style={styles.row}>
-                      <View style={[styles.stationHeader, styles.bodyCell, row.isFirstBranchRow && row.branchBorderPosition && getBranchLineStyle(row.branchBorderPosition)]}>
-                        <ThemedText type="small" style={{ color: '#000000' }} numberOfLines={1}>{row.mode === 'railNumber' ? '発着番線' : row.stationName}</ThemedText>
-                      </View>
+                      <View style={[styles.stationHeader, styles.bodyCell, styles.stationSpacer, row.isFirstBranchRow && row.branchBorderPosition && getBranchLineStyle(row.branchBorderPosition)]} />
                       {row.cells.map((cell) => (
                         <View key={`${row.key}-${cell.trainKey}`} style={[styles.trainCell, styles.bodyCell, row.isFirstBranchRow && row.branchBorderPosition && getBranchLineStyle(row.branchBorderPosition)]}>
                           <ThemedText
@@ -195,11 +193,27 @@ export default function TrainPreviewScreen() {
                     <ThemedText type="smallBold" style={{ color: '#000000' }}>{row.label}</ThemedText>
                   </View>
                 ))}
-                {displayModel.stationRows.map((row) => (
-                  <View key={`fixed-${row.key}`} style={[styles.stationHeader, styles.bodyCell, row.isFirstBranchRow && row.branchBorderPosition && getBranchLineStyle(row.branchBorderPosition)]}>
-                    <ThemedText type="small" style={{ color: '#000000' }} numberOfLines={1}>
-                      {row.mode === 'railNumber' ? '発着番線' : row.stationName}
+                {displayModel.stationRows.filter((row) => row.isFirstStationRow).map((row) => (
+                  <View
+                    key={`fixed-${row.key}`}
+                    style={[
+                      styles.stationHeader,
+                      styles.bodyCell,
+                      styles.mergedStationCell,
+                      { height: row.stationRowSpan * 20 },
+                      row.isFirstBranchRow && row.branchBorderPosition && getBranchLineStyle(row.branchBorderPosition),
+                    ]}
+                  >
+                    <ThemedText type="smallBold" style={{ color: '#000000' }} numberOfLines={1}>
+                      {row.stationName}
                     </ThemedText>
+                    {row.stationRowSpan > 1 && displayModel.stationRows.some(
+                      (stationRow) => stationRow.stationId === row.stationId && stationRow.mode === 'railNumber',
+                    ) && (
+                      <ThemedText type="small" style={{ color: '#000000' }} numberOfLines={1}>
+                        発着番線
+                      </ThemedText>
+                    )}
                   </View>
                 ))}
                 {[...displayModel.headerRows.slice(2, 2), ...outerFooterRows].map((row) => (
@@ -236,6 +250,8 @@ const styles = StyleSheet.create({
   stationHeader: {color: '#000000', width: STATION_COLUMN_WIDTH },
   trainHeader: { width: TRAIN_COLUMN_WIDTH },
   trainCell: { height: 20, width: TRAIN_COLUMN_WIDTH, alignItems: 'center' },
+  stationSpacer: { height: 20 },
+  mergedStationCell: { alignItems: 'flex-start', justifyContent: 'center', paddingLeft: 2 },
   trainText: { fontSize: 12, textAlign: 'center' },
   headerCell: { minHeight: 14, justifyContent: 'center', paddingHorizontal: 0, borderRightWidth: 1, borderBottomWidth: 1, borderColor: '#d1d5db', backgroundColor: '#ffffff' },
   bodyCell: { minHeight: 10, justifyContent: 'center', paddingHorizontal: 0, borderRightWidth: 1, borderBottomWidth: 1, borderColor: '#e5e7eb' },
