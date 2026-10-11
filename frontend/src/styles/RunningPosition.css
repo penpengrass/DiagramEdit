@@ -61,6 +61,34 @@
   font: inherit;
 }
 
+.running-position__time-adjusters,
+.running-position__time-adjuster {
+  display: inline-flex;
+}
+
+.running-position__time-adjuster {
+  flex-direction: column;
+}
+
+.running-position__time-adjuster button {
+  padding: 0 4px;
+  border: 1px solid #d6dce2;
+  background: #f3f6f8;
+  font-size: 0.65rem;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.running-position__time-adjuster button + button {
+  border-top: 0;
+}
+
+.running-position__current-time {
+  padding: 6px 8px;
+  font: inherit;
+  cursor: pointer;
+}
+
 .running-position__time-control select {
   padding: 6px 8px;
   font: inherit;
@@ -148,7 +176,7 @@
   box-sizing: border-box;
   width: auto;
   display: inline-block;
-  max-width: 110px;
+  max-width: 220px;
   overflow: hidden;
   padding: 2px 6px;
   border: 1px solid;

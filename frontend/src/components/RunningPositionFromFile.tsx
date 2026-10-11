@@ -17,6 +17,7 @@ interface Props {
 
 const STATION_ROW_HEIGHT = 76;
 const STATION_LINE_OFFSET = 17;
+const MINUTES_PER_DAY = 24 * 60;
 
 function getCurrentTimeValue(): string {
     const now = new Date();
@@ -28,6 +29,12 @@ const RunningPositionFromFile: React.FC<Props> = ({ stationsA, kudariTrains, nob
     const [selectedDiagram, setSelectedDiagram] = useState('1');
     const [selectedTrainKey, setSelectedTrainKey] = useState<string | null>(null);
     const layout = useMemo(() => getRunningPositionLayout(stationsA), [stationsA]);
+    const adjustDisplayTime = (minutes: number) => {
+        const [hours, currentMinutes] = displayTime.split(':').map(Number);
+        if (!Number.isInteger(hours) || !Number.isInteger(currentMinutes)) return;
+        const nextTime = (hours * 60 + currentMinutes + minutes + MINUTES_PER_DAY) % MINUTES_PER_DAY;
+        setDisplayTime(`${String(Math.floor(nextTime / 60)).padStart(2, '0')}:${String(nextTime % 60).padStart(2, '0')}`);
+    };
     const diagramOptions = useMemo(() => getDiagramSelectionOptions(diagrams), [diagrams]);
     const selectedKudariTrains = useMemo(
         () => kudariTrains.filter((train) => String(train.DiaLine) === selectedDiagram),
@@ -80,6 +87,7 @@ const RunningPositionFromFile: React.FC<Props> = ({ stationsA, kudariTrains, nob
         const label = [
             train.trainNumber.trim(),
             trainTypeLabel,
+            train.trainName.trim(),
             train.destination,
         ].filter(Boolean).join(' ');
         return (
@@ -87,7 +95,7 @@ const RunningPositionFromFile: React.FC<Props> = ({ stationsA, kudariTrains, nob
                 type="button"
                 className={`running-position__train${selectedTrainKey === train.key ? ' running-position__train--selected' : ''}`}
                 key={train.key}
-                title={[label, train.trainName].filter(Boolean).join(' ')}
+                title={label}
                 style={{ color, borderColor: color }}
                 onClick={() => handleTrainClick(train)}
             >
@@ -101,14 +109,33 @@ const RunningPositionFromFile: React.FC<Props> = ({ stationsA, kudariTrains, nob
             <div className="running-position__main">
             <header className="running-position__header">
                 <h2>走行位置</h2>
-                <label className="running-position__time-control">
-                    表示時刻
+                <div className="running-position__time-control">
+                    <label htmlFor="running-position-time">表示時刻</label>
                     <input
+                        id="running-position-time"
                         type="time"
                         value={displayTime}
                         onChange={(event) => setDisplayTime(event.target.value)}
                     />
-                </label>
+                    <div className="running-position__time-adjusters" aria-label="時刻を調整">
+                        {[
+                            { label: '時', increment: 60 },
+                            { label: '分', increment: 1 },
+                        ].map(({ label, increment }) => (
+                            <span className="running-position__time-adjuster" key={label}>
+                                <button type="button" aria-label={`${label}を進める`} onClick={() => adjustDisplayTime(increment)}>▲</button>
+                                <button type="button" aria-label={`${label}を戻す`} onClick={() => adjustDisplayTime(-increment)}>▼</button>
+                            </span>
+                        ))}
+                    </div>
+                    <button
+                        type="button"
+                        className="running-position__current-time"
+                        onClick={() => setDisplayTime(getCurrentTimeValue())}
+                    >
+                        現在時刻
+                    </button>
+                </div>
                 <label className="running-position__time-control">
                     ダイヤ
                     <select value={selectedDiagram} onChange={(event) => {

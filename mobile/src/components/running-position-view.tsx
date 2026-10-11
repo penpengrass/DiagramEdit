@@ -1,11 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 
@@ -35,6 +34,14 @@ function getCurrentTimeValue(): string {
   return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 }
 
+function adjustTimeByMinutes(time: string, adjustment: number): string {
+  const [hours, minutes] = time.split(':').map(Number);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) return time;
+
+  const totalMinutes = (hours * 60 + minutes + adjustment + 24 * 60) % (24 * 60);
+  return `${String(Math.floor(totalMinutes / 60)).padStart(2, '0')}:${String(totalMinutes % 60).padStart(2, '0')}`;
+}
+
 function isBranchSection(stations: Station[], sectionIndex: number): boolean {
   const station = stations[sectionIndex];
   const nextStation = stations[sectionIndex + 1];
@@ -55,8 +62,13 @@ export function RunningPositionView({
 }: Props) {
   const theme = useTheme();
   const [displayTime, setDisplayTime] = useState(getCurrentTimeValue);
+  const [displayHour, displayMinute] = displayTime.split(':');
+  const [draftTime, setDraftTime] = useState(displayTime);
   const [selectedDiagram, setSelectedDiagram] = useState('1');
   const [isDiagramMenuOpen, setIsDiagramMenuOpen] = useState(false);
+  const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
+  const hourScrollRef = useRef<ScrollView>(null);
+  const minuteScrollRef = useRef<ScrollView>(null);
   const layout = useMemo(() => getRunningPositionLayout(stations), [stations]);
   const diagramOptions = useMemo(() => getDiagramSelectionOptions(diagrams), [diagrams]);
   const selectedKudariTrains = useMemo(
@@ -109,15 +121,51 @@ export function RunningPositionView({
       <View style={styles.controls}>
         <View style={styles.timeControl}>
           <Text style={styles.controlLabel}>表示時刻</Text>
-          <TextInput
-            accessibilityLabel="表示時刻"
-            style={styles.timeInput}
-            value={displayTime}
-            onChangeText={(value) => setDisplayTime(value.replace(/[^\d:]/g, '').slice(0, 5))}
-            placeholder="HH:mm"
-            keyboardType="numbers-and-punctuation"
-            maxLength={5}
-          />
+          <View style={styles.timeInputRow}>
+            {([
+              { label: '時間', value: displayHour, adjustment: 60 },
+              { label: '分', value: displayMinute, adjustment: 1 },
+            ] as const).map(({ label, value, adjustment }, index) => (
+              <View key={label} style={styles.timeAdjuster}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${label}を戻す`}
+                  style={[styles.timeAdjusterButton, styles.timeAdjusterButtonLeft]}
+                  onPress={() => setDisplayTime((time) => adjustTimeByMinutes(time, -adjustment))}
+                >
+                  <Text style={styles.timeAdjusterArrow}>←</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${label} ${value}。タップして時刻を選択`}
+                  style={styles.timePickerButton}
+                  onPress={() => {
+                    setDraftTime(displayTime);
+                    setIsTimePickerOpen(true);
+                  }}
+                >
+                  <Text style={styles.timePickerButtonText}>{value}</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${label}を進める`}
+                  style={[styles.timeAdjusterButton, styles.timeAdjusterButtonRight]}
+                  onPress={() => setDisplayTime((time) => adjustTimeByMinutes(time, adjustment))}
+                >
+                  <Text style={styles.timeAdjusterArrow}>→</Text>
+                </Pressable>
+                {index === 0 && <Text style={styles.timeSeparator}>:</Text>}
+              </View>
+            ))}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="現在時刻に設定"
+              style={styles.currentTimeButton}
+              onPress={() => setDisplayTime(getCurrentTimeValue())}
+            >
+              <Text style={styles.currentTimeButtonText}>現在時刻</Text>
+            </Pressable>
+          </View>
         </View>
         <View style={styles.diagramControl}>
           <Text style={styles.controlLabel}>ダイヤ</Text>
@@ -196,6 +244,97 @@ export function RunningPositionView({
       </ScrollView>
 
       <Modal
+        visible={isTimePickerOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsTimePickerOpen(false)}
+        onShow={() => {
+          const [hour, minute] = draftTime.split(':').map(Number);
+          hourScrollRef.current?.scrollTo({ y: Math.max(0, hour * 40 - 100), animated: false });
+          minuteScrollRef.current?.scrollTo({ y: Math.max(0, minute * 40 - 100), animated: false });
+        }}
+      >
+        <View style={styles.modalBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setIsTimePickerOpen(false)}
+          />
+          <View style={styles.timePickerDialog}>
+            <Text style={styles.menuTitle}>時刻を選択</Text>
+            <View style={styles.timePickerColumns}>
+              {([
+                { label: '時', count: 24, ref: hourScrollRef, part: 0 },
+                { label: '分', count: 60, ref: minuteScrollRef, part: 1 },
+              ] as const).map(({ label, count, ref, part }) => (
+                <View key={label} style={styles.timePickerColumn}>
+                  <Text style={styles.timePickerColumnLabel}>{label}</Text>
+                  <ScrollView
+                    ref={ref}
+                    style={styles.timePickerList}
+                    nestedScrollEnabled
+                    showsVerticalScrollIndicator
+                  >
+                    {Array.from({ length: count }, (_, value) => {
+                      const [hour, minute] = draftTime.split(':').map(Number);
+                      const isSelected = (part === 0 ? hour : minute) === value;
+                      const formattedValue = String(value).padStart(2, '0');
+
+                      return (
+                        <Pressable
+                          key={value}
+                          accessibilityRole="button"
+                          accessibilityState={{ selected: isSelected }}
+                          style={[
+                            styles.timePickerOption,
+                            isSelected && styles.timePickerOptionSelected,
+                          ]}
+                          onPress={() => {
+                            const nextHour = part === 0 ? value : hour;
+                            const nextMinute = part === 1 ? value : minute;
+                            setDraftTime(
+                              `${String(nextHour).padStart(2, '0')}:${String(nextMinute).padStart(2, '0')}`,
+                            );
+                          }}
+                        >
+                          <Text
+                            style={[
+                              styles.timePickerOptionText,
+                              isSelected && styles.timePickerOptionTextSelected,
+                            ]}
+                          >
+                            {formattedValue}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              ))}
+            </View>
+            <View style={styles.timePickerActions}>
+              <Pressable
+                accessibilityRole="button"
+                style={styles.timePickerCancel}
+                onPress={() => setIsTimePickerOpen(false)}
+              >
+                <Text style={styles.timePickerCancelText}>キャンセル</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                style={styles.timePickerConfirm}
+                onPress={() => {
+                  setDisplayTime(draftTime);
+                  setIsTimePickerOpen(false);
+                }}
+              >
+                <Text style={styles.timePickerConfirmText}>決定</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
         visible={isDiagramMenuOpen}
         transparent
         animationType="fade"
@@ -242,17 +381,42 @@ const styles = StyleSheet.create({
   container: { flex: 1, minHeight: 0 },
   controls: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginBottom: 16 },
   timeControl: { gap: 6 },
+  timeInputRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   controlLabel: { fontWeight: '700', color: '#334155' },
-  timeInput: {
-    minWidth: 100,
+  timePickerButton: {
+    minWidth: 34,
     minHeight: 40,
-    paddingHorizontal: 10,
+    paddingHorizontal: 4,
     borderWidth: 1,
     borderColor: '#94a3b8',
-    borderRadius: 6,
-    color: '#0f172a',
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#fff',
   },
+  timePickerButtonText: { color: '#0f172a', fontSize: 16, fontVariant: ['tabular-nums'] },
+  timeAdjuster: { flexDirection: 'row', alignItems: 'center' },
+  timeAdjusterButton: {
+    minWidth: 28,
+    minHeight: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#94a3b8',
+    backgroundColor: '#f3f6f8',
+  },
+  timeAdjusterButtonLeft: { borderTopLeftRadius: 6, borderBottomLeftRadius: 6, borderRightWidth: 0 },
+  timeAdjusterButtonRight: { borderTopRightRadius: 6, borderBottomRightRadius: 6, borderLeftWidth: 0 },
+  timeAdjusterArrow: { color: '#334155', fontSize: 15, lineHeight: 20 },
+  timeSeparator: { marginHorizontal: 3, color: '#334155', fontSize: 16, fontWeight: '700' },
+  currentTimeButton: {
+    minHeight: 40,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2563eb',
+  },
+  currentTimeButtonText: { color: '#fff', fontWeight: '600' },
   diagramControl: { flex: 1, minWidth: 140, gap: 6 },
   diagramPicker: {
     minHeight: 40,
@@ -305,6 +469,20 @@ const styles = StyleSheet.create({
   emptyText: { color: '#64748b', paddingVertical: 12 },
   modalBackdrop: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: 'rgba(0, 0, 0, 0.35)' },
   diagramMenu: { maxHeight: '80%', padding: 16, borderRadius: 12, backgroundColor: '#fff' },
+  timePickerDialog: { width: '100%', maxWidth: 360, alignSelf: 'center', padding: 16, borderRadius: 12, backgroundColor: '#fff' },
+  timePickerColumns: { flexDirection: 'row', gap: 16 },
+  timePickerColumn: { flex: 1, alignItems: 'center' },
+  timePickerColumnLabel: { marginBottom: 6, color: '#475569', fontWeight: '700' },
+  timePickerList: { height: 240, width: '100%' },
+  timePickerOption: { height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 6 },
+  timePickerOptionSelected: { backgroundColor: '#2563eb' },
+  timePickerOptionText: { color: '#0f172a', fontSize: 16 },
+  timePickerOptionTextSelected: { color: '#fff', fontWeight: '700' },
+  timePickerActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 12 },
+  timePickerCancel: { minHeight: 40, justifyContent: 'center', paddingHorizontal: 12 },
+  timePickerCancelText: { color: '#475569', fontWeight: '600' },
+  timePickerConfirm: { minHeight: 40, justifyContent: 'center', paddingHorizontal: 16, borderRadius: 6, backgroundColor: '#2563eb' },
+  timePickerConfirmText: { color: '#fff', fontWeight: '700' },
   menuTitle: { marginBottom: 8, color: '#0f172a', fontWeight: '700' },
   diagramOption: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: '#e2e8f0' },
   diagramOptionSelected: { backgroundColor: '#2563eb' },
