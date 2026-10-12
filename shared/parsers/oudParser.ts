@@ -260,14 +260,15 @@ function addTrainData(
       if (Outer && Outer[1] && word[0]) {
         const _pointStationID = Number((word[0] || '').replace('Operation', '').slice(0, -1));
         const terminal: string = Outer[1];
-        const _pointTimeRaw = Outer[2]?.replace('$', '') || '';
+        const _pointTimeRaw = Outer[2]?.split('$')[0] || '';
+        //const _pointTimeRaw = Outer[2]?.replace('$', '') || '';
         const _terminalStationID = (terminal.split('$')[0] || '').trim();
         //console.log(_terminalStationID)
         const _terminalTimeRaw = terminal.split('$')[1] || '';
 
         const _terminalTime = _terminalTimeRaw ? Time.fromString(_terminalTimeRaw) : null;
         const _pointTime = _pointTimeRaw ? Time.fromString(_pointTimeRaw) : null;
-
+        
         if (line.includes('B=4')) {
           _OuterTerminal.push({
             pointStationID: _pointStationID,
