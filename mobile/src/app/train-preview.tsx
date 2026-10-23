@@ -92,7 +92,7 @@ export default function TrainPreviewScreen() {
                   showsHorizontalScrollIndicator={false}
                 >
                   <View style={[styles.table, { width: tableWidth, borderColor: theme.textSecondary }]}>
-                    {[...displayModel.headerRows.slice(0, 4), ...outerHeaderRows].map((row) => (
+                    {displayModel.headerRows.slice(0, 4).map((row) => (
                       <View key={`sticky-${row.key}`} style={styles.row}>
                         <View style={[styles.stationHeader, styles.headerCell]}>
                           <ThemedText type="smallBold" style={{ color: '#000000' }}>{row.label}</ThemedText>
@@ -113,7 +113,7 @@ export default function TrainPreviewScreen() {
                   </View>
                 </ScrollView>
                 <ThemedView style={[styles.fixedColumn, styles.stickyFixedColumn, { backgroundColor: '#ffffff' }]} pointerEvents="none">
-                  {[...displayModel.headerRows.slice(0, 4), ...outerHeaderRows].map((row) => (
+                  {displayModel.headerRows.slice(0, 4).map((row) => (
                     <View key={`sticky-fixed-${row.key}`} style={[styles.stationHeader, styles.headerCell]}>
                       <ThemedText type="smallBold" style={{ color: '#000000' }}>{row.label}</ThemedText>
                     </View>
@@ -134,6 +134,24 @@ export default function TrainPreviewScreen() {
                 }}
               >
                 <View style={[styles.table, { width: tableWidth, borderColor: theme.textSecondary }]}>
+                  {outerHeaderRows.map((row) => (
+                    <View key={row.key} style={styles.row}>
+                      <View style={[styles.stationHeader, styles.headerCell]}>
+                        <ThemedText type="smallBold" style={{ color: '#000000' }}>{row.label}</ThemedText>
+                      </View>
+                      {row.values.map((cell) => (
+                        <View key={`${row.key}-${cell.trainKey}`} style={[styles.trainCell, styles.headerCell]}>
+                          <ThemedText
+                            type="small"
+                            style={[styles.trainText, { color: toOudDisplayColor(displayModel.columns.find((column) => column.key === cell.trainKey)?.typeColor ?? '') || undefined }]}
+                            numberOfLines={1}
+                          >
+                            {cell.value}
+                          </ThemedText>
+                        </View>
+                      ))}
+                    </View>
+                  ))}
                   {displayModel.headerRows.slice(0, 0).map((row) => (
                     <View key={row.key} style={styles.row}>
                       <View style={[styles.stationHeader, styles.headerCell]}>
@@ -188,6 +206,11 @@ export default function TrainPreviewScreen() {
                 </View>
               </ScrollView>
               <ThemedView style={[styles.fixedColumn, { backgroundColor: '#ffffff' }]} pointerEvents="none">
+                {outerHeaderRows.map((row) => (
+                  <View key={`fixed-${row.key}`} style={[styles.stationHeader, styles.headerCell, styles.fixedOuterRow]}>
+                    <ThemedText type="smallBold" style={{ color: '#000000' }}>{row.label}</ThemedText>
+                  </View>
+                ))}
                 {displayModel.headerRows.slice(0, 0).map((row) => (
                   <View key={`fixed-${row.key}`} style={[styles.stationHeader, styles.headerCell]}>
                     <ThemedText type="smallBold" style={{ color: '#000000' }}>{row.label}</ThemedText>
@@ -217,7 +240,7 @@ export default function TrainPreviewScreen() {
                   </View>
                 ))}
                 {[...displayModel.headerRows.slice(2, 2), ...outerFooterRows].map((row) => (
-                  <View key={`fixed-${row.key}`} style={[styles.stationHeader, styles.headerCell]}>
+                  <View key={`fixed-${row.key}`} style={[styles.stationHeader, styles.headerCell, styles.fixedOuterRow]}>
                     <ThemedText type="smallBold" style={{ color: '#000000' }}>{row.label}</ThemedText>
                   </View>
                 ))}
@@ -246,6 +269,7 @@ const styles = StyleSheet.create({
   tableViewport: { width: '100%', position: 'relative' },
   fixedColumn: { position: 'absolute', left: 0, top: 0, zIndex: 2, elevation: 2 },
   stickyFixedColumn: { top: 0, zIndex: 4 },
+  fixedOuterRow: { height: 20 },
   row: { flexDirection: 'row' },
   stationHeader: {color: '#000000', width: STATION_COLUMN_WIDTH },
   trainHeader: { width: TRAIN_COLUMN_WIDTH },
