@@ -1,10 +1,18 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
+import { Directory, File, Paths } from 'expo-file-system';
 
 import { parseOud } from '@shared/parsers/oudParser';
 import type { OudData } from '@shared/types/timetable';
 
 const OUD_FILE_EXTENSIONS = ['.oud', '.oud2'];
+const PERSISTED_DIRECTORY_NAME = 'last-opened-oud';
+const PERSISTED_FILE_NAME = 'last-opened-file';
+const PERSISTED_METADATA_FILE_NAME = 'last-opened-metadata.json';
+
+type PersistedFileMetadata = {
+  fileName: string;
+};
 
 type OudDataContextValue = {
   fileName: string;
@@ -49,11 +57,86 @@ async function readOudFileContent(uri: string): Promise<string> {
   return utf8Text;
 }
 
+function getPersistedDirectory(): Directory {
+  return new Directory(Paths.document, PERSISTED_DIRECTORY_NAME);
+}
+
+async function saveLastOpenedFile(uri: string, fileName: string): Promise<void> {
+  const directory = getPersistedDirectory();
+  directory.create({ intermediates: true, idempotent: true });
+
+  const persistedFile = new File(directory, PERSISTED_FILE_NAME);
+  await new File(uri).copy(persistedFile, { overwrite: true });
+
+  const metadataFile = new File(directory, PERSISTED_METADATA_FILE_NAME);
+  metadataFile.create({ overwrite: true });
+  metadataFile.write(JSON.stringify({ fileName } satisfies PersistedFileMetadata));
+}
+
+async function getLastOpenedFile(): Promise<{ file: File; fileName: string } | null> {
+  const directory = getPersistedDirectory();
+  const metadataFile = new File(directory, PERSISTED_METADATA_FILE_NAME);
+  if (!metadataFile.exists) {
+    return null;
+  }
+
+  const metadata: unknown = JSON.parse(await metadataFile.text());
+  if (
+    typeof metadata !== 'object'
+    || metadata === null
+    || !('fileName' in metadata)
+    || typeof metadata.fileName !== 'string'
+    || !isAllowedOudFile(metadata.fileName)
+  ) {
+    throw new Error('前回開いたファイルの保存情報が不正です。');
+  }
+
+  const file = new File(directory, PERSISTED_FILE_NAME);
+  if (!file.exists) {
+    throw new Error('前回開いたファイルが端末内に見つかりません。');
+  }
+
+  return { file, fileName: metadata.fileName };
+}
+
 export function OudDataProvider({ children }: { children: ReactNode }) {
   const [fileName, setFileName] = useState('未選択');
   const [parsedData, setParsedData] = useState<OudData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const restoreLastOpenedFile = async () => {
+      setIsLoading(true);
+      try {
+        const savedFile = await getLastOpenedFile();
+        if (!savedFile) {
+          return;
+        }
+
+        const text = await readOudFileContent(savedFile.file.uri);
+        const data = parseOud(text, savedFile.fileName);
+        if (isMounted) {
+          setFileName(savedFile.fileName);
+          setParsedData(data);
+          setError(null);
+        }
+      } catch {
+        // Restoring the previous file is optional; keep the app available without it.
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void restoreLastOpenedFile();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const openFile = async () => {
     try {
@@ -80,7 +163,14 @@ export function OudDataProvider({ children }: { children: ReactNode }) {
 
       setIsLoading(true);
       const text = await readOudFileContent(asset.uri);
-      setParsedData(parseOud(text, pickedName));
+      const data = parseOud(text, pickedName);
+      setParsedData(data);
+
+      try {
+        await saveLastOpenedFile(asset.uri, pickedName);
+      } catch {
+        // Persistence is best-effort; the file remains usable for this session.
+      }
     } catch (error) {
       console.error('OUD2 file read failed:', error);
       setError('ファイルを読み込めませんでした。OUD/OUD2 ファイル (.oud, .oud2) を選んでください。');
