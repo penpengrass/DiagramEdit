@@ -1,5 +1,14 @@
 import { Fragment, useMemo, useRef, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+  type ScrollViewInstance,
+} from 'react-native';
 
 import type { Diagrams, Station, TrainData, TrainType } from '@shared/types/timetable';
 import {
@@ -62,10 +71,10 @@ function DiagramLine({ segment, color, scale, selected }: { segment: DiagramLine
 
 export function DiagramView({ kudariTrains, noboriTrains, stations, trainTypes, diagrams, kitenJikoku = 0 }: Props) {
   const { height: windowHeight } = useWindowDimensions();
-  const headerScrollRef = useRef<ScrollView>(null);
-  const plotHorizontalScrollRef = useRef<ScrollView>(null);
-  const stationVerticalScrollRef = useRef<ScrollView>(null);
-  const plotVerticalScrollRef = useRef<ScrollView>(null);
+  const headerScrollRef = useRef<ScrollViewInstance>(null);
+  const plotHorizontalScrollRef = useRef<ScrollViewInstance>(null);
+  const stationVerticalScrollRef = useRef<ScrollViewInstance>(null);
+  const plotVerticalScrollRef = useRef<ScrollViewInstance>(null);
   const horizontalOffsetRef = useRef(0);
   const verticalOffsetRef = useRef(0);
   const [displayMode, setDisplayMode] = useState<DiagramDisplayMode>('both');

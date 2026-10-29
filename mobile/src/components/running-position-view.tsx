@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   View,
+  type ScrollViewInstance,
 } from 'react-native';
 
 import type { Diagrams, Station, TrainData, TrainType } from '@shared/types/timetable';
@@ -67,8 +68,8 @@ export function RunningPositionView({
   const [selectedDiagram, setSelectedDiagram] = useState('1');
   const [isDiagramMenuOpen, setIsDiagramMenuOpen] = useState(false);
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
-  const hourScrollRef = useRef<ScrollView>(null);
-  const minuteScrollRef = useRef<ScrollView>(null);
+  const hourScrollRef = useRef<ScrollViewInstance>(null);
+  const minuteScrollRef = useRef<ScrollViewInstance>(null);
   const layout = useMemo(() => getRunningPositionLayout(stations), [stations]);
   const diagramOptions = useMemo(() => getDiagramSelectionOptions(diagrams), [diagrams]);
   const selectedKudariTrains = useMemo(

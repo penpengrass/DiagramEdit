@@ -1,4 +1,4 @@
-import { Animated, Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Animated, Modal, Pressable, StyleSheet, View, useWindowDimensions, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/use-theme';
@@ -59,8 +59,8 @@ function VirtualTimetableGrid({
   }, []);
   const directionIndex = direction === 'down' ? 0 : 1;
   const columns = useMemo(() => trains.map((train) => getOudTrainHeaderDisplay(train, trainTypes, stations)), [stations, trainTypes, trains]);
-  const headerRows = useMemo(() => [
-    ...getOudHeaderRows(columns).slice(0, 4),
+  const fixedHeaderRows = useMemo(() => getOudHeaderRows(columns).slice(0, 4), [columns]);
+  const outerDepartureRows = useMemo(() => [
     { key: 'outerDepartureStation', label: '始発', values: columns.map((column) => ({ trainKey: column.key, value: column.outerDeparture.name })) },
     { key: 'outerDepartureTime', label: '時刻', values: columns.map((column) => ({ trainKey: column.key, value: column.outerDeparture.time })) },
   ], [columns]);
@@ -104,7 +104,10 @@ function VirtualTimetableGrid({
   }, [columns.length, viewportWidth]);
   const horizontalScrollHandler = useMemo(() => Animated.event(
     [{ nativeEvent: { contentOffset: { x: horizontalOffset } } }],
-    { useNativeDriver: true, listener: (event) => onHorizontalScroll(event.nativeEvent.contentOffset.x) },
+    {
+      useNativeDriver: true,
+      listener: (event: NativeSyntheticEvent<NativeScrollEvent>) => onHorizontalScroll(event.nativeEvent.contentOffset.x),
+    },
   ), [horizontalOffset, onHorizontalScroll]);
   const verticalScrollHandler = useMemo(() => Animated.event(
     [{ nativeEvent: { contentOffset: { y: verticalOffset } } }],
@@ -156,6 +159,11 @@ function VirtualTimetableGrid({
       <View style={{ width: Math.max(0, trains.length - visibleColumns.end) * TRAIN_COLUMN_WIDTH }} />
     </>
   );
+  const renderOuterDepartureHeader = () => outerDepartureRows.map((row) => (
+    <View key={row.key} style={styles.row}>
+      {renderHeaderCells(row.values)}
+    </View>
+  ));
   const renderFooter = () => footerRows.map((row) => (
     <View key={row.key} style={styles.row}>
       {renderHeaderCells(row.values)}
@@ -167,7 +175,7 @@ function VirtualTimetableGrid({
       <View style={styles.stickyHeaderViewport}>
         <Animated.View style={{ width: tableWidth, transform: [{ translateX: Animated.multiply(horizontalOffset, -1) }] }}>
           <View style={[styles.table, { width: tableWidth, borderColor: theme.textSecondary }]}>
-            {headerRows.map((row) => (
+            {fixedHeaderRows.map((row) => (
               <View key={row.key} style={styles.row}>
                 {renderHeaderCells(row.values)}
               </View>
@@ -175,7 +183,7 @@ function VirtualTimetableGrid({
           </View>
         </Animated.View>
         <ThemedView style={[styles.fixedColumn, styles.stickyFixedColumn, { backgroundColor: '#ffffff' }]} pointerEvents="none">
-          {headerRows.map((row) => (
+          {fixedHeaderRows.map((row) => (
           <View key={`fixed-${row.key}`} style={[styles.stationHeader, styles.headerCell, { height: ROW_HEIGHT }]}>
               <ThemedText type="smallBold" style={{ color: '#000000' }}>{row.label}</ThemedText>
             </View>
@@ -206,6 +214,7 @@ function VirtualTimetableGrid({
               maxToRenderPerBatch={32}
               updateCellsBatchingPeriod={16}
               windowSize={15}
+              ListHeaderComponent={renderOuterDepartureHeader}
               ListFooterComponent={renderFooter}
               onScroll={verticalScrollHandler}
               scrollEventThrottle={16}
@@ -215,6 +224,11 @@ function VirtualTimetableGrid({
         </Animated.ScrollView>
         <ThemedView style={[styles.fixedColumn, { backgroundColor: '#ffffff' }]} pointerEvents="none">
           <Animated.View style={[styles.fixedColumnScroll, { transform: [{ translateY: Animated.multiply(verticalOffset, -1) }] }]}>
+            {outerDepartureRows.map((row) => (
+              <View key={`fixed-${row.key}`} style={[styles.stationHeader, styles.headerCell, { height: ROW_HEIGHT }]}>
+                <ThemedText type="smallBold" style={{ color: '#000000' }}>{row.label}</ThemedText>
+              </View>
+            ))}
             {rows.filter((row) => row.isFirstStationRow).map((row) => (
               <View key={`fixed-${row.key}`} style={[styles.stationHeader, styles.bodyCell, styles.mergedStationCell, { height: row.stationRowSpan * ROW_HEIGHT }, row.isFirstBranchRow && row.branchBorderPosition && getBranchLineStyle(row.branchBorderPosition)]}>
                 <ThemedText type="smallBold" style={{ color: '#000000' }} numberOfLines={1}>{row.station.name}</ThemedText>
@@ -254,7 +268,6 @@ export default function TrainPreviewScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.content}>
-          <ThemedText type="title">時刻表</ThemedText>
           <View style={styles.directionControl}>
             <Pressable style={[styles.directionButton, { backgroundColor: theme.backgroundSelected }]} onPress={() => setIsDiagramMenuOpen(true)} disabled={!parsedData || diagrams.length <= 1}>
               <ThemedText style={styles.directionButtonText}>{selectedDiagram?.name ?? `ダイヤ${selectedDia}`} ▼</ThemedText>

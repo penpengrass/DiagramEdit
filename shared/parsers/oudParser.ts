@@ -472,19 +472,6 @@ export function parseOud(content: string, fileName: string): OudData {
       countTrain = 0;
     }
   }
-  console.log(
-    'OuterTerminal master:',
-    stations.map((station) => ({
-      stationId: station.id,
-      stationName: station.name,
-      terminals: station.OuterTerminal.map((terminal) => ({
-        id: terminal.id,
-        name: terminal.name,
-        jikoku: terminal.jikoku,
-        diaryaku: terminal.diaryaku,
-      })),
-    }))
-  );
   const headers = lines[0]?.split(",") || [];
   const rows = lines.slice(1).map((line: string) => line.split(","));
 

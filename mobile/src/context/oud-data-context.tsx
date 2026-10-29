@@ -57,6 +57,13 @@ async function readOudFileContent(uri: string): Promise<string> {
   return utf8Text;
 }
 
+async function parseAfterUiUpdate(text: string, fileName: string): Promise<OudData> {
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, 0);
+  });
+  return parseOud(text, fileName);
+}
+
 function getPersistedDirectory(): Directory {
   return new Directory(Paths.document, PERSISTED_DIRECTORY_NAME);
 }
@@ -117,7 +124,7 @@ export function OudDataProvider({ children }: { children: ReactNode }) {
         }
 
         const text = await readOudFileContent(savedFile.file.uri);
-        const data = parseOud(text, savedFile.fileName);
+        const data = await parseAfterUiUpdate(text, savedFile.fileName);
         if (isMounted) {
           setFileName(savedFile.fileName);
           setParsedData(data);
@@ -163,14 +170,12 @@ export function OudDataProvider({ children }: { children: ReactNode }) {
 
       setIsLoading(true);
       const text = await readOudFileContent(asset.uri);
-      const data = parseOud(text, pickedName);
+      const data = await parseAfterUiUpdate(text, pickedName);
       setParsedData(data);
 
-      try {
-        await saveLastOpenedFile(asset.uri, pickedName);
-      } catch {
+      void saveLastOpenedFile(asset.uri, pickedName).catch(() => {
         // Persistence is best-effort; the file remains usable for this session.
-      }
+      });
     } catch (error) {
       console.error('OUD2 file read failed:', error);
       setError('ファイルを読み込めませんでした。OUD/OUD2 ファイル (.oud, .oud2) を選んでください。');
