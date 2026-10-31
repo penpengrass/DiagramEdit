@@ -323,6 +323,7 @@ const styles = StyleSheet.create({
   fixedColumnScroll: { position: 'absolute', left: 0, top: 0 },
   fixedColumn: { position: 'absolute', left: 0, top: 0, bottom: 0, width: STATION_COLUMN_WIDTH, zIndex: 2, elevation: 2 },
   stickyFixedColumn: { top: 0, zIndex: 4 },
+  fixedOuterRow: { height: 20 },
   row: { flexDirection: 'row' },
   stationHeader: {color: '#000000', width: STATION_COLUMN_WIDTH },
   trainHeader: { width: TRAIN_COLUMN_WIDTH },
